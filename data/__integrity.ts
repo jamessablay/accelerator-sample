@@ -97,14 +97,26 @@ export function runIntegrityChecks(): void {
 
   // 3. Any emblem declared in SEGMENT_IMAGES must match a real categoryData
   //    title byte for byte, or it silently never renders.
-  //
-  //    Checked in this direction only. SEGMENT_IMAGES is intentionally empty for
-  //    Lyka (no emblem artwork exists), so asserting the reverse would warn on
-  //    all five segments every page load and train people to ignore this output.
   const categoryTitles = new Set(Object.values(categoryData).map(c => c.title));
   for (const title of imageKeys) {
     if (!categoryTitles.has(title)) {
       fail(`SEGMENT_IMAGES key "${title}" matches no categoryData title. That emblem will silently never render. Titles must match byte for byte, parenthetical share included.`);
+    }
+  }
+
+  //    THE REVERSE DIRECTION IS NOW WORTH CHECKING, and was not before. While the
+  //    map was empty it would have fired on all five segments every page load,
+  //    which trains people to ignore this output. Four stages now carry an
+  //    emblem, so a stage WITHOUT one is a signal rather than noise: most likely
+  //    a rename that broke the byte for byte key, which otherwise looks identical
+  //    to "no art was supplied".
+  //
+  //    The centre disc is excluded by name. It is the whole market, not a stage,
+  //    and it has no emblem on purpose.
+  const EMBLEM_EXEMPT = new Set(['Australian Dog Owners']);
+  for (const title of categoryTitles) {
+    if (!EMBLEM_EXEMPT.has(title) && !imageKeys.has(title)) {
+      warn(`categoryData title "${title}" has no SEGMENT_IMAGES emblem. If art exists for it, the key has drifted; keys must match byte for byte.`);
     }
   }
 
@@ -152,8 +164,9 @@ export function runIntegrityChecks(): void {
       .catch(() => report(`asset ${url} could not be fetched.`));
   };
 
-  // Emblems: warn rather than error. SEGMENT_IMAGES is empty by design, so this
-  // loop is a no-op today; a missing emblem degrades gracefully if any are added.
+  // Emblems: warn rather than error. Four now exist, one per readiness stage,
+  // and a missing file degrades to the panel without an image rather than to a
+  // broken layout, so this stays a warning.
   const emblems = new Set(Object.values(SEGMENT_IMAGES).filter(Boolean));
   for (const url of emblems) checkAsset(url, warn);
 

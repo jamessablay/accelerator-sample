@@ -25,17 +25,26 @@ interface CategoryDetailProps {
 /**
  * Optional emblem image per segment, keyed by `category.title`.
  *
- * DELIBERATELY EMPTY. Hamilton Island had five illustrated travel emblems here;
- * no Lyka equivalents exist, and shipping the travel ones on a Lyka deck is not
- * an option. Rather than fall back to a decorative icon, the panel below leads
- * with the segment's two real share figures, which say more than an emblem would.
+ * POPULATED 2026-08-04, one emblem per readiness stage. It was empty from the
+ * conversion until then: Hamilton Island's five illustrated travel emblems could
+ * not ship on a Lyka deck, and rather than fall back to a decorative icon the
+ * panel led with the two real share figures.
  *
- * If Lyka emblems are ever produced: drop the PNGs into public/snapshot_emblems/
- * and add one entry per segment here. Keys must equal `categoryData[k].title`
- * BYTE FOR BYTE, parenthetical share included, or the image silently does not
- * render. data/__integrity.ts asserts that join and warns on a mismatch.
+ * KEYS MUST EQUAL `categoryData[k].title` BYTE FOR BYTE, parenthetical share
+ * included, or the image silently does not render. That is why the ugly
+ * `(49%)` is in the key. data/__integrity.ts asserts the join both ways.
+ *
+ * **The centre disc has no emblem, deliberately.** Four were supplied, one per
+ * stage; "Australian Dog Owners" is the whole market rather than a stage, and
+ * inventing one for it would mean either reusing a stage's art, which would say
+ * something false, or generating art nobody briefed.
  */
-export const SEGMENT_IMAGES: Record<string, string> = {};
+export const SEGMENT_IMAGES: Record<string, string> = {
+  'Unaware / Unconvinced (49%)': '/snapshot_emblems/unaware.png',
+  'Curious (25%)': '/snapshot_emblems/curious.png',
+  'Considering (15%)': '/snapshot_emblems/considering.png',
+  'Ready (11%)': '/snapshot_emblems/ready.png',
+};
 
 /** Resolve the segment key from its title, so the panel can colour-match its wedge. */
 const keyForTitle = (title: string): string =>

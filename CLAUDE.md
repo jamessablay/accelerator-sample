@@ -370,7 +370,15 @@ Structure: a **stage band coloured to match its wedge on the wheel** (so the pan
 
 **It also carries "Personas in this stage", and that is navigation, not decoration.** The wide views open their panel as a FULL OVERLAY, so the chart behind it is covered and cannot be clicked. A stage band is the biggest target in the Ladder and the largest circle in the Flow, so it is what gets clicked first, and without this row the only way on to a persona was to close the panel and hunt for a small chip. The reasonable conclusion from that dead end was "the new views have no persona detail". The row sits **above** the snapshot prose: it was first placed under the description, which put it below the fold of this scrolling pane, so it may as well not have existed.
 
-`SEGMENT_IMAGES` is **deliberately empty**. Hamilton had five illustrated travel emblems; no Lyka equivalents exist. Rather than fall back to a decorative icon, the panel leads with the real figures. If Lyka emblems are ever produced, drop the PNGs into `public/snapshot_emblems/` and add one entry per segment. Keys must equal `categoryData[k].title` **byte for byte, parenthetical share included**, or the image silently never renders.
+`SEGMENT_IMAGES` was deliberately empty until **2026-08-04**, when four Lyka emblems landed, one per readiness stage. They render centred above the Snapshot label, which is **Hamilton Island's own placement** for the same asset, and they work unmodified for the same reason Hamilton's do: **the card behind them is white.** All four are 1024x1024 black line art on a WHITE background with no alpha, so on any other surface they would show as a white square. That constrains where else they can go without processing.
+
+Keys must equal `categoryData[k].title` **byte for byte, parenthetical share included**, or the image silently never renders. That is why `(49%)` is in the key.
+
+**The centre disc has no emblem, on purpose.** Four were supplied, one per stage; "Australian Dog Owners" is the whole market rather than a stage, so it would need either a stage's art reused, which would say something false, or art nobody briefed.
+
+**All three views get this for free**, because the wheel, the ladder and the flow all open the same `CategoryDetail`. Verified from each of them, for all four stages.
+
+`data/__integrity.ts` now checks the join **in both directions**, which it could not before: while the map was empty the reverse check would have warned on all five segments every load and trained people to ignore the output. With four stages carrying art, a stage without one is a signal, most likely a rename that broke a byte for byte key. The centre disc is exempted by name.
 
 `data/__integrity.ts` asserts that join in one direction only: every declared `SEGMENT_IMAGES` key must match a real title. It does not warn about titles lacking an emblem, because with the map empty that would fire on all five segments every page load and train people to ignore the output.
 
@@ -685,11 +693,15 @@ lyka-accelerator/
     │   ├── conflicted-troubleshooters.mp4       filename and NOT in personasData.
     │   ├── disciplined-outsourcers.mp4          All 1080x1920 h264, 8s, 24fps.
     │   └── secure-sleepwalkers.mp4
-    └── (no snapshot_emblems/)
-        REMOVED with the audience-model pass, along with the 20 Hamilton films
-        (55 MB) that used to sit in personaVideos/. SEGMENT_IMAGES is still empty,
-        so all 5 travel emblems were unreferenced. Verified with a bidirectional
-        asset check before deleting.
+    └── snapshot_emblems/                4 Lyka stage emblems, 1 MB. Added 2026-08-04.
+        ├── unaware.png                  Keyed by categoryData title, parenthetical
+        ├── curious.png                  share included, in CategoryDetail's
+        ├── considering.png              SEGMENT_IMAGES. 1024px line art on WHITE,
+        └── ready.png                    no alpha. No emblem for the centre disc.
+
+        Hamilton's 5 TRAVEL emblems and its 20 persona films (55 MB) were removed
+        with the audience-model pass, when nothing referenced them. Both folders
+        are now Lyka's own.
 ```
 
 `public/` went 120 MB (Hamilton) to 78 MB (shell pass) to 22 MB (audience pass) to **71 MB** once the Lyka films landed. Two thirds of that is now persona film and most of the rest is media-plan creative, which is still Hamilton's.
