@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- The SPEED favicon, deliberately kept rather than swapped for a Lyka mark.
+         It is byte-identical across the Lyka RFI, the Lyka Showcase and the
+         Hamilton Island decks, so it is the SPEED house tab icon, not a client
+         asset. (The declared type was image/svg+xml on a .png; corrected.) -->
+    <link rel="icon" type="image/png" href="/icons/tab_icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lyka Audience Accelerator | SPEED</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Poppins (display) + DM Sans 300..700 (body) + DM Mono (labels). Matches
+         RFI - Lyka. DM Sans 300 is required: the Lyka system uses 300 on dark. -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Tailwind is CDN-only here (no tailwind.config.js), so this inline config
+      // is the only way to get real Lyka utilities (bg-lyka-cream, text-lyka-ink).
+      // MUST come after the CDN script above.
+      // MUST use theme.extend.colors: theme.colors would REPLACE the default
+      // palette and break every text-gray-* / bg-white in the app.
+      // Do NOT add fontFamily.display here: it would generate a .font-display
+      // utility that races the hand-written rule in the <style> block below.
+      tailwind.config = {
+        theme: {
+          extend: {
+            // MIRRORS the TYPE object in data/type.ts. Change both together.
+            // Eight steps, replacing the ~18 ad hoc sizes that were in use
+            // across the variant views. `micro` is the only step under 12px and
+            // is for UPPERCASE MONO EYEBROWS ONLY.
+            fontSize: {
+              micro: ['11px', { lineHeight: '1.35' }],
+              meta: ['12px', { lineHeight: '1.4' }],
+              label: ['13px', { lineHeight: '1.4' }],
+              body: ['14px', { lineHeight: '1.5' }],
+              lead: ['16px', { lineHeight: '1.55' }],
+              title: ['18px', { lineHeight: '1.3' }],
+              figure: ['24px', { lineHeight: '1' }],
+              display: ['30px', { lineHeight: '1.15' }],
+            },
+            colors: {
+              lyka: {
+                'teal-deep': '#003D33',
+                teal: '#005648',
+                ink: '#143C33',
+                accent: '#10B193',
+                'accent-ink': '#0A7D68',
+                orange: '#FF886B',
+                tangerine: '#F68B1F',
+                peach: '#FEE9DA',
+                page: '#FFFBED',
+                ivory: '#F9F6F1',
+                cream: '#F0F2E9',
+                mint: '#DBE6DC',
+                'mint-muted': '#A9C3B4',
+                muted: '#5B6E64',
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      /* ---------------------------------------------------------------------
+         LYKA x SPEED brand tokens.
+         This block MIRRORS the LYKA object in data/brand.ts. Change both together.
+         brand.ts is the source of truth for anything a chart or the Worker reads;
+         these vars are for inline style={{ }} in components (Tailwind CDN cannot
+         reach custom properties as utilities).
+         --------------------------------------------------------------------- */
+      :root {
+        --lyka-teal-deep: #003D33;
+        --lyka-teal: #005648;
+        --lyka-ink: #143C33;
+        --lyka-accent: #10B193;
+        --lyka-accent-ink: #0A7D68;
+        --lyka-orange: #FF886B;
+        --lyka-tangerine: #F68B1F;
+        --lyka-peach: #FEE9DA;
+        --lyka-page: #FFFBED;
+        --lyka-ivory: #F9F6F1;
+        --lyka-cream: #F0F2E9;
+        --lyka-mint: #DBE6DC;
+        --lyka-mint-muted: #A9C3B4;
+        --lyka-muted: #5B6E64;
+        --lyka-border: rgba(0, 86, 72, 0.08);
+        --lyka-shadow: 0 18px 40px -16px rgba(0, 86, 72, 0.22);
+        --lyka-ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+        /* SPEED brand mark. Reserved for the SPEED wordmark only. */
+        --speed-red: #E8151B;
+      }
+
+      html, body {
+        font-family: 'DM Sans', system-ui, sans-serif;
+        color: var(--lyka-ink);
+        background: var(--lyka-page);
+      }
+      h1, h2, h3, h4, h5, h6, .font-display {
+        font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+        letter-spacing: -0.015em;
+      }
+      .font-mono, code, pre {
+        font-family: 'DM Mono', monospace;
+      }
+      /* Lyka uses ONE easing curve for everything. This puts the whole app on it
+         without touching the ~15 scattered ease-in-out utilities. */
+      *, *::before, *::after {
+        transition-timing-function: var(--lyka-ease);
+      }
+
+      /* ---------------------------------------------------------------------
+         Page entry animation.
+         Lives here rather than in a component. It used to be created by
+         document.createElement('style') at MODULE SCOPE in both Personas.tsx and
+         CustomerJourney.tsx, injecting the identical rule twice as a side effect
+         of importing a page. Any component using .animate-fadeIn was silently
+         depending on one of those two imports having run.
+         --------------------------------------------------------------------- */
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      .animate-fadeIn {
+        animation: fadeIn 0.5s ease-in-out forwards;
+      }
+
+      /* ---------------------------------------------------------------------
+         Scrollbar for the detail panels.
+         .custom-scrollbar was already applied in PersonaDetail and CategoryDetail
+         but was never defined anywhere, so it was inert. Defined now because the
+         new views scroll considerably more.
+         --------------------------------------------------------------------- */
+      .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: var(--lyka-mint) transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: var(--lyka-mint);
+        border-radius: 999px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background-color: var(--lyka-mint-muted);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .animate-fadeIn { animation: none; }
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

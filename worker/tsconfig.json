@@ -1,0 +1,18 @@
+{
+	// Separate from the app tsconfig: the Worker runs on workerd, not in the
+	// browser, so it must NOT pull in the DOM lib or @types/node. Mixing those
+	// with @cloudflare/workers-types produces duplicate Request/Response types.
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"lib": ["ES2022"],
+		"types": ["@cloudflare/workers-types"],
+		"strict": true,
+		"skipLibCheck": true,
+		"isolatedModules": true,
+		"moduleDetection": "force",
+		"noEmit": true
+	},
+	"include": ["index.ts"]
+}
