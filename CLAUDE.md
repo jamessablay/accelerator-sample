@@ -292,12 +292,12 @@ All data lives in flat TypeScript files under `data/`. There is no database, no 
 | [data/personaMedia.ts](data/personaMedia.ts) | **The persona films, joined by persona id.** Deliberately NOT in `personasData.ts`, which is generated. `PERSONA_VIDEOS` plus `personaVideo()`. Both directions of the join are asserted in dev. |
 | [data/audienceModel.ts](data/audienceModel.ts) | **Derived, no new facts.** THE ONLY PLACE THAT PARSES A `"22%"` STRING. `stageMetrics`, `personaMetrics`, `conversionIndex`, `GAPS`, `TOTAL_DOG_OWNERS`. See "The derived model" below. |
 | [data/journeyMeta.ts](data/journeyMeta.ts) | Top-level copy per journey, moved out of the page component. Joins to a persona by `personaId` and restates nothing else. |
-| [data/journeyModel.ts](data/journeyModel.ts) | Derived journey metrics plus the canonical score-string parsers, moved out of `JourneyScoreGraph`. |
+| [data/journeyModel.ts](data/journeyModel.ts) | Derived journey metrics plus the canonical score-string parsers, moved out of `JourneyScoreGraph`. Also `GAP_DOMAIN` and the two cross-journey findings the gap matrix states on screen, `findUniversalStageShift` and `findLevelCells`, **derived at runtime so a revised study cannot leave a false sentence up**. |
 | [data/categoryData.ts](data/categoryData.ts) | **Real Lyka.** 5 entries: the centre disc plus the 4 readiness stages. Each `title` carries its market share, e.g. `"Considering (15%)"`. Adds `marketShare`, `customerShare` and `movement`; the 7 legacy list fields render nowhere and are empty. |
 | [data/journeyDetailsData.ts](data/journeyDetailsData.ts) | **Real Lyka.** 5 personas × 1 `MACRO_JOURNEY` × 5 Transtheoretical stages. Generated from the source deck by a cell-level table parse. Per-stage: `doingThinking`, `painPoints`, `influences`, `momentsToWin`, `emotionalScore`, `rationalScore`, `duration`, `definition`, and `coreQuestion` on Action only. Bullet fields are semicolon delimited; scores carry an en dash. **Not pure data:** imports React and five icon components. |
 | [data/tenThingsData.ts](data/tenThingsData.ts) | **Real Lyka.** The ten findings: copy, published numbers tables, and the `chart` join key. No React. |
 | [data/tenThingsSeries.ts](data/tenThingsSeries.ts) | **Real Lyka.** Every number a Ten Things chart plots. Separate from the copy on purpose; see below. |
-| [data/brand.ts](data/brand.ts) | **The single source of truth for colour.** The `LYKA` palette, `SEGMENT_COLORS` + `getSegmentColor()`, `LayerKey` + `LAYER_COLORS`, `TEN_THINGS`, and the `CHART_*` chrome constants. No React, no DOM types, literal hex only. See "Brand and typography". |
+| [data/brand.ts](data/brand.ts) | **The single source of truth for colour.** The `LYKA` palette, `SEGMENT_COLORS` + `getSegmentColor()`, `LayerKey` + `LAYER_COLORS`, `TEN_THINGS`, the **gap ramp** (`gapWash()`, `GAP_SCALE_MAX`, the capped wash bounds and `GAP_RAMP`), and the `CHART_*` chrome constants. No React, no DOM types, literal hex only. See "Brand and typography". |
 | [data/__integrity.ts](data/__integrity.ts) | Dev-only assertions on the data joins `tsc` cannot see. Imported from `index.tsx` behind `import.meta.env.DEV`, so it is tree shaken out of production. |
 | [data/apexData.ts](data/apexData.ts) | **Still Hamilton.** The APEX methodology (SPEED generic, carries over) plus two audience tables whose `heavyPct` / `rmIndex` are an affluent-traveller Roy Morgan pull. See the warning in the header. |
 | [data/mediaPlanData.ts](data/mediaPlanData.ts) | **Still Hamilton.** The FY26 media plan. `MONTHS` (Nov→Oct), `PLAN_LAYERS` (Active Consideration / Research / Book), `ALL_ROWS`, `MONTHLY_TOTALS`, and the budget constants. Each `MediaRow` has `monthly` (12 values), `budget`, optional `detail` (role/strategyLink/comesToLife/metrics), `images`, `captions`, `imageWeights` (per-image flex-grow in the horizontal Examples row), `extraImages` + `extraCaptions` (a **second** Examples row, e.g. the Screens TV mock-ups), and layout flags `provisional`, `pairedImages`, `stackedImages`. Sourced from the briefing workbook's **visible** `Budget Distribution $3.5` + `Media Description` sheets. **BVOD, SVOD and YouTube are merged into one `Screens: BVOD, SVOD and YouTube` row** (summed spend, budget $1,655,000); `Special Format (LG & Samsung)` is renamed `Screens: LG and Samsung TV`. **Budget constants are `MEDIA_TOTAL = 4,850,000` + `PRODUCTION = 150,000` = `TOTAL_BUDGET = 5,000,000`**, matching the row-budget sum (includes the +$10k Research Social Mar/Apr add). |
@@ -519,8 +519,13 @@ gone with it; the check is now that every `personaId` resolves.
 unchanged character for character, but more than one view needs the numbers now
 and a parser inside a component is a duplication waiting to happen.
 
-**Four optional, additive props.** Called with only `stages` the graph renders
-exactly what it always did, which matters because the table is the baseline.
+**Six optional, additive props, in five groups.** Called with only `stages` the
+graph renders exactly what it always did, which matters because the table is the
+baseline. (The doc said four for a while and omitted `compact`, which is the one
+that gates the `svgFont` treatment, so it was the worst one to leave out.)
+- `compact` shortens the frame, drops the legend and the numeric axis labels, and
+  is what switches on the `svgFont` type compensation. `!compact` is the Table
+  baseline and is deliberately left alone.
 - `domain` fixes the y-axis. Pass `SHARED_SCORE_DOMAIN` (0 to 100) whenever more
   than one journey is on screen; the default auto domain rescales per journey and
   makes a peak of 65 look like a peak of 95.
@@ -574,9 +579,11 @@ The source shipped **ten matplotlib PNGs in a green and gold palette**, 3.1MB of
 
 `emphasis` is a list of substrings to bold, so the data file carries no markup and nothing needs `dangerouslySetInnerHTML`. A typo silently no-ops, so that join is asserted too.
 
-### `TEN_THINGS` in brand.ts is a THIRD colour band
+### `TEN_THINGS` in brand.ts is a THIRD colour band, and there are now FOUR
 
 `SEGMENT_COLORS` owns the dark range (the wheel) and `LAYER_COLORS` the light (the media plan). A third page gets its own band rather than borrowing either and inheriting a meaning it does not have.
+
+**The fourth arrived with the gap matrix on 2026-08-04, and it is a different kind of thing: a SCALE, not a set.** `GAP_POSITIVE_HUE` / `GAP_NEGATIVE_HUE` plus `gapWash()` produce a diverging ramp that fills 25 cells. Its two hues are deliberately **not new**: they are the emotional and rational curve colours every journey view already uses, so a reader has already learned the pairing. Its floor is not a stroke rule but a **capped alpha**, for the reason in the gap matrix section: cap the wash and one ink serves every step, rather than flipping ink between adjacent cells.
 
 **Every ratio is stated against the CREAM MAT `#FFFBED`, not white**, because that is what these fills sit on. The rule that matters: **3:1 against the mat is the floor for a STROKE.** `LYKA.accent` is 2.62:1 and `LYKA.tangerine` is 2.35:1, so both are **FILL ONLY**. The instinct to draw point 09's branded share line in `LYKA.accent` would produce a hairline that vanishes. `TEN_THINGS_STROKE_TOKENS` names the four that are safe and `__integrity.ts` asserts the floor, so a future edit cannot quietly promote a fill.
 
@@ -768,7 +775,7 @@ lyka-accelerator/
 │   │                                     (ConversionSlope.tsx was cut 2026-08-04)
 │   ├── journey/
 │   │   ├── JourneyDetailTable.tsx        6-stage stage-by-row table. BASELINE, untouched.
-│   │   ├── JourneyScoreGraph.tsx         Interactive smooth-curve graph. 4 additive props.
+│   │   ├── JourneyScoreGraph.tsx         Interactive smooth-curve graph. 6 additive props.
 │   │   ├── GapBar.tsx                    Diverging bar for one gap. Compare + matrix.
 │   │   └── variants/                     index.ts registry + types.ts contract
 │   │       ├── TableAdapter.tsx          Wraps the table to the shared contract
@@ -850,10 +857,10 @@ No tests, no lint. **`npm run typecheck` runs both configs** and must be used ra
 1. **[data/__integrity.ts](data/__integrity.ts)** runs on every dev page load. Open the console. A clean run logs exactly one line and nothing else:
 
    ```
-   [data integrity] ok. 5 personas, 5 segments, 5 journeys, 3+4 variants, 10 findings, 15 assets queued for check, shares, budgets and published tables balance.
+   [data integrity] ok. 5 personas, 5 segments, 5 journeys, 3+5 variants, 10 findings, 15 assets queued for check, shares, budgets and published tables balance.
    ```
 
-   **The counts in that line are derived, so they move.** `3+4` was `4+4` before the Index view was cut, and `15` was `6` before the persona films and the stage emblems landed. Treat a change in them as expected after adding or removing either; treat any OTHER output as a real problem.
+   **The counts in that line are derived, so they move.** `3+5` was `3+4` before the gap matrix and `4+4` before the Index view was cut, and `15` was `6` before the persona films and the stage emblems landed. Treat a change in them as expected after adding or removing either; treat any OTHER output as a real problem.
 
    It asserts persona categories against `categoryData`, `categoryData` keys against `SEGMENT_COLORS`, `categoryData[k].title` against `SEGMENT_IMAGES` **in both directions**, every `journeyMeta.personaId`, every `PERSONA_VIDEOS` id, every asset path, the media-plan budget invariant, the palette floors (2.7:1 vs white for wedge fills, 4.5:1 pair based for `ink`/`tintInk`), that the derived stage shares sum to 100% and agree with `categoryData`, and that both variant registries have unique ids and a resolvable default.
 
