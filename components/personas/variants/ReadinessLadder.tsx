@@ -150,13 +150,33 @@ const MarketBar: React.FC<BarProps & PersonaVizProps> = ({
               return (
                 <button
                   key={pm.persona.id}
-                  className="min-w-0 rounded px-2 py-1.5 text-left transition-colors focus:outline-none focus-visible:ring-2"
+                  className="persona-chip min-w-0 rounded px-2 py-1.5 text-left focus:outline-none"
                   style={{
                     width: bandWidth(
                       (pm.marketPct / stage.marketPct) * 100,
                       stage.personas.length,
                     ),
-                    backgroundColor: isSelected ? c.base : 'rgba(255,255,255,0.62)',
+                    // THE RESTING FILL IS A CUSTOM PROPERTY, NOT backgroundColor.
+                    // An inline `background-color` outranks any stylesheet rule,
+                    // so .persona-chip:hover could never override it. The ring
+                    // still appeared, because nothing sets box-shadow inline, and
+                    // that is the trap: hover looked like it worked while half of
+                    // it silently did not. Handing both states to the stylesheet
+                    // removes the specificity fight rather than winning it with
+                    // !important. The flow's chips are unaffected: an SVG `fill`
+                    // presentation attribute loses to CSS, which inline style
+                    // does not.
+                    ['--chip-bg' as string]: isSelected ? c.base : 'rgba(255,255,255,0.62)',
+                    // Hover and focus, applied by .persona-chip in index.html.
+                    // Token derived, no new hexes: an unselected chip washes
+                    // further toward white, which can only IMPROVE contrast with
+                    // its dark tintInk, and a selected one lifts base to the
+                    // `hover` token that exists for exactly this. The ring is the
+                    // band's own hover colour, so a chip and its band highlight
+                    // the same way; on a selected chip it flips light, because
+                    // base on hover is two neighbouring darks.
+                    ['--chip-hover-bg' as string]: isSelected ? c.hover : 'rgba(255,255,255,0.95)',
+                    ['--chip-hover-ring' as string]: isSelected ? c.tint : c.base,
                   }}
                   onClick={(e) => {
                     e.stopPropagation();

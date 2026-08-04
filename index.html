@@ -152,6 +152,62 @@
         background-color: var(--lyka-mint-muted);
       }
 
+      /* ---------------------------------------------------------------------
+         Persona chips, in the Readiness Ladder and the Mindset Flow.
+
+         Both were INERT on hover. In the ladder that was actively misleading:
+         the stage band behind the chips highlights with a 2px outline in its own
+         base colour, so hovering a chip lit up the BAND and the chip read as
+         part of it rather than as its own target. In the flow the only
+         affordance was the cursor.
+
+         The treatment is the band's own language, so the two now match: wash the
+         fill toward white and ring it 2px in the segment's base colour.
+
+         WHY CSS AND NOT REACT STATE. A `hoveredId` in state re-renders on every
+         mouseover, and MindsetFlow is a large SVG that recomputes its viewBox
+         from a measured container. Hover has no business in the render path.
+         The per segment colours cannot be Tailwind utilities either, so they
+         arrive as inline custom properties and only the BEHAVIOUR lives here.
+         Same reasoning, and same home, as .custom-scrollbar above.
+         --------------------------------------------------------------------- */
+      /* The RESTING fill is a custom property too, not an inline
+         background-color. Inline style outranks any stylesheet rule, so the
+         hover below could never have overridden it, while the ring, which
+         nothing sets inline, would have worked. Half a hover state, silently. */
+      .persona-chip {
+        cursor: pointer;
+        background-color: var(--chip-bg);
+        transition: background-color 150ms var(--lyka-ease),
+                    box-shadow 150ms var(--lyka-ease);
+      }
+      /* focus-visible shares the rule so a keyboard user gets the same highlight.
+         This replaced a bare Tailwind `focus-visible:ring-2`, which drew the
+         default blue. */
+      .persona-chip:hover,
+      .persona-chip:focus-visible {
+        background-color: var(--chip-hover-bg);
+        box-shadow: inset 0 0 0 2px var(--chip-hover-ring);
+        outline: none;
+      }
+
+      /* The same chip drawn as an SVG rect. box-shadow does not apply to SVG
+         geometry, so the ring is the rect's own stroke. */
+      .persona-chip-svg rect {
+        transition: fill 150ms var(--lyka-ease),
+                    stroke 150ms var(--lyka-ease),
+                    stroke-width 150ms var(--lyka-ease);
+      }
+      .persona-chip-svg:hover rect,
+      .persona-chip-svg:focus-visible rect {
+        fill: var(--chip-hover-bg);
+        stroke: var(--chip-hover-ring);
+        stroke-width: 2;
+      }
+      .persona-chip-svg:focus-visible {
+        outline: none;
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .animate-fadeIn { animation: none; }
         *, *::before, *::after {

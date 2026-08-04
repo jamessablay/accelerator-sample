@@ -975,7 +975,61 @@ Four things here were only findable by rendering, and all four will bite again.
 Also moved in this pass: the `@keyframes fadeIn` block, which two page modules
 were each injecting via `document.createElement` at module scope, and
 `.custom-scrollbar`, which was applied in two panels and had never been defined.
-Both now live in `index.html`, along with a `prefers-reduced-motion` block.
+Both now live in `index.html`, along with a `prefers-reduced-motion` block and,
+since 2026-08-04, `.persona-chip` / `.persona-chip-svg` (see the next section).
+
+### Persona chip hover, 2026-08-04, and the specificity trap in it
+
+The persona chips in the Ladder and the Flow had **no hover state at all**. In the
+Ladder that was actively misleading rather than merely missing: the stage band
+behind them already highlights with a 2px outline in its own `base` colour, so
+hovering a chip lit up the BAND and the chip read as part of it rather than as its
+own target. Both now use that same language: wash the fill toward white, ring it
+2px in the segment's `base`. A selected chip is already dark, so it lifts to the
+`hover` token and takes a light `tint` ring instead.
+
+**No new hexes.** Every value is an existing `SegmentColorSet` token or a change
+of alpha on white, and the unselected hover washes LIGHTER, so contrast with the
+dark `tintInk` can only improve. Nothing needed a new contrast assertion.
+
+**The behaviour is CSS in `index.html`, not React state**, for a specific reason:
+a `hoveredId` in state re-renders on every mouseover, and `MindsetFlow` is a large
+SVG that recomputes its viewBox from a measured container. Hover has no business
+in the render path. The per segment colours cannot be Tailwind utilities either,
+so they arrive as inline custom properties and only the rule is shared.
+
+**THE TRAP, and it half worked in a way that would pass a casual check.** The
+Ladder's chip set `backgroundColor` inline. **Inline style outranks any stylesheet
+rule**, so `.persona-chip:hover { background-color: ... }` never applied, while
+the ring did, because nothing sets `box-shadow` inline. Hover visibly "worked".
+The fix is to hand the RESTING fill to the stylesheet as well, via `--chip-bg`,
+which removes the specificity fight rather than winning it with `!important`.
+**The flow's chips were never affected**: an SVG `fill` presentation attribute
+loses to CSS, which an inline style does not. If you add a third view, know which
+of the two you are writing.
+
+**Two ways I mismeasured this before believing it**, both worth knowing because
+they make a working focus ring look broken:
+
+- **A CDP driven `Tab` does not set `:focus-visible` unless the page has already
+  had a real pointer gesture.** `el.matches(':focus-visible')` returned true while
+  the style engine had not applied the rule. Click neutral chrome first.
+- **A 100ms sample of a 150ms transition reads as an intermediate value**, so the
+  ring came back as `1.39512px` of a 70% alpha colour. This is the same error the
+  type pass recorded for `animate-fadeIn`: wait past the animation before
+  measuring. `CSS.forcePseudoState` over CDP is the way to read the settled value
+  without depending on either.
+
+The Tailwind `focus-visible:ring-2` that was on the Ladder's button is gone: it
+drew the default blue. `:focus-visible` shares the hover rule, so a keyboard user
+now gets the identical segment coloured highlight. Verified at 1440x900 and
+1280x800.
+
+**Not verified, because it is unreachable:** the selected chip's hover branch.
+Closing the persona overlay clears `selectedPersonaId`, and while the overlay is
+open it covers the chart, so a chip is never both selected and hoverable. The
+branch matches the resting `isSelected` styling that was already there and costs
+nothing, but do not read it as tested.
 
 ### From the type legibility pass, 2026-08-03
 

@@ -375,9 +375,18 @@ const MindsetFlow: React.FC<PersonaVizProps> = ({
             return (
               <g
                 key={pm.persona.id}
-                className="cursor-pointer"
+                className="persona-chip-svg cursor-pointer"
                 opacity={dim ? 0.32 : 1}
-                style={{ transition: 'opacity 250ms' }}
+                style={{
+                  transition: 'opacity 250ms',
+                  // Hover, applied by .persona-chip-svg in index.html. Same two
+                  // properties and the same reasoning as the ladder's chips, so
+                  // a persona highlights identically in both views: wash toward
+                  // white, ring in the segment's base colour. A selected chip is
+                  // already dark, so it lifts to `hover` and takes a light ring.
+                  ['--chip-hover-bg' as string]: selected ? c.hover : '#FFFFFF',
+                  ['--chip-hover-ring' as string]: selected ? c.tint : c.base,
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   onSelectPersona(pm.persona);
