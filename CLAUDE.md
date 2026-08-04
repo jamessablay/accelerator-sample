@@ -704,7 +704,7 @@ lyka-accelerator/
         are now Lyka's own.
 ```
 
-`public/` went 120 MB (Hamilton) to 78 MB (shell pass) to 22 MB (audience pass) to **71 MB** once the Lyka films landed. Two thirds of that is now persona film and most of the rest is media-plan creative, which is still Hamilton's.
+`public/` went 120 MB (Hamilton) to 78 MB (shell pass) to 22 MB (audience pass) to **72 MB** once the Lyka films and emblems landed: 47 MB `personaVideos/`, 23 MB `images/`, 1 MB each `icons/` and `snapshot_emblems/`, 192 KB `media-plan/`. **Two thirds is persona film and most of the rest is media-plan creative, which is still Hamilton's**, so the largest single saving available here is not compression, it is a Lyka media brief.
 
 **The films are unoptimised source.** Roughly 13 Mbps for an 8 second clip, and the slot renders them at about 285x507 CSS px, so they are delivered at more than double the resolution they are shown at. Re-encoding to 720x1280 at a sane CRF would cut about 80% with no visible difference in that frame. Not done: it is lossy, the originals are the only copy in the project folder, and nobody asked. Do it before deploying if payload matters, and keep the originals.
 
@@ -727,10 +727,12 @@ No tests, no lint. **`npm run typecheck` runs both configs** and must be used ra
 1. **[data/__integrity.ts](data/__integrity.ts)** runs on every dev page load. Open the console. A clean run logs exactly one line and nothing else:
 
    ```
-   [data integrity] ok. 5 personas, 5 segments, 5 journeys, 4+4 variants, 10 findings, 6 assets queued for check, shares, budgets and published tables balance.
+   [data integrity] ok. 5 personas, 5 segments, 5 journeys, 3+4 variants, 10 findings, 15 assets queued for check, shares, budgets and published tables balance.
    ```
 
-   It asserts persona categories against `categoryData`, `categoryData` keys against `SEGMENT_COLORS`, `categoryData[k].title` against `SEGMENT_IMAGES`, every `journeyMeta.personaId`, every asset path, the media-plan budget invariant, the palette floors (2.7:1 vs white for wedge fills, 4.5:1 pair based for `ink`/`tintInk`), that the derived stage shares sum to 100% and agree with `categoryData`, and that both variant registries have unique ids and a resolvable default.
+   **The counts in that line are derived, so they move.** `3+4` was `4+4` before the Index view was cut, and `15` was `6` before the persona films and the stage emblems landed. Treat a change in them as expected after adding or removing either; treat any OTHER output as a real problem.
+
+   It asserts persona categories against `categoryData`, `categoryData` keys against `SEGMENT_COLORS`, `categoryData[k].title` against `SEGMENT_IMAGES` **in both directions**, every `journeyMeta.personaId`, every `PERSONA_VIDEOS` id, every asset path, the media-plan budget invariant, the palette floors (2.7:1 vs white for wedge fills, 4.5:1 pair based for `ink`/`tintInk`), that the derived stage shares sum to 100% and agree with `categoryData`, and that both variant registries have unique ids and a resolvable default.
 
    For Ten Things it also asserts every `chart` key against `TEN_THINGS_CHARTS`, that the ten ids run `'01'` to `'10'` in order, that every `emphasis` substring is present in its `learn` paragraph (a typo silently no-ops the bolding), the six map assets, **that every plotted series matches its published numbers table** and that point 10's three stated totals are the sums of its arrays, the 3:1 stroke floor on `TEN_THINGS` against the cream mat, and that each `CANVAS_FONT` string's px number equals its named `TYPE` token (`ctx.font` takes a literal string, so `type.ts` cannot be its source and the two would otherwise drift silently).
    **It checks Content-Type, not just `response.ok`.** Vite's dev server answers a missing `public/` path with the SPA fallback: HTTP 200 and `text/html`. A missing image therefore looks fine to `r.ok`, which is why the earlier naive version of this check reported nothing.
@@ -910,7 +912,7 @@ The ten strings that matter are five segment keys and five `title` values. They 
 
 1. `data/brand.ts` `SEGMENT_COLORS`
 2. `data/categoryData.ts` keys and `title` values
-3. `components/personas/CategoryDetail.tsx` `SEGMENT_IMAGES` (currently empty by design)
+3. `components/personas/CategoryDetail.tsx` `SEGMENT_IMAGES` (4 of 5 stages carry an emblem; the keys include the parenthetical share, so a stage rename breaks them)
 4. `data/personasData.ts` every `persona.category`
 5. `components/personas/PersonaCompositionChart.tsx` `CENTRE_KEY` and `STAGE_LAYOUT`
 6. `data/audienceModel.ts` `STAGE_ORDER` and `CENTRE_KEY`
