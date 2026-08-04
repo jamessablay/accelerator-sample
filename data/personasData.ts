@@ -21,10 +21,12 @@
 // personas each get a full 90 degrees. That is why the two Unaware titles are the
 // shortest: they have half the arc to label.
 //
-// `avatar` and `videoUrl` are intentionally EMPTY on every record. No Lyka
-// persona photography or film exists, and reusing Hamilton Island's films would
-// put another client's footage on a Lyka deck. PersonaDetail renders a designed
-// monogram in the segment colour when both are empty.
+// `avatar` and `videoUrl` are still EMPTY on every record, and the persona films
+// that landed on 2026-08-04 did NOT change that. They are joined by persona id in
+// data/personaMedia.ts instead, precisely because this file is generated: a path
+// typed in here is deleted the next time someone follows the instruction above,
+// silently, leaving the slot in its empty state. `videoUrl` remains a valid per
+// record override and personaVideo() prefers it; nothing sets it today.
 // -----------------------------------------------------------------------------
 
 export interface Persona {

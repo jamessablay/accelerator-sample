@@ -26,6 +26,7 @@
 
 import { categoryData } from './categoryData';
 import { personaCategories } from './personasData';
+import { PERSONA_VIDEOS, personaVideo } from './personaMedia';
 import { PLAN_LAYERS, MEDIA_TOTAL } from './mediaPlanData';
 import { SEGMENT_COLORS, TEN_THINGS, TEN_THINGS_STROKE_TOKENS, LYKA } from './brand';
 import { SEGMENT_IMAGES } from '../components/personas/CategoryDetail';
@@ -157,11 +158,31 @@ export function runIntegrityChecks(): void {
   for (const url of emblems) checkAsset(url, warn);
 
   // Persona media: error. These always render, so a miss is a visible break.
+  //
+  // Read through personaVideo(), NOT off p.videoUrl. The films are joined by
+  // persona id in data/personaMedia.ts rather than typed into the generated
+  // personasData.ts, so checking the record's own field would test nothing.
   const personaMedia = new Set(
-    [...personas.map((p) => p.videoUrl), ...personas.map((p) => p.avatar)]
+    [...personas.map(personaVideo), ...personas.map((p) => p.avatar)]
       .filter((s): s is string => typeof s === 'string' && s.length > 0),
   );
   for (const url of personaMedia) checkAsset(url, fail);
+
+  // The id join itself, both directions. A PERSONA_VIDEOS key that matches no
+  // persona renders nothing and reports nothing: the film is simply absent, and
+  // the slot falls back to its "awaiting footage" empty state as though that
+  // were intended. That is the exact silent failure this file exists for.
+  // `personaIds` is the set built for the journeyMeta check above. Same question,
+  // different map: does this id resolve to a persona at all.
+  for (const key of Object.keys(PERSONA_VIDEOS)) {
+    if (!personaIds.has(Number(key))) {
+      fail(`PERSONA_VIDEOS has id ${key}, which matches no persona. That film will never render.`);
+    }
+  }
+  const withoutFilm = personas.filter((p) => !personaVideo(p)).map((p) => p.name);
+  if (withoutFilm.length) {
+    warn(`persona(s) with no film, showing the empty slot: ${withoutFilm.join(', ')}.`);
+  }
   const assets = new Set([...emblems, ...personaMedia]);
 
   // 5. The media plan budget invariant is hand maintained: change one monthly

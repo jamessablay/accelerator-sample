@@ -189,6 +189,7 @@ All data lives in flat TypeScript files under `data/`. There is no database, no 
 | File | What it holds |
 |---|---|
 | [data/personasData.ts](data/personasData.ts) | **Real Lyka.** 5 personas in a single `PersonaType.LYKA_AUDIENCE` bucket, grouped by 4 readiness-stage strings. Generated from the source research document, not hand typed. Exports `personaCategories`. |
+| [data/personaMedia.ts](data/personaMedia.ts) | **The persona films, joined by persona id.** Deliberately NOT in `personasData.ts`, which is generated. `PERSONA_VIDEOS` plus `personaVideo()`. Both directions of the join are asserted in dev. |
 | [data/audienceModel.ts](data/audienceModel.ts) | **Derived, no new facts.** THE ONLY PLACE THAT PARSES A `"22%"` STRING. `stageMetrics`, `personaMetrics`, `conversionIndex`, `GAPS`, `TOTAL_DOG_OWNERS`. See "The derived model" below. |
 | [data/journeyMeta.ts](data/journeyMeta.ts) | Top-level copy per journey, moved out of the page component. Joins to a persona by `personaId` and restates nothing else. |
 | [data/journeyModel.ts](data/journeyModel.ts) | Derived journey metrics plus the canonical score-string parsers, moved out of `JourneyScoreGraph`. |
@@ -230,7 +231,7 @@ interface Persona {
 
 `title` is the wheel label and is shortened from `name` to fit the arc. The two Unaware personas share a quadrant, so they get 45 degree wedges and their titles are abbreviated hardest (`Outsourcers`, `Sleepwalkers`). The full name is shown in the detail panel `<h2>`.
 
-**`avatar` and `videoUrl` are empty on every record and should stay that way** unless real Lyka assets arrive. `PersonaDetail` renders a permanent 9:16 slot whose EMPTY STATE is a designed "awaiting footage" well; populating either field swaps the film in with no layout shift. Filling these with Hamilton Island's films would put another client's footage on a Lyka deck.
+**`avatar` and `videoUrl` are empty on every record and should stay that way**, including now that the films exist. **The five Lyka persona vignettes landed 2026-08-04 and are joined by persona id in [data/personaMedia.ts](data/personaMedia.ts), not typed into this generated file.** A path written into a generated file survives exactly until the next regeneration, and its loss is silent: the slot simply reverts to its empty state. `videoUrl` stays a valid per record override and `personaVideo()` prefers it; nothing sets it. Filling either field with Hamilton Island's films would put another client's footage on a Lyka deck.
 
 **Do not add fields the UI does not render.** That was the main waste in the Hamilton data.
 
@@ -346,6 +347,10 @@ Hamilton tried external labels with leader lines (commit `c1239e4`) and reverted
 [components/personas/PersonaDetail.tsx](components/personas/PersonaDetail.tsx) renders the detail overlay when a persona is clicked. Two columns at the `xl:` breakpoint, unless the host passes `stacked`.
 
 **Left: the persona media slot (`PersonaMediaSlot`). ALWAYS a 9:16 frame, whatever is in it.** Hamilton had a persona film here. This used to be an either/or, a video frame *or* a content-height identity card, and because `avatar` and `videoUrl` are empty on every record by design the frame never rendered at all, so the deck had no reserved place for persona film. The frame is now permanent and the identity content is its **empty state**: a dashed well with a play glyph, "Persona film", "9:16 vignette. Awaiting Lyka footage.", then the stage label, persona name and fit chip, with the two share figures across the foot.
+
+**The film arrived on 2026-08-04 and nothing moved, which was the point.** Five Veo vignettes, one per persona, 1080x1920 h264, 8 seconds, 24fps: native 9:16, exactly the frame. All five personas now resolve a film through `personaVideo()`, so the empty state no longer renders for any current record. **Keep it anyway.** It is what a sixth persona gets, and building it before there was anything to put in it is why this slot was designed once rather than twice.
+
+**The `transform: scale(1.08)` is gone, and that was a real decision, not tidying.** Hamilton Island's vignettes had baked in black side bars and the scale cropped them. `ffmpeg cropdetect` on all five Lyka films reports `crop=1080:1888:0:16`: full width content, no pillarboxing, just 16px of dark image top and bottom out of 1920. Leaving the scale in place would have thrown away roughly 4% of every edge of correctly framed portrait footage, which on a portrait shot is the top of the head. **If a future film does arrive pillarboxed, crop the file, not the container**, or the fix silently damages the other four.
 
 **The empty state has to look like a reserved film slot, not a nice card.** The first attempt kept the monogram card and simply gave it a 9:16 ratio. That was a real container, but it read as a coloured persona card and the first question asked of it was "where is the video container?" A reserved space that does not announce itself is not reserved.
 
@@ -601,6 +606,7 @@ lyka-accelerator/
 │   ├── type.ts                   SINGLE SOURCE OF TRUTH for type size. 8 steps + svgFont().
 │   ├── __integrity.ts            Dev-only assertions on the silent joins + palette pairs
 │   ├── personasData.ts           5 Lyka personas. GENERATED from the research doc.
+│   ├── personaMedia.ts           The 5 films, joined by id. OUTSIDE the generated file.
 │   ├── categoryData.ts           Centre + 4 readiness stages. Real Lyka.
 │   ├── audienceModel.ts          DERIVED. The only place a "22%" string is parsed.
 │   ├── journeyDetailsData.ts     5 persona journeys × 5 stages. GENERATED. Real Lyka.
@@ -673,14 +679,22 @@ lyka-accelerator/
     │   ├── tab_icon.png                 SPEED house favicon. Shared across projects.
     │   └── mass-n12m.png, domestic-intent.png, international-intent.png,
     │       domestic-hnwt.png, international-hnwt.png   Segment avatar fallbacks
-    └── (no personaVideos/ and no snapshot_emblems/)
-        Both folders were REMOVED with the audience-model pass. persona.avatar and
-        persona.videoUrl are empty by design and SEGMENT_IMAGES is empty, so all 20
-        Hamilton films (55 MB) and all 5 travel emblems became unreferenced. Verified
-        with a bidirectional asset check before deleting.
+    ├── personaVideos/                   5 Lyka vignettes, 49 MB. Added 2026-08-04.
+    │   ├── devoted-caterers.mp4                 Joined by persona id in
+    │   ├── mindful-researchers.mp4              data/personaMedia.ts, NOT by
+    │   ├── conflicted-troubleshooters.mp4       filename and NOT in personasData.
+    │   ├── disciplined-outsourcers.mp4          All 1080x1920 h264, 8s, 24fps.
+    │   └── secure-sleepwalkers.mp4
+    └── (no snapshot_emblems/)
+        REMOVED with the audience-model pass, along with the 20 Hamilton films
+        (55 MB) that used to sit in personaVideos/. SEGMENT_IMAGES is still empty,
+        so all 5 travel emblems were unreferenced. Verified with a bidirectional
+        asset check before deleting.
 ```
 
-`public/` went 120 MB (Hamilton) to 78 MB (shell pass) to **22 MB** (audience pass). Nearly all the remainder is media-plan creative, which is still Hamilton's.
+`public/` went 120 MB (Hamilton) to 78 MB (shell pass) to 22 MB (audience pass) to **71 MB** once the Lyka films landed. Two thirds of that is now persona film and most of the rest is media-plan creative, which is still Hamilton's.
+
+**The films are unoptimised source.** Roughly 13 Mbps for an 8 second clip, and the slot renders them at about 285x507 CSS px, so they are delivered at more than double the resolution they are shown at. Re-encoding to 720x1280 at a sane CRF would cut about 80% with no visible difference in that frame. Not done: it is lossy, the originals are the only copy in the project folder, and nobody asked. Do it before deploying if payload matters, and keep the originals.
 
 ## Develop
 
@@ -913,7 +927,7 @@ These come from the workspace-level CLAUDE.md and the user routinely corrects vi
 - **The sunburst has been rebuilt twice.** Xero's 3-ring 20-persona wheel became Hamilton's 4-layer 8-persona wheel in commit `87ce3e1` (which also removed the `sunburstFocus` zoom mode, `RADIUS_CONFIG_ZOOMED`, `getCategorySpan()`, the prefix-strip lookup and the back button). That in turn became Lyka's 3-layer 4-quadrant ladder on 2026-07-31. The geometry lessons from the third rebuild are in "Wiring in the Lyka content model"; the short version is that arc orientation and label width both have to follow the wedge, not a constant.
 - **Persona titles are abbreviations of PDF names**, not the PDF names themselves. `name` carries the canonical "The X" name; `title` is the short wheel label. If you change a `title`, also update the per-persona orientation override map if the persona's wheel angle is near 90° or 270°.
 - **Tailwind is CDN-based.** Arbitrary values like `bg-[#0A7D68]` work. A `tailwind.config.js` file does not exist, but an **inline `tailwind.config`** in `index.html` adds the `lyka-*` colour scale, so `bg-lyka-cream` and `text-lyka-ink` are available. It must stay **after** the CDN script and must use `theme.extend.colors`: `theme.colors` would replace the default palette and break every `text-gray-*` still in the app. Do not add `fontFamily.display` there, it would generate a `.font-display` utility that races the hand-written rule in the `<style>` block.
-- **Persona videos have baked-in black side-bars.** `transform: scale(1.08)` on the `<video>` element in `PersonaDetail.tsx` crops them.
+- **Persona videos USED TO have baked-in black side-bars**, and `transform: scale(1.08)` on the `<video>` element in `PersonaDetail.tsx` cropped them. That was Hamilton Island's footage. The Lyka films are native 1080x1920 with full width content, so the scale was removed when they landed on 2026-08-04. See "Persona detail panel".
 - **The graph emotional/rational lines are smooth, not piecewise linear.** A Catmull-Rom-to-Bezier conversion in `buildSmoothPath()` produces the curve. Tension is 0.5. If you replace stages or scores, the curve recomputes automatically.
 - The `personas-backup/` folder from the Xero source was deleted in the initial commit.
 - **`SEGMENT_IMAGES` in `CategoryDetail.tsx` used to be Xero leftovers.** The original keys were `"Traditional Passive Operators (835k)"`, `"Tech-led Passive Operators (835k)"`, `"Engaged Evaluators (184K)"`, `"Regional Operators (178K)"`, `"Accountants / Bookkeepers = 372k"`, none of which match any Hamilton category, so the snapshot panel silently fell back to the teal `i` icon for **every** segment. Replaced in commit `9ed2d67`. `data/__integrity.ts` now asserts this join so it cannot happen quietly again.

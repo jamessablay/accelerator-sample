@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Persona } from '../../data/personasData';
+import { personaVideo } from '../../data/personaMedia';
 import { getSegmentColor, LYKA } from '../../data/brand';
 import { TRACKING } from '../../data/type';
 
@@ -60,8 +61,12 @@ const DetailSection: React.FC<{ icon: React.ReactNode; title: string; children: 
  *
  * The identity card is the frame's EMPTY STATE rather than an alternative to it:
  * same aspect ratio, same position, same rounded corners, same stage colour.
- * When footage lands, populating `videoUrl` swaps the empty state for the film
- * and nothing else on the page moves.
+ *
+ * **THE FILM LANDED 2026-08-04 AND NOTHING MOVED**, which was the whole point of
+ * building the frame before there was anything to put in it. All five personas
+ * now resolve a video through `personaVideo()`, so the empty state below no
+ * longer renders for any current record. Keep it: it is what a sixth persona
+ * gets, and it is the reason this slot could be designed once rather than twice.
  *
  * THE EMPTY STATE HAS TO LOOK LIKE A RESERVED FILM SLOT. First attempt kept the
  * monogram card and simply made it 9:16, which was a real container but read as
@@ -70,9 +75,9 @@ const DetailSection: React.FC<{ icon: React.ReactNode; title: string; children: 
  * space that does not announce itself is not reserved. Hence the dashed well, the
  * play glyph and the explicit "awaiting footage" line.
  *
- * NO LYKA FOOTAGE EXISTS. `public/personaVideos/` held 20 Hamilton Island films
- * and was deleted during the conversion. Do not fill this with another client's
- * work.
+ * The films are Lyka's own. `public/personaVideos/` previously held 20 Hamilton
+ * Island vignettes and was deleted during the conversion; do not reintroduce
+ * another client's footage here.
  */
 const PersonaMediaSlot: React.FC<{ persona: Persona; stacked?: boolean }> = ({
   persona,
@@ -81,7 +86,10 @@ const PersonaMediaSlot: React.FC<{ persona: Persona; stacked?: boolean }> = ({
   const colors = getSegmentColor(persona.category);
   const initials = persona.name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
   const fit = FIT_STYLES[persona.solutionFit] ?? { bg: LYKA.mint, fg: LYKA.tealDeepest };
-  const hasMedia = !!(persona.videoUrl || persona.avatar);
+  // Resolved, not read off the record: the film lives in data/personaMedia.ts so
+  // regenerating the personas cannot delete it. See that file's header.
+  const videoUrl = personaVideo(persona);
+  const hasMedia = !!(videoUrl || persona.avatar);
 
   return (
     // WIDTH DRIVEN WHEN STACKED, HEIGHT DRIVEN IN TWO COLUMNS. A fixed 9:16 block
@@ -98,17 +106,23 @@ const PersonaMediaSlot: React.FC<{ persona: Persona; stacked?: boolean }> = ({
         boxShadow: LYKA.shadow,
       }}
     >
-      {persona.videoUrl ? (
+      {videoUrl ? (
+        // NO `transform: scale()` HERE, DELIBERATELY. Hamilton Island's vignettes
+        // had baked in black side bars and carried `scale(1.08)` to crop them.
+        // The Lyka films are native 1080x1920 with full width content (verified
+        // with cropdetect), so the same scale would have thrown away about 4% of
+        // every edge of correctly framed portrait footage for no reason. If a
+        // future film arrives pillarboxed, crop the file, not the container.
         <video
-          key={persona.videoUrl}
+          key={videoUrl}
           className="w-full h-full object-cover"
-          // Persona vignettes have baked-in black side bars; the scale crops them.
-          style={{ transform: 'scale(1.08)', transformOrigin: 'center' }}
           autoPlay
           loop
           muted
           playsInline
-          src={persona.videoUrl}
+          // The films are decorative: the panel beside them carries every fact.
+          aria-hidden="true"
+          src={videoUrl}
         />
       ) : persona.avatar ? (
         <img
