@@ -85,14 +85,34 @@ const Modal: React.FC<ModalProps> = ({
     openerRef.current = document.activeElement as HTMLElement | null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    // After the portal has painted, otherwise there is nothing to focus yet.
-    const raf = requestAnimationFrame(() => closeRef.current?.focus());
     return () => {
-      cancelAnimationFrame(raf);
       document.body.style.overflow = previousOverflow;
       openerRef.current?.focus?.();
     };
   }, [isOpen]);
+
+  // MOVING FOCUS IN IS ITS OWN EFFECT, KEYED ON `isMounted`, AND THAT IS THE
+  // WHOLE FIX. It used to sit in the effect above on `[isOpen]` with a single
+  // rAF and the comment "after the portal has painted". It had never worked, in
+  // any consumer.
+  //
+  // The render below is gated on `isMounted`, which a DIFFERENT effect sets in
+  // the same commit. So when `isOpen` flipped, both effects ran while the guard
+  // was still false, the card was not in the DOM, and `closeRef.current` was
+  // null. One frame later the rAF fired against that same null ref and quietly
+  // did nothing. Measured across three consumers before the fix: the Ten Things
+  // tile, the friction strip cell and the gap matrix cell all left focus sitting
+  // on the opener, OUTSIDE the dialog, so Tab walked the page behind it and the
+  // focus trap below had nothing to trap.
+  //
+  // Keyed on `isMounted` the effect runs after the commit that actually rendered
+  // the card, so the ref is set. The rAF is kept because it also defers past the
+  // opening transition.
+  useEffect(() => {
+    if (!isOpen || !isMounted) return;
+    const raf = requestAnimationFrame(() => closeRef.current?.focus());
+    return () => cancelAnimationFrame(raf);
+  }, [isOpen, isMounted]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {

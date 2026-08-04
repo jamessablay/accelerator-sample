@@ -250,6 +250,107 @@ export const TEN_THINGS_STROKE_TOKENS = [
 ] as const;
 
 // -----------------------------------------------------------------------------
+// THE GAP RAMP. A FOURTH COLOUR BAND, and a diverging one.
+//
+// SEGMENT_COLORS owns the dark range (the wheel), LAYER_COLORS the light (the
+// media plan), TEN_THINGS a third band on the cream mat. This is the fourth, and
+// unlike the other three it is a SCALE rather than a set: the journey gap matrix
+// fills 25 cells from it.
+//
+// The two hues are NOT new. They are EMOTIONAL_COLOR and RATIONAL_COLOR from
+// JourneyScoreGraph, already used by every curve in the app and already used by
+// the Compare view's gap bar. Positive gap means feeling runs ahead of reason, so
+// it takes the warm hue; negative takes teal. A reader who has looked at any
+// other journey view has already learned the pairing.
+//
+// -----------------------------------------------------------------------------
+// WHY THE ALPHA IS CAPPED AT 0.50, WHICH IS THE LOAD BEARING PART.
+//
+// A diverging ramp with a number printed in every cell normally forces the ink to
+// FLIP: light steps take dark text, dark steps take white. Two adjacent cells one
+// step apart then disagree, which is exactly what makes a value labelled heatmap
+// look broken.
+//
+// The way out is to spend the saturation on the BAR and keep the wash inside the
+// light band, so ONE ink serves all 25 cells. Measured against LYKA.tealDeepest
+// at the ceiling, which is the worst case at both ends:
+//
+//   #B8571C at 0.50 over white = #DCAB8E   5.99:1
+//   #0A7D68 at 0.50 over white = #85BEB4   5.85:1
+//
+// Both clear AA with margin, and the real data never reaches the ceiling: the
+// largest |gap| is 40, which lands at alpha 0.456.
+//
+// RAISING GAP_WASH_MAX BREAKS THIS. data/__integrity.ts asserts both ends against
+// TEXT_FLOOR on every dev page load so a future edit cannot do it quietly.
+// -----------------------------------------------------------------------------
+
+/** Feeling ahead of reason. Matches EMOTIONAL_COLOR in JourneyScoreGraph. */
+export const GAP_POSITIVE_HUE = '#B8571C';
+/** Reason ahead of feeling. Matches RATIONAL_COLOR in JourneyScoreGraph. */
+export const GAP_NEGATIVE_HUE = '#0A7D68';
+
+/**
+ * Symmetric clamp on the ramp, in gap points.
+ *
+ * 45 rather than the observed 40, inherited from the Compare view's bar so the
+ * two encodings share a scale. A cell beyond this clamps, which is why
+ * __integrity warns when the data moves outside GAP_DOMAIN.
+ */
+export const GAP_SCALE_MAX = 45;
+
+/** Alpha at |gap| = 0+. Enough to read as a fill rather than as an empty cell. */
+export const GAP_WASH_MIN = 0.1;
+/** Alpha at the clamp. DO NOT RAISE: see the header. Asserted in __integrity. */
+export const GAP_WASH_MAX = 0.5;
+
+/** Composite an `#rrggbb` over white at `alpha`, returning an OPAQUE `#rrggbb`. */
+const overWhite = (hex: string, alpha: number): string => {
+  const n = parseInt(hex.slice(1), 16);
+  const mix = (c: number) => Math.round(alpha * c + (1 - alpha) * 255);
+  const r = mix((n >> 16) & 255);
+  const g = mix((n >> 8) & 255);
+  const b = mix(n & 255);
+  return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1).toUpperCase()}`;
+};
+
+/**
+ * The cell fill for a gap value. Returns an OPAQUE hex, never `rgba()`.
+ *
+ * Opaque matters: the matrix draws its hairlines with `gap-px` over a mint
+ * container, so a translucent cell would let mint bleed through and shift every
+ * wash by an amount that depends on what is behind it.
+ *
+ * `gap === 0` is a THIRD STATE, not a point on the ramp. A zero wash is
+ * indistinguishable from an empty cell, and two of the 25 cells are exactly
+ * zero, so they get cream and a centre tick instead.
+ */
+export const gapWash = (gap: number): string => {
+  if (gap === 0) return LYKA.cream;
+  const magnitude = Math.min(Math.abs(gap), GAP_SCALE_MAX) / GAP_SCALE_MAX;
+  const alpha = GAP_WASH_MIN + (GAP_WASH_MAX - GAP_WASH_MIN) * magnitude;
+  return overWhite(gap > 0 ? GAP_POSITIVE_HUE : GAP_NEGATIVE_HUE, alpha);
+};
+
+/** The one ink every cell uses. Paired against both ramp ends in __integrity. */
+export const GAP_INK = LYKA.tealDeepest;
+
+/**
+ * The steps __integrity checks as fill and ink PAIRS.
+ *
+ * The ends are the worst case, but the neutral band is checked too: a midtone
+ * chosen to look right against white is the step most likely to fail, and it is
+ * the one nobody looks at.
+ */
+export const GAP_RAMP = [
+  { label: `-${GAP_SCALE_MAX}`, fill: gapWash(-GAP_SCALE_MAX), ink: GAP_INK },
+  { label: '-20', fill: gapWash(-20), ink: GAP_INK },
+  { label: '0', fill: gapWash(0), ink: GAP_INK },
+  { label: '+20', fill: gapWash(20), ink: GAP_INK },
+  { label: `+${GAP_SCALE_MAX}`, fill: gapWash(GAP_SCALE_MAX), ink: GAP_INK },
+] as const;
+
+// -----------------------------------------------------------------------------
 // Shared chart chrome. Chart.js defaults to #666 for legends and #e5e5e5 for
 // grids, both off brand on cream.
 // -----------------------------------------------------------------------------

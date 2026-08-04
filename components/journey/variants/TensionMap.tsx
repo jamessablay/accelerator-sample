@@ -1,5 +1,6 @@
 import React from 'react';
 import JourneyScoreGraph from '../JourneyScoreGraph';
+import GapBar from '../GapBar';
 import { LYKA, getSegmentColor } from '../../../data/brand';
 import {
   SHARED_SCORE_DOMAIN,
@@ -37,25 +38,11 @@ const LEAD_MODE_STYLE: Record<string, { bg: string; fg: string }> = {
   Balanced: { bg: LYKA.cream, fg: LYKA.muted },
 };
 
-const GapBar: React.FC<{ gap: number }> = ({ gap }) => {
-  // Symmetric around zero, clamped to the observed range of -40 to +25.
-  const MAX = 45;
-  const half = Math.min(Math.abs(gap), MAX) / MAX / 2;
-  const positive = gap > 0;
-  return (
-    <div className="relative h-1.5 rounded-full mt-1" style={{ backgroundColor: LYKA.cream }}>
-      <div className="absolute inset-y-0 left-1/2 w-px" style={{ backgroundColor: LYKA.mintMuted }} />
-      <div
-        className="absolute inset-y-0 rounded-full"
-        style={{
-          backgroundColor: positive ? '#B8571C' : LYKA.accentInk,
-          left: positive ? '50%' : `${50 - half * 100}%`,
-          width: `${half * 100}%`,
-        }}
-      />
-    </div>
-  );
-};
+// GapBar MOVED to components/journey/GapBar.tsx when the gap matrix needed the
+// same bar on a washed background. Every prop it gained is optional and
+// defaulted to what was here, so this view renders pixel for pixel as before.
+// Its two hues are now GAP_POSITIVE_HUE / GAP_NEGATIVE_HUE in brand.ts, which
+// are the same '#B8571C' and LYKA.accentInk this file used as literals.
 
 const JourneyCard: React.FC<{
   journey: JourneyMetrics;

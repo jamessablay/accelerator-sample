@@ -13,6 +13,7 @@ import TableAdapter from './TableAdapter';
 import JourneySpine from './JourneySpine';
 import TensionMap from './TensionMap';
 import FrictionStrip from './FrictionStrip';
+import GapMatrix from './GapMatrix';
 import type { JourneyVariantDef, JourneyVariantId } from './types';
 
 export type { JourneyVizProps, JourneyVariantId, JourneyVariantDef } from './types';
@@ -41,6 +42,20 @@ export const JOURNEY_VARIANTS: readonly JourneyVariantDef[] = [
     compactHeader: true,
     showsAllJourneys: true,
     Component: TensionMap,
+  },
+  {
+    // Sits NEXT TO `tension` because both show all five journeys, so clicking
+    // between them is the comparison a reviewer is here to make: the same five
+    // as curves, then as one matrix.
+    //
+    // NEVER FIRST. getJourneyVariant falls back to JOURNEY_VARIANTS[0] on an
+    // unknown id, and that has to stay the untouched table baseline.
+    id: 'matrix',
+    label: 'Gap',
+    hint: 'All five journeys by all five stages. Each cell is the emotion to reason gap.',
+    compactHeader: true,
+    showsAllJourneys: true,
+    Component: GapMatrix,
   },
   {
     id: 'strip',

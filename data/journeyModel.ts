@@ -175,5 +175,128 @@ export const journeyMetricsByType: Record<JourneyType, JourneyMetrics> = Object.
  */
 export const SHARED_SCORE_DOMAIN: [number, number] = [0, 100];
 
-/** Stage names, in order. Identical across all five journeys. */
+/**
+ * Stage names, in order. THE SHARED X AXIS for any cross-journey view.
+ *
+ * Derived from `journeyMetrics[0]` ALONE, which is `TAB_ORDER[0]`. Nothing about
+ * that guarantees the other four agree, and until the gap matrix promoted these
+ * to column headers nothing checked. A journey whose stages were renamed,
+ * reordered or truncated would render real numbers under the wrong headers with
+ * nothing on screen saying so. `data/__integrity.ts` check 3c is what makes the
+ * "identical across all five" claim true rather than merely expected.
+ *
+ * Note the second order trap: reordering `TAB_ORDER` in journeyMeta.ts looks
+ * cosmetic but re-sources this axis.
+ */
 export const JOURNEY_STAGE_NAMES: string[] = journeyMetrics[0]?.stages.map((s) => s.title) ?? [];
+
+/**
+ * DERIVED. Observed range of `gap` across all 25 cells: -40 to +30.
+ *
+ * The matrix ramp is calibrated to `GAP_SCALE_MAX` (45), so today every cell is
+ * inside the scale. A revised study that pushes a gap past this does not error,
+ * it CLAMPS, and two different gaps then render as the same colour. __integrity
+ * warns on it for that reason.
+ */
+export const GAP_DOMAIN: [number, number] = [-40, 30];
+
+// -----------------------------------------------------------------------------
+// Cross-journey findings, DERIVED AT RUNTIME rather than written down.
+//
+// Both of the statements the gap matrix makes on screen are facts about the
+// current 25 numbers, not about the model. Hardcoding either would let a revised
+// study leave a confident sentence on screen that its own data no longer
+// supports, which is the worst failure a deck can have. These return the shape
+// the copy is assembled from, or null, so the view can say nothing instead.
+//
+// No React and no DOM types, same as the rest of this file.
+// -----------------------------------------------------------------------------
+
+export interface UniversalStageShift {
+  stageIndex: number;
+  stageName: string;
+  /** True when every journey's gap moved DOWN, meaning toward reason. */
+  towardReason: boolean;
+  deltas: { label: string; delta: number }[];
+}
+
+/**
+ * The first stage, if any, where EVERY journey's gap moves the same way.
+ *
+ * Today this is Preparation, toward reason, in all five. It is the only stage
+ * index where the five deltas share a sign and none is zero.
+ */
+export const findUniversalStageShift = (
+  metrics: JourneyMetrics[],
+): UniversalStageShift | null => {
+  const n = metrics[0]?.scores.length ?? 0;
+  for (let i = 1; i < n; i++) {
+    const deltas = metrics.map((m) => (m.scores[i]?.gap ?? 0) - (m.scores[i - 1]?.gap ?? 0));
+    if (deltas.length === 0) continue;
+    const allDown = deltas.every((d) => d < 0);
+    const allUp = deltas.every((d) => d > 0);
+    if (!allDown && !allUp) continue;
+    return {
+      stageIndex: i,
+      stageName: metrics[0].scores[i].stage,
+      towardReason: allDown,
+      deltas: metrics.map((m, k) => ({ label: m.meta.label, delta: deltas[k] })),
+    };
+  }
+  return null;
+};
+
+export interface LevelCell {
+  row: number;
+  col: number;
+  journey: JourneyMetrics;
+  stageName: string;
+  /** Emotional and rational are equal here, so one value covers both. */
+  score: number;
+  /**
+   * Which side was AHEAD at the neighbouring stage, so the OTHER side is the one
+   * that closed the gap. Null when it cannot be told.
+   *
+   * NAMED FOR WHAT IT MEASURES, not for what the sentence says. An earlier
+   * version called this `arrivedFrom`, and the copy then read it as "the side
+   * that caught up", which printed both findings exactly backwards on screen.
+   * `caughtUp` below is the derived half; use that for prose.
+   */
+  wasAhead: 'feeling' | 'reason';
+  /** The side that closed the gap. Always the opposite of `wasAhead`. */
+  caughtUp: 'feeling' | 'reason';
+}
+
+/**
+ * Cells where emotional exactly equals rational, and which side closed the gap.
+ *
+ * There are two today and they mean OPPOSITE things, which is the whole reason
+ * this returns a direction: without it the finding reads as one fact twice.
+ *
+ * The rule is just the neighbouring stage's sign, preferring the previous stage
+ * and falling back to the next at index 0. Negative means reason was ahead, so
+ * feeling is what rose to meet it.
+ *
+ *   Devoted Caterers / Preparation, arriving from +25:  reason caught up.
+ *   Secure Sleepwalkers / Contemplation, arriving from -40: feeling caught up.
+ */
+export const findLevelCells = (metrics: JourneyMetrics[]): LevelCell[] =>
+  metrics.flatMap((m, row) =>
+    m.scores.flatMap((s, col) => {
+      if (s.gap !== 0) return [];
+      const neighbour = m.scores[col - 1] ?? m.scores[col + 1];
+      if (!neighbour || neighbour.gap === 0) return [];
+      const wasAhead = neighbour.gap > 0 ? ('feeling' as const) : ('reason' as const);
+      return [
+        {
+          row,
+          col,
+          journey: m,
+          stageName: s.stage,
+          score: s.emotional,
+          wasAhead,
+          caughtUp: wasAhead === 'feeling' ? ('reason' as const) : ('feeling' as const),
+        },
+      ];
+    }),
+  );

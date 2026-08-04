@@ -72,7 +72,7 @@ against the registry ids and falls back to the default, verified.
 | Page | Registry | Views | Default |
 |---|---|---|---|
 | Personas | [components/personas/variants/index.ts](components/personas/variants/index.ts) | `wheel` (baseline sunburst), `ladder`, `flow` | `ladder` |
-| Consumer Journey | [components/journey/variants/index.ts](components/journey/variants/index.ts) | `table` (baseline), `spine`, `tension`, `strip` | `spine` |
+| Consumer Journey | [components/journey/variants/index.ts](components/journey/variants/index.ts) | `table` (baseline), `spine`, `tension`, `matrix`, `strip` | `spine` |
 
 Selection persists to `localStorage` and is linkable via `?pv=` and `?jv=`
 ([hooks/useVariant.ts](hooks/useVariant.ts)). There is still no router.
@@ -103,12 +103,112 @@ the comparison is live.
 2. **`gap`, `openingGap` and `leadMode` are derived, not study ratings.** The 50
    emotional and rational scores are the study's own. Anything computed from them
    must be labelled as SPEED arithmetic wherever it is shown, or it reads as a
-   research finding.
+   research finding. **The gap matrix is the most exposed consumer:** Compare
+   shows study curves plus one derived bar, the matrix shows 25 derived numbers
+   and ZERO study numbers. Its note is therefore element two in the DOM, above
+   the internal scroll fold by construction, and every cell pop-up shows both
+   study values beside the gap so the arithmetic is inspectable, not asserted.
 3. **A source cell is truncated.** Devoted Caterers / Action `rationalScore` ends
    mid-sentence at `"...transition progress and ease of"`. Verified: it is cut off
    **in the PPTX itself**, so `journeyDetailsData.ts` is faithful and regenerating
-   will not fix it. `isTruncatedDescriptor()` detects it and the spine and strip
-   views print a note. Do not invent an ending.
+   will not fix it. `isTruncatedDescriptor()` detects it and the spine, the strip
+   and the gap matrix all print a note. Do not invent an ending. **The matrix is
+   the most exposed view to it**, because a cell pop-up's whole content is the
+   two descriptors.
+
+### Modal: focus never actually moved into the dialog until 2026-08-04
+
+Found while verifying the gap matrix, but it was **never specific to it**. Every
+consumer was affected: the Ten Things tile, the friction strip cell and the matrix
+cell all left focus sitting on the OPENER, outside the dialog. So Tab walked the
+page behind the modal and the focus trap had nothing to trap. Three consumers
+measured before the fix, three after.
+
+**The cause is an effect ordering bug, and it is worth recognising again.** The
+render is gated on `isMounted`, which one effect sets when `isOpen` flips. The
+focus effect ran in the SAME commit, while that guard was still false, so the card
+was not in the DOM and `closeRef.current` was null. One frame later its
+`requestAnimationFrame` fired against the same null ref and did nothing. The
+original comment, "after the portal has painted, otherwise there is nothing to
+focus yet", names the exact hazard it then failed to avoid: **one rAF defers past
+a paint, not past a state driven remount.**
+
+The fix splits the effect. Capturing the opener and locking the body stay on
+`[isOpen]`; moving focus in is its own effect on `[isOpen, isMounted]`, so it runs
+after the commit that actually rendered the card.
+
+**One consequence to know:** focus RESTORE on close used to look like it worked
+and was a no-op, because focus had never left the opener. It is real now.
+
+### The gap matrix, 2026-08-04, and why it is not another Compare
+
+**The five raw curves are the SAME SHAPE.** Every journey rises into
+Contemplation, dips at Preparation, peaks at Action and falls at Maintenance, and
+rational climbs monotonically to Preparation in all five. So five small multiples
+of the raw curves is five copies of one curve at different heights, which is what
+`tension` already shows. **"The trajectories differ" is not a finding this data
+supports**, and that is the thing to know before anyone builds a sixth
+comparison view.
+
+What differs is the **gap**, whose five trajectories are genuinely distinct:
+whipsaw, deep and flat, spike then settle, shallow and tight, high with one dip.
+`scores[].gap` had been computed for all 25 cells since `journeyModel` was
+written and plotted by nothing. The matrix plots it: read ACROSS a row for one
+journey's arc, read DOWN a column for how the five differ at the same moment. The
+second read is the one no other view offers.
+
+**The wash is CAPPED at `GAP_WASH_MAX` 0.50 and that is load bearing.** A
+diverging ramp with a number in every cell normally forces the ink to flip, light
+steps taking dark text and dark steps taking white, and two adjacent cells then
+disagree. Capping the wash inside the light band means **one ink serves all 25
+cells**: `#003D33` measures 5.99:1 at the terracotta end and 5.85:1 at the teal
+end, and the real data never reaches the ceiling. `data/__integrity.ts` asserts
+both ends, because raising that number is a one character edit that looks like a
+contrast improvement and is the opposite. The saturation is spent on the bar
+instead, which also carries the sign **without hue**.
+
+**`gap === 0` is a third state, not a ramp point.** A zero wash is
+indistinguishable from an empty cell, and two of the 25 are exactly zero, so they
+get cream and a centre tick. Both facts about them are derived at runtime by
+`findLevelCells`, including which side closed the gap, because the two cells mean
+OPPOSITE things and without the direction the finding reads as one fact twice.
+
+**Two structural rules, and they are not stylistic:**
+
+- **One `<div>` per row, never one flat 25 child grid.** In a flat grid a journey
+  with four stages does not leave a hole: every later cell slides up one and the
+  whole grid is off by one, fully populated with real numbers under the wrong
+  headers, with nothing on screen saying so.
+- **The axis is INDEXED, not mapped.** The view walks `JOURNEY_STAGE_NAMES` and
+  looks each stage up by title, so a renamed stage renders an explicit empty cell
+  in the RIGHT column. `__integrity` check 3c catches the cause; this stops the
+  symptom being a silently shifted grid.
+
+**Iterate the `journeys` prop unmodified.** It is already `TAB_ORDER.map(...)`.
+Not `Object.values(journeys)` from `journeyDetailsData` and not
+`Object.values(JourneyType)`, both of which are declaration order, warm first,
+and therefore inverted. Not `Object.entries(journeyMeta)` either, which is correct
+only by coincidence. The two orders are **not a strict array reverse**: the two
+Unaware personas keep their relative order in both, so `[...].reverse()` silently
+swaps the top two rows. **The canary is one cell: top left must read -40.** If it
+reads +25 the rows are inverted, every number is still individually correct, and
+the deck's central argument has flipped.
+
+**Both findings are derived at runtime**, by `findUniversalStageShift` and
+`findLevelCells` in `journeyModel.ts`. Every noun in the rendered copy comes out
+of the return value, and the 3px marker under the Preparation column header reads
+the same value, so it moves with the finding. Change a score and the copy changes
+or disappears; it can never state something the data no longer supports.
+
+**DOM, not SVG**, deliberately. An SVG would inherit the whole `svgFont` plus
+`useElementSize` plus `MIN_COMPENSATED_WIDTH` apparatus that exists because a
+declared SVG `fontSize` is not a rendered size. A CSS grid gets real CSS px for
+free, which is also why the minimum font size check passes by construction.
+
+`GapBar` moved out of `TensionMap` to [components/journey/GapBar.tsx](components/journey/GapBar.tsx)
+so both views share one bar. Every prop it gained is optional and defaulted to
+what `TensionMap` rendered before, verified pixel identical: same two hues, same
+cream track, and the widths still compute to 44.4% at -40 and 22.2% at +20.
 
 ### The derived model
 
@@ -669,10 +769,12 @@ lyka-accelerator/
 │   ├── journey/
 │   │   ├── JourneyDetailTable.tsx        6-stage stage-by-row table. BASELINE, untouched.
 │   │   ├── JourneyScoreGraph.tsx         Interactive smooth-curve graph. 4 additive props.
+│   │   ├── GapBar.tsx                    Diverging bar for one gap. Compare + matrix.
 │   │   └── variants/                     index.ts registry + types.ts contract
 │   │       ├── TableAdapter.tsx          Wraps the table to the shared contract
 │   │       ├── JourneySpine.tsx          Curve leads, stepper, one stage of detail
 │   │       ├── TensionMap.tsx            All five on a shared scale + the emotion/reason gap
+│   │       ├── GapMatrix.tsx             All 25 cells at once. Read DOWN a column.
 │   │       └── FrictionStrip.tsx         All five stages, encoded, full text on click
 │   ├── mediaplan/
 │   │   ├── MacroBlockPlan.tsx            Grid: funnel rail, gantt bars, Budget/% header buttons
@@ -691,6 +793,7 @@ lyka-accelerator/
 │   ├── icons/                            18 custom SVG icon components (all referenced)
 │   └── shared/
 │       ├── Modal.tsx                     All pop-ups. Escape, focus trap, scroll lock, opt-in stepper.
+│       │                                 Focus MOVE IN fixed 2026-08-04, see below.
 │       ├── Lightbox.tsx                  Click to enlarge. CAPTURE phase Escape, so it nests inside Modal.
 │       ├── PendingSection.tsx            Designed "awaiting Lyka data" shell. Follows BusinessDashboard.
 │       └── VariantSwitcher.tsx           Segmented control on both pages. Scaffolding.
@@ -753,6 +856,8 @@ No tests, no lint. **`npm run typecheck` runs both configs** and must be used ra
    **The counts in that line are derived, so they move.** `3+4` was `4+4` before the Index view was cut, and `15` was `6` before the persona films and the stage emblems landed. Treat a change in them as expected after adding or removing either; treat any OTHER output as a real problem.
 
    It asserts persona categories against `categoryData`, `categoryData` keys against `SEGMENT_COLORS`, `categoryData[k].title` against `SEGMENT_IMAGES` **in both directions**, every `journeyMeta.personaId`, every `PERSONA_VIDEOS` id, every asset path, the media-plan budget invariant, the palette floors (2.7:1 vs white for wedge fills, 4.5:1 pair based for `ink`/`tintInk`), that the derived stage shares sum to 100% and agree with `categoryData`, and that both variant registries have unique ids and a resolvable default.
+
+   **Four checks came in with the gap matrix (2026-08-04)**, all of them promoting something that was merely expected into something enforced: that **all five journeys carry the same five stage titles in the same order** (`JOURNEY_STAGE_NAMES` is derived from `TAB_ORDER[0]` alone, so a renamed stage put real numbers under the wrong column headers); that **all 50 score strings parse, descriptor included** (a colon instead of a dash parses the number and silently drops the text, which on the matrix is an empty pop-up); that there are **25 cells and they fall inside `GAP_DOMAIN`** (outside it the ramp clamps, so two different gaps render as one colour); and that **every `GAP_RAMP` step clears AA as a fill and ink pair**, which is what stops a future edit raising the wash ceiling. **Both of the first two were negative tested and seen to fire, then reverted.**
 
    For Ten Things it also asserts every `chart` key against `TEN_THINGS_CHARTS`, that the ten ids run `'01'` to `'10'` in order, that every `emphasis` substring is present in its `learn` paragraph (a typo silently no-ops the bolding), the six map assets, **that every plotted series matches its published numbers table** and that point 10's three stated totals are the sums of its arrays, the 3:1 stroke floor on `TEN_THINGS` against the cream mat, and that each `CANVAS_FONT` string's px number equals its named `TYPE` token (`ctx.font` takes a literal string, so `type.ts` cannot be its source and the two would otherwise drift silently).
    **It checks Content-Type, not just `response.ok`.** Vite's dev server answers a missing `public/` path with the SPA fallback: HTTP 200 and `text/html`. A missing image therefore looks fine to `r.ok`, which is why the earlier naive version of this check reported nothing.
@@ -1102,6 +1207,9 @@ not need it. Now 0.08em, which also buys back horizontal room.
 
 **Verified**: nothing under 11px and nothing under 12px that is prose, across all
 eight `?pv=` / `?jv=` states at 1440x900 and 1280x800, measured as RENDERED px
+(the gap matrix took this to NINE on 2026-08-04. It was measured on the same
+terms at four viewports rather than renumbered: min font 11px, no sub 12px
+prose)
 (see the SVG note below), page overflow 0 everywhere, `[data integrity]` silent.
 
 #### Five things that were only findable by rendering

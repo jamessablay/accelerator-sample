@@ -223,6 +223,32 @@
         outline: none;
       }
 
+      /* ---------------------------------------------------------------------
+         Gap matrix cells, on the Consumer Journey page.
+
+         SAME TRAP AND SAME FIX AS .persona-chip ABOVE, and it is the reason this
+         rule exists at all rather than a Tailwind `hover:` utility. Each cell's
+         diverging wash is a per cell value, so it can only arrive inline, and
+         INLINE STYLE OUTRANKS ANY STYLESHEET RULE. A `hover:bg-*` on these cells
+         would silently do nothing while a box-shadow ring appeared to work,
+         which is exactly the half working hover that shipped once already. The
+         resting fill is therefore handed to the stylesheet as --cell-bg instead
+         of fighting specificity with !important.
+
+         The ring is the segment's own base colour, so a hovered cell says which
+         journey it belongs to as well as that it is interactive.
+         --------------------------------------------------------------------- */
+      .gap-cell {
+        cursor: pointer;
+        background-color: var(--cell-bg);
+        transition: box-shadow 150ms var(--lyka-ease);
+      }
+      .gap-cell:hover,
+      .gap-cell:focus-visible {
+        box-shadow: inset 0 0 0 2px var(--cell-ring);
+        outline: none;
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .animate-fadeIn { animation: none; }
         *, *::before, *::after {

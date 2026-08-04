@@ -28,7 +28,7 @@ import { categoryData } from './categoryData';
 import { personaCategories } from './personasData';
 import { PERSONA_VIDEOS, personaVideo } from './personaMedia';
 import { PLAN_LAYERS, MEDIA_TOTAL } from './mediaPlanData';
-import { SEGMENT_COLORS, TEN_THINGS, TEN_THINGS_STROKE_TOKENS, LYKA } from './brand';
+import { SEGMENT_COLORS, TEN_THINGS, TEN_THINGS_STROKE_TOKENS, LYKA, GAP_RAMP } from './brand';
 import { SEGMENT_IMAGES } from '../components/personas/CategoryDetail';
 import { TEN_THINGS_POINTS } from './tenThingsData';
 import {
@@ -43,7 +43,12 @@ import { TEN_THINGS_CHARTS } from '../components/tenthings/charts';
 import { CANVAS_FONT, CANVAS_FONT_TOKENS } from '../components/tenthings/charts/chartBase';
 import { stageMetrics, personaMetrics, pct, STAGE_ORDER } from './audienceModel';
 import { journeyMeta } from './journeyMeta';
-import { journeyMetrics } from './journeyModel';
+import {
+  journeyMetrics,
+  JOURNEY_STAGE_NAMES,
+  GAP_DOMAIN,
+  parseScoreData,
+} from './journeyModel';
 import { PERSONA_VARIANTS, DEFAULT_PERSONA_VARIANT } from '../components/personas/variants';
 import { JOURNEY_VARIANTS, DEFAULT_JOURNEY_VARIANT } from '../components/journey/variants';
 
@@ -136,6 +141,72 @@ export function runIntegrityChecks(): void {
     }
     if (j.stages.length === 0) {
       fail(`journey "${j.meta.title}" has no stages. Check the JourneyType key in journeyDetailsData.`);
+    }
+  }
+
+  // 3c. THE SHARED X AXIS. All five journeys must carry the same five stage
+  //     titles in the same order.
+  //
+  //     JOURNEY_STAGE_NAMES is derived from journeyMetrics[0] ALONE, which is
+  //     whatever TAB_ORDER happens to list first. Nothing made the other four
+  //     agree. A journey whose stages were renamed, reordered or truncated does
+  //     not fail: the gap matrix renders its real numbers UNDER THE WRONG COLUMN
+  //     HEADERS, and every cell still looks plausible. Exactly the silent join
+  //     this file exists for. Reordering TAB_ORDER also re-sources the axis.
+  const axis = JOURNEY_STAGE_NAMES.join(' | ');
+  if (JOURNEY_STAGE_NAMES.length !== 5) {
+    fail(`JOURNEY_STAGE_NAMES has ${JOURNEY_STAGE_NAMES.length} entries, not 5. The gap matrix is a fixed 5 x 5 grid.`);
+  }
+  for (const j of journeyMetrics) {
+    const titles = j.stages.map((st) => st.title).join(' | ');
+    if (titles !== axis) {
+      fail(`journey "${j.meta.title}" has stages [${titles}] but the shared x axis is [${axis}]. Any matrix or small-multiple view puts its cells under the wrong column headers.`);
+    }
+  }
+
+  // 3d. ALL 50 SCORE STRINGS MUST PARSE, VALUE AND DESCRIPTOR.
+  //
+  //     parseScoreData matches /(\d+)\s*[-–—]\s*(.*)/. A COLON instead of a dash
+  //     still parses the number and returns an EMPTY LABEL, so the point plots
+  //     and only the text vanishes. On the table and the spine that is a missing
+  //     tooltip; on the gap matrix the two descriptors ARE the cell pop-up, so it
+  //     is an empty modal that reads as a rendering fault. No separator at all is
+  //     worse: the fallback strips non-digits and concatenates, so
+  //     "Emotional 82 worry at 3am" yields 823.
+  //
+  //     ASSERTED ON THE PARSE RESULT, not on the raw string. One legitimate
+  //     descriptor contains a colon AFTER its dash (Mindful Researchers /
+  //     Preparation, "Rational 95 – Peak evidence requirement: ..."), so a naive
+  //     "no colons" test would flag it and train people to ignore this output.
+  for (const j of journeyMetrics) {
+    for (const st of j.stages) {
+      for (const [field, raw] of [
+        ['emotionalScore', st.emotionalScore],
+        ['rationalScore', st.rationalScore],
+      ] as const) {
+        const { value, label } = parseScoreData(raw);
+        if (!Number.isFinite(value) || value < 0 || value > 100) {
+          fail(`"${j.meta.title}" / ${st.title} ${field} parsed ${value} from "${raw}". Scores are 0 to 100; a missing separator concatenates every digit in the string.`);
+        }
+        if (!label) {
+          fail(`"${j.meta.title}" / ${st.title} ${field} parsed no descriptor from "${raw}". The separator must be a hyphen, en dash or em dash. A colon parses the number and silently drops the text.`);
+        }
+      }
+    }
+  }
+
+  // 3e. Twenty five cells, and the ramp is calibrated to the observed range. A
+  //     revised study pushing a gap past GAP_DOMAIN does not error, it CLAMPS,
+  //     and two different gaps then render as the same colour.
+  const gaps = journeyMetrics.flatMap((j) => j.scores.map((sc) => sc.gap));
+  if (gaps.length !== 25) {
+    fail(`expected 25 journey by stage gaps for the matrix, found ${gaps.length}.`);
+  }
+  if (gaps.length) {
+    const gLo = Math.min(...gaps);
+    const gHi = Math.max(...gaps);
+    if (gLo < GAP_DOMAIN[0] || gHi > GAP_DOMAIN[1]) {
+      warn(`journey gaps run ${gLo} to ${gHi}, outside GAP_DOMAIN [${GAP_DOMAIN[0]}, ${GAP_DOMAIN[1]}]. Cells beyond the domain clamp, so two different gaps render as one colour.`);
     }
   }
 
@@ -233,6 +304,25 @@ export function runIntegrityChecks(): void {
     const inkOnTint = contrast(set.tintInk, set.tint);
     if (inkOnTint < TEXT_FLOOR) {
       fail(`SEGMENT_COLORS["${key}"]: tintInk ${set.tintInk} on tint ${set.tint} is ${inkOnTint.toFixed(2)}:1, below AA (${TEXT_FLOOR}:1). Never put white on a tint.`);
+    }
+  }
+
+  // 6b. THE GAP RAMP IS A FILL AND INK PAIR, at every step.
+  //
+  //     The matrix prints a number in all 25 cells, so each ramp step is exactly
+  //     the case check 6 exists for. A diverging ramp normally forces the ink to
+  //     FLIP, light steps taking dark text and dark steps taking white, and two
+  //     adjacent cells then disagree. brand.ts avoids that by CAPPING the wash at
+  //     GAP_WASH_MAX so one ink clears AA at both ends.
+  //
+  //     THIS IS THE CHECK THAT KEEPS IT TRUE. Raising GAP_WASH_MAX is a one
+  //     character edit that looks like a contrast improvement and is the opposite.
+  //     The midtones are checked too: a step chosen to look right against white is
+  //     the one nobody inspects.
+  for (const step of GAP_RAMP) {
+    const ratio = contrast(step.ink, step.fill);
+    if (ratio < TEXT_FLOOR) {
+      fail(`GAP_RAMP step ${step.label}: ink ${step.ink} on fill ${step.fill} is ${ratio.toFixed(2)}:1, below AA (${TEXT_FLOOR}:1). The gap matrix prints a number in every cell.`);
     }
   }
 
