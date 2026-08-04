@@ -64,8 +64,13 @@ const TenThingsCard = React.forwardRef<HTMLButtonElement, TenThingsCardProps>(
           120px over. Pinned top, that reads as a hole; centred, the same space
           reads as generous. Same fix and same reason as the market band heading
           in ReadinessLadder. */}
+      {/* `roomy:` (1400px) is the step up, NOT `xl:`. With the sidebar out, a
+          1280 viewport is the tightest layout this tile ever sees, about 10px of
+          slack on the worst card, and Tailwind's `xl:` fires at exactly 1280.
+          Using it would have enlarged the type precisely where there is no room.
+          See the screens note in index.html. */}
       <span
-        className="flex min-h-0 flex-1 items-center overflow-hidden text-body font-semibold leading-snug lg:text-lead"
+        className="flex min-h-0 flex-1 items-center overflow-hidden text-body font-semibold leading-snug lg:text-lead roomy:text-title 2xl:text-figure"
         style={{ color: LYKA.tealDeepest }}
       >
         {point.cardHeadline}
@@ -80,6 +85,15 @@ const TenThingsCard = React.forwardRef<HTMLButtonElement, TenThingsCardProps>(
             min height cannot compensate for. The tile is about 147px of content
             width at 1280, so roughly 15 characters at this size. Shorten the
             value rather than letting it wrap. */}
+        {/* `2xl:` HERE, but `roomy:` on the headline above, and the difference
+            is measured rather than arbitrary. The headline can wrap, so it grows
+            as soon as there is height to absorb an extra line. This cannot wrap,
+            so it can only grow once the tile is at its widest, which the grid
+            cap pins at 228px from 1536 up. Stepping it at `roomy:` was tried and
+            broke a row: "Aggregate only" is the one non numeric value here and
+            at 24px in the 203px tile of a 1440 screen it took a second line,
+            pushing this tile's stat block 82px to 106px and its hairline 24px
+            out of line with its neighbours. */}
         <span
           className="block text-title font-bold leading-tight font-display tabular-nums 2xl:text-figure"
           style={{ color: TEN_THINGS.seriesInk }}

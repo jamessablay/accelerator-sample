@@ -508,13 +508,33 @@ The caption is drawn OUTSIDE the plot area now, anchored to the rule it names, w
 
 ### Layout rules for the tile, and they are content rules
 
-A tile is about **203 x 339 at 1440 and 171 x 277 at 1280**, both with the sidebar expanded. Three things keep ten tiles reading as one grid:
+A tile is about **171 x 277 at 1280, 203 x 295 at 1440 and 272 x 355 at 1920**, with the sidebar expanded. Four things keep ten tiles reading as one grid:
 
 - **`cardHeadline` is a separate field from `headline`**, short for the tile, full for the modal h2. Same split as `Persona.title` against `Persona.name`. When a headline does not fit, shorten the copy; never drop below the 14px prose floor.
 - **The headline is `flex-1` AND `items-center`.** Taking the slack is what lands the hairline level across a row; centring in that slack is what stops the leftover reading as a hole. Same fix and same reason as the market band heading in `ReadinessLadder`.
 - **`statLabel` has a three line `min-h-[4.05em]` and `statValue` must fit ONE line.** The headline taking the slack only levels the top half: the block BELOW the rule also varies, and a taller label or a wrapped value lifts its rule out of line. Two labels and one value were shortened at 1280 for exactly this. `"About 12 months"` became `"~12 months"`, keeping the approximation the source had.
 
-Verified at 1440x900 and 1280x800: rule spread 1px in both rows, zero clipped tiles, page overflow 0, nothing under 11px, and the only sub 14px prose is the 12px sources line, which `type.ts` sanctions as a footnote.
+- **THE GRID IS CAPPED AND CENTRED, and the type STEPS WITH THE TILE.** Added 2026-08-04, and it is the fix for the page reading empty. See below.
+
+Verified across twelve viewport shapes from 1920x1080 to 1280x720: rule spread at most 1px in both rows, **zero clipped tiles**, page overflow 0, nothing under 11px, and the only sub 14px prose is the 12px sources line, which `type.ts` sanctions as a footnote.
+
+### Reducing the whitespace, 2026-08-04, and why type alone could not do it
+
+The tiles read as mostly empty. Measured before touching anything, the slack in the headline box was **211 to 236px of a 429px tile at 1920** (55% of every card), 98 to 147px of 339px at 1440, and 10 to 59px at 1280. **One number would have been a font size problem. Three make it a layout problem**, and the fix is three coordinated changes.
+
+1. **The grid was `h-full` with no ceiling**, so tiles absorbed every spare pixel of the viewport. A bigger tile is also a WIDER tile, which needs FEWER lines, so growing the viewport made cards emptier no matter what the type did. It now caps at `600x1180` (`720x1400` from 1536 up) and centres with `m-auto`. **Whitespace inside a card reads as a mistake; the same whitespace around a centred grid reads as margin.**
+2. **The type steps with the tile**, headline `body` to `lead` to `title` to `figure`.
+3. **A four line stat label was breaking a row.** Point 09's `acquisitions,` is a 13 character unbreakable token that took a fourth line in a 147px column at 1280, pushing its stat block 81px to 96px and its hairline **15px out of line**. Shortened to `signups`, this page's own word for the same event. The documented rule held: shorten the label, never raise the min height.
+
+**`roomy:` (1400px) is a custom breakpoint and it exists because the stock scale is backwards here.** The sidebar takes 320px, so a **1280 viewport is the TIGHTEST layout this grid ever sees**, and Tailwind's `xl:` fires at exactly 1280. Stepping the type at `xl:` would have enlarged it precisely where there is no room. There is no stock step meaning "1440 and up".
+
+**Three things this pass got wrong first, all found by measuring:**
+
+- **The headline and the stat value cannot step at the same breakpoint.** The headline wraps, so it can grow as soon as there is height. The stat value cannot, so it can only grow once the tile is at its widest. Stepping it at `roomy:` broke a row: `Aggregate only` is the one non numeric value here and at 24px in a 203px tile it took a second line, moving that hairline 24px. It steps at `2xl:`, where the cap pins the tile at 228px.
+- **Raising the type without raising the `min-h` floor introduced a clip** at 1440x700: the tallest card needed 268px and got 255. The floor is what makes a short viewport scroll instead of clip, so it steps with the type. They are one system.
+- **1280x720 was already clipping before any of this**, tiles 01 and 06 by 11px, because the old 520px floor was below the content's own height. Raised to 556.
+
+**Do not tune one of these in isolation.** The tile sizes quoted above, the `min-h` floors, the `max-h` caps and the card's breakpoints are a single system, and every one of the three regressions above came from moving one and not the others.
 
 ## Interactive Media Plan page
 

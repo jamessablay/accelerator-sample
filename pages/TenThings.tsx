@@ -14,9 +14,13 @@ import Modal from '../components/shared/Modal';
 // room: you can see the whole argument before you open any of it.
 //
 // LAYOUT ARITHMETIC, because it is tight and someone will change it. With the
-// sidebar expanded the grid gets about 1056px at 1440 and about 896px at 1280,
-// so a tile is roughly 200 x 320 and 170 x 290. That is why TenThing carries a
-// short `cardHeadline` alongside the full `headline`.
+// sidebar expanded a tile is about 171x277 at 1280, 203x295 at 1440 and 272x355
+// at 1920. That is why TenThing carries a short `cardHeadline` alongside the
+// full `headline`.
+//
+// THOSE THREE SIZES ARE A RANGE, NOT A CONSTANT, and that is the whole reason
+// the type steps. Re-measure after any change here: the numbers above, the
+// `min-h` floors below and the breakpoints on the card are one system.
 //
 // The frame is `overflow-y-auto`, NOT `overflow-hidden`. A fixed frame is a
 // design intent, not a licence to clip: the last pass found `overflow-hidden`
@@ -82,8 +86,34 @@ const TenThings: React.FC = () => {
         </p>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto custom-scrollbar">
-        <div className="grid h-full min-h-[520px] grid-cols-2 grid-rows-5 gap-2.5 sm:grid-cols-3 sm:grid-rows-4 lg:grid-cols-5 lg:grid-rows-2">
+      {/* THE GRID IS CAPPED AND CENTRED, and that is the main fix for empty
+          looking tiles.
+
+          It used to be `h-full` with no ceiling, so the tiles absorbed every
+          spare pixel of the viewport. Measured at 1920x1080 that made a tile
+          299x429 holding about 190px of content: 55% of every card was a hole.
+          Growing the type cannot fix that, because a wider tile needs FEWER
+          lines, so the taller it gets the emptier it reads.
+
+          Whitespace INSIDE a card reads as a mistake; the same whitespace
+          around a centred grid reads as margin. So the grid stops growing and
+          the surplus becomes page margin instead. The caps are set just above
+          the 1440 measurements (1056x688), so 1440 and below are untouched and
+          1920 lands at 228x345 per tile rather than 299x429, close enough to
+          1440 that one `roomy:` type step serves both.
+
+          `m-auto` on a flex child, NOT `items-center`: margin auto centres
+          without the overflow clipping that align-items causes in a scroll
+          container, and this container scrolls by design (see the frame note
+          above). */}
+      <div className="flex min-h-0 flex-1 overflow-y-auto custom-scrollbar">
+        {/* `min-h` STEPS WITH THE TYPE, and it has to. The floor is what stops a
+            short viewport squeezing a tile below its own content: below it the
+            grid stops shrinking and this container scrolls instead. Raising the
+            headline at `roomy:` without raising the floor introduced a clip at
+            1440x700, where the tallest card needed 268px and got 255. Change one
+            of these and re-measure the other. */}
+        <div className="m-auto grid h-full min-h-[556px] max-h-[600px] w-full max-w-[1180px] grid-cols-2 grid-rows-5 gap-2.5 sm:grid-cols-3 sm:grid-rows-4 lg:grid-cols-5 lg:grid-rows-2 roomy:min-h-[560px] 2xl:min-h-[660px] 2xl:max-h-[720px] 2xl:max-w-[1400px]">
           {TEN_THINGS_POINTS.map((point, i) => (
             <TenThingsCard
               key={point.id}

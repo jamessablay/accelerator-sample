@@ -26,6 +26,21 @@
       tailwind.config = {
         theme: {
           extend: {
+            // ONE CUSTOM BREAKPOINT, and it exists because the stock scale is
+            // backwards for this app's grids.
+            //
+            // The sidebar takes 320px, so a 1280 viewport is the TIGHTEST layout
+            // here, not a roomy one. Tailwind's `xl:` fires at exactly 1280 and
+            // `2xl:` not until 1536, so there is no stock step that means "1440
+            // and up, where there is actually room". Measured on the Ten Things
+            // grid: a tile is 171x277 at 1280 with as little as 10px of slack,
+            // and 203x339 at 1440 with 98 to 147px. Those want different type.
+            //
+            // This is the same trap the variant views hit: a viewport query is
+            // not a container query. Use `roomy:` only where a measurement says
+            // the box actually grows past 1400.
+            screens: { roomy: '1400px' },
+
             // MIRRORS the TYPE object in data/type.ts. Change both together.
             // Eight steps, replacing the ~18 ad hoc sizes that were in use
             // across the variant views. `micro` is the only step under 12px and

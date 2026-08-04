@@ -488,7 +488,13 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
     headline: 'Demand is being created and then lost before it converts',
     cardHeadline: 'Demand is being created and then lost before it converts',
     statValue: '9 : 1',
-    statLabel: 'non-branded to branded acquisitions, lifetime',
+    // SHORTENED to fit three lines at 1280, where "acquisitions," is a 13
+    // character unbreakable token in a 147px column and forced a fourth line.
+    // That broke the row: the stat block went 81px to 96px and lifted this
+    // tile's hairline 15px out of line with its four neighbours. The documented
+    // rule is to shorten the label, never to raise the min height. "signups" is
+    // this page's own word for the same event (see points 01 and 07).
+    statLabel: 'non-branded to branded signups, lifetime',
     learn:
       'External interest in Lyka has risen sharply. Branded search has held flat at 10 to 11% of ' +
       'search contribution for three straight years, and no campaign has produced organic lift.',
