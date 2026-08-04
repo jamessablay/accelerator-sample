@@ -143,7 +143,7 @@ A SPEED Standard Accelerator for **Lyka** (fresh, human grade dog food, direct t
 Lineage: **Xero PITCH Accelerator** → **Hamilton Island Audience Accelerator** → this. The polar geometry helpers (`polarToCartesian`, `describeSunburstArc`, `describeLabelArc`) are Xero inheritance.
 
 - Live: **not deployed.** Local only by decision. See "Deploy" for what to do when that changes.
-- Repo: **none.** The Hamilton Island remote was removed. See "Source control".
+- Repo: **[The-Speed-Agency/speed-x-lyka-accelerator](https://github.com/The-Speed-Agency/speed-x-lyka-accelerator)**, private, created 2026-08-04. Branch `lyka-main`, an orphan with no Hamilton Island history. **Two local branches must never be pushed.** See "Source control".
 
 ## Stack
 
@@ -812,19 +812,32 @@ To take the public URL down entirely instead, set `"workers_dev": false` in [wra
 
 ## Source control
 
-**There is no remote.** The Hamilton Island origin (`The-Speed-Agency/speed-x-hamilton-island-accelerator`) was removed during the conversion so an accidental `git push` from this copy cannot reach a live client repo. `git remote -v` should print nothing. Work happens on the local `lyka-shell` branch.
+**Repo: `The-Speed-Agency/speed-x-lyka-accelerator`, private.** Created 2026-08-04.
+https://github.com/The-Speed-Agency/speed-x-lyka-accelerator
 
-The Hamilton Island history is still in this repo below the `Baseline before Lyka conversion` commit. **Before creating a Lyka remote**, decide whether to carry 20+ commits of another client's content into a Lyka repo. To start clean:
+**The working branch is `lyka-main`, and it is the ONLY branch that exists on the remote.** It is an **orphan**: one commit, no parent, carrying the tree as it stood after pass 8. The Hamilton Island origin (`The-Speed-Agency/speed-x-hamilton-island-accelerator`) had been removed during the conversion precisely so a push from this copy could not reach a live client repo, and the orphan is how that protection was kept while still getting a remote.
 
-```bash
-git checkout --orphan lyka-main
-git add -A && git commit -m "Initial commit: Lyka Audience Accelerator"
-git branch -D lyka-shell main
-git reflog expire --expire=now --all && git gc --prune=now --aggressive
-gh repo create The-Speed-Agency/speed-x-lyka-accelerator --private --source . --remote origin --push
+### THREE LOCAL BRANCHES, AND ONLY ONE MAY BE PUSHED
+
+```
+* lyka-main    1 commit    -> origin/lyka-main    THE branch. Push this.
+  lyka-shell   35 commits  NO upstream            9 Lyka + 26 Hamilton Island
+  main         Hamilton    NO upstream            pre conversion
 ```
 
+`lyka-shell` and `main` still hold **26 commits of another client's development**, kept on disk deliberately rather than destroyed, because the conversion history is occasionally worth reading. They have no upstream and must not get one.
+
+- **Never run `git push --all`, `git push --mirror`, or `git push origin lyka-shell`.** Any of those puts Hamilton Island's full build history, including its Power BI and media plan commits, into a Lyka named repo.
+- Plain `git push` is safe: git's default `push.default = simple` pushes only the current branch to its own upstream, and the other two have none.
+- If you no longer want them on disk, the destructive cleanup is `git branch -D lyka-shell main && git reflog expire --expire=now --all && git gc --prune=now --aggressive`. **That is irreversible from this folder.** The canonical Hamilton Island deck has its own folder and its own repo, so nothing is lost to the agency, but nothing is recoverable here either.
+
+**Verified at creation:** the remote carries one branch and one commit; no `.env`, `.dev.vars`, `.netlify/state.json` or `.wrangler` is tracked or anywhere in history; and a fresh clone installs, typechecks and builds, so the repo is self contained.
+
+**The repo does contain Hamilton Island content**, and that is not an oversight: `data/mediaPlanData.ts`, `data/apexData.ts` and the media plan creative in `public/images/` are still theirs. Both pages render a placeholder rather than that data (see the top of this file). It is agency internal and the repo is private, but do not make this repo public while that is true.
+
 The uncommitted Cloudflare Worker gate that existed in this folder before the conversion was captured to `../worker-gate-and-tooling.patch` (141 KB) so it can be landed on the canonical Hamilton Island repo separately, without ever pushing from here.
+
+There is **no GitHub auto deploy**. Pushing does not build anything. See "Deploy".
 
 ## Wiring in the Lyka content model
 
