@@ -32,7 +32,7 @@ const TenThingsCard = React.forwardRef<HTMLButtonElement, TenThingsCardProps>(
       type="button"
       onClick={onOpen}
       aria-haspopup="dialog"
-      className="group relative flex h-full min-h-0 flex-col overflow-hidden rounded-xl border bg-white p-3 text-left transition-transform duration-300 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A7D68]"
+      className="group relative flex h-full min-h-0 flex-col overflow-hidden rounded-xl border bg-white p-2.5 text-left transition-transform duration-300 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A7D68]"
       style={{ borderColor: LYKA.mint, boxShadow: '0 1px 2px rgba(0,86,72,0.05)' }}
     >
       {/* The accent rail. Opacity, not a colour swap, so nothing shifts on hover. */}
@@ -42,7 +42,7 @@ const TenThingsCard = React.forwardRef<HTMLButtonElement, TenThingsCardProps>(
         style={{ backgroundColor: TEN_THINGS.seriesInk }}
       />
 
-      <span className="mb-2 flex flex-shrink-0 items-center gap-2">
+      <span className="mb-1.5 flex flex-shrink-0 items-center gap-2">
         <span
           className="grid h-6 w-6 flex-shrink-0 place-items-center rounded-md text-micro font-bold font-display"
           style={{ backgroundColor: LYKA.tealDeepest, color: LYKA.pageBg }}
@@ -69,15 +69,35 @@ const TenThingsCard = React.forwardRef<HTMLButtonElement, TenThingsCardProps>(
           slack on the worst card, and Tailwind's `xl:` fires at exactly 1280.
           Using it would have enlarged the type precisely where there is no room.
           See the screens note in index.html. */}
+      {/* NOT `overflow-hidden`, and that is a fix rather than an omission.
+
+          A line box is SHORTER THAN ITS OWN FONT METRICS here: `figure` sets
+          `line-height: 1`, and DM Sans wants about 1.29em (ascent 24px plus
+          descent 7px at 24px). So the first line's inline box starts about 4px
+          above this block and the last line's ends about 3px below it, whatever
+          the line count. That overflow was invisible while the box had 89px of
+          slack to absorb it. Once the grid became content sized the box fits its
+          line boxes exactly, `overflow-hidden` started clipping the metrics, and
+          measured against real ink the descender on the last line lost 2px.
+
+          The 3 to 4px lands in the 6px of empty margin above and below (the
+          badge row's `mb-1.5` and this block's `mt-1.5`), so nothing collides,
+          and the amount is a font constant rather than a function of the copy.
+          The CARD still clips, which is what `rounded-xl` and the absolute
+          accent rail need; this element does not have to.
+
+          Measure ink, not boxes, if this is ever revisited: a Range rect is the
+          font metric box and reports overflow that may not be inked, and
+          `TextMetrics.actualBoundingBoxDescent` is what settled it. */}
       <span
-        className="flex min-h-0 flex-1 items-center overflow-hidden text-body font-semibold leading-snug lg:text-lead roomy:text-title 2xl:text-figure"
+        className="flex min-h-0 flex-1 items-center text-body font-semibold leading-snug lg:text-lead roomy:text-title 2xl:text-figure"
         style={{ color: LYKA.tealDeepest }}
       >
         {point.cardHeadline}
       </span>
 
       <span
-        className="mt-2 block flex-shrink-0 border-t pt-2"
+        className="mt-1.5 block flex-shrink-0 border-t pt-1.5"
         style={{ borderColor: LYKA.mint }}
       >
         {/* ONE LINE. A stat value that wraps makes this block taller and lifts
@@ -87,28 +107,43 @@ const TenThingsCard = React.forwardRef<HTMLButtonElement, TenThingsCardProps>(
             value rather than letting it wrap. */}
         {/* `2xl:` HERE, but `roomy:` on the headline above, and the difference
             is measured rather than arbitrary. The headline can wrap, so it grows
-            as soon as there is height to absorb an extra line. This cannot wrap,
-            so it can only grow once the tile is at its widest, which the grid
-            cap pins at 228px from 1536 up. Stepping it at `roomy:` was tried and
-            broke a row: "Aggregate only" is the one non numeric value here and
-            at 24px in the 203px tile of a 1440 screen it took a second line,
-            pushing this tile's stat block 82px to 106px and its hairline 24px
-            out of line with its neighbours. */}
+            as soon as there is width to absorb it. This cannot wrap, so it can
+            only grow once the tile is at its WIDEST, which is what
+            `2xl:max-w-[1400px]` on the grid steps: 228px at `roomy:` to 272px
+            from 1536 up. (That used to read "which the grid cap pins at 228px";
+            the height cap is gone, the width cap does the same job here.)
+
+            Stepping it at `roomy:` was tried and broke a row: "Aggregate only"
+            is the one non numeric value here and at 24px in the 203px tile of a
+            1440 screen it took a second line, pushing this tile's stat block
+            82px to 106px and its hairline 24px out of line with its
+            neighbours. */}
         <span
           className="block text-title font-bold leading-tight font-display tabular-nums 2xl:text-figure"
           style={{ color: TEN_THINGS.seriesInk }}
         >
           {point.statValue}
         </span>
-        {/* MIN HEIGHT OF THREE LINES, and it is what keeps the hairlines level.
-            The headline taking the slack is only half the job: the block BELOW
-            the rule also varies, because these labels wrap to two or three
-            lines, and a taller label pushes its rule up. Floor them all at the
-            tallest and every rule in a row lands at the same y. The source page
-            did the same thing with min-height on its own stat label. If a label
-            ever needs four lines, shorten it rather than raising this. */}
+        {/* A MIN HEIGHT OF THE TALLEST LABEL, and it is what keeps the hairlines
+            level. The headline taking the slack is only half the job: the block
+            BELOW the rule also varies, because these labels wrap, and a taller
+            label pushes its rule up. Floor them all at the tallest and every
+            rule in a row lands at the same y. The source page did the same thing
+            with min-height on its own stat label.
+
+            `4.05em` is three lines at `leading-snug` (3 x 1.35), `2.7em` is two.
+            The floor STEPS WITH THE TILE WIDTH, because the tallest label is a
+            function of the column: the longest is point 04's 52 characters, and
+            at `micro` 11px DM Mono with 0.08em tracking a column fits about 20
+            characters at 1280, 27 at `roomy:` and 33 from 1536 up. So it wraps
+            to three lines below 1536 and two at or above it.
+
+            `2xl:` ONLY. At `roomy:` the width cap is still 1180, so a tile is
+            228px and 52 characters do not fit two lines; stepping it there
+            un-levels a row. If a label ever needs four lines at 1280, or three
+            at 1920, shorten the label rather than raising either value. */}
         <span
-          className="mt-1 block min-h-[4.05em] text-micro uppercase font-mono leading-snug"
+          className="mt-1 block min-h-[4.05em] text-micro uppercase font-mono leading-snug 2xl:min-h-[2.7em]"
           style={{ letterSpacing: TRACKING.eyebrow, color: LYKA.muted }}
         >
           {point.statLabel}

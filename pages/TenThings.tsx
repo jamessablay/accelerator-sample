@@ -14,13 +14,18 @@ import Modal from '../components/shared/Modal';
 // room: you can see the whole argument before you open any of it.
 //
 // LAYOUT ARITHMETIC, because it is tight and someone will change it. With the
-// sidebar expanded a tile is about 171x277 at 1280, 203x295 at 1440 and 272x355
-// at 1920. That is why TenThing carries a short `cardHeadline` alongside the
-// full `headline`.
+// sidebar expanded a tile is about 171x259 at 1280, 203x252 at 1440, 222x267 at
+// 1536 and 272x242 at 1920. That is why TenThing carries a short `cardHeadline`
+// alongside the full `headline`.
 //
-// THOSE THREE SIZES ARE A RANGE, NOT A CONSTANT, and that is the whole reason
-// the type steps. Re-measure after any change here: the numbers above, the
-// `min-h` floors below and the breakpoints on the card are one system.
+// THOSE SIZES ARE A RANGE, NOT A CONSTANT, and that is the whole reason the type
+// steps. Note the range is no longer monotonic: a tile gets SHORTER as the
+// viewport grows, because it is sized by its content and a wider tile needs
+// fewer headline lines. Re-measure after any change here.
+//
+// The height is now the content's, not a tuned number. Six of them are gone
+// (`h-full`, two `max-h` caps, three `min-h` floors); see the grid note below
+// for why, and do not add one back.
 //
 // The frame is `overflow-y-auto`, NOT `overflow-hidden`. A fixed frame is a
 // design intent, not a licence to clip: the last pass found `overflow-hidden`
@@ -86,34 +91,46 @@ const TenThings: React.FC = () => {
         </p>
       </header>
 
-      {/* THE GRID IS CAPPED AND CENTRED, and that is the main fix for empty
+      {/* THE GRID IS CONTENT SIZED AND CENTRED, and that is the fix for empty
           looking tiles.
 
-          It used to be `h-full` with no ceiling, so the tiles absorbed every
-          spare pixel of the viewport. Measured at 1920x1080 that made a tile
-          299x429 holding about 190px of content: 55% of every card was a hole.
-          Growing the type cannot fix that, because a wider tile needs FEWER
-          lines, so the taller it gets the emptier it reads.
-
           Whitespace INSIDE a card reads as a mistake; the same whitespace
-          around a centred grid reads as margin. So the grid stops growing and
-          the surplus becomes page margin instead. The caps are set just above
-          the 1440 measurements (1056x688), so 1440 and below are untouched and
-          1920 lands at 228x345 per tile rather than 299x429, close enough to
-          1440 that one `roomy:` type step serves both.
+          around a centred grid reads as margin. So the grid never grows past
+          what its tiles need and the surplus becomes page margin instead.
+
+          This replaced a hand tuned ceiling. It used to be `h-full` between a
+          `min-h` floor and a `max-h` cap, six numbers across three breakpoints,
+          and the cap was set well above the content: at 1920 it pinned a tile at
+          272x355 holding 266px, so 89px of every card was a hole, split by
+          `items-center` into two 45px gaps either side of the headline. Growing
+          the type cannot fix that, because a wider tile needs FEWER lines, so
+          the taller it gets the emptier it reads.
+
+          HOW IT SIZES, because it looks like it should collapse. `grid-rows-N`
+          is `repeat(N, minmax(0, 1fr))`, and with `h-full` gone this grid's
+          height is indefinite, so per CSS Grid 12.7.1 each `fr` track resolves
+          from the MAX CONTENT CONTRIBUTION of the items crossing it, taking the
+          maximum across all flexible tracks. Columns are sized first and are
+          definite (`w-full` plus `max-w`), so the headline's wrapped height is
+          known by the time rows are sized.
+
+          Both rows therefore land on the tallest card in the WHOLE grid, not on
+          their own row's tallest, which is what keeps the 5 x 2 block a
+          rectangle: point 01 needs five headline lines and point 08 four, so
+          independently sized rows would leave row 2 sitting 24px short.
+
+          IT ALSO CANNOT CLIP, which the old floors existed to prevent and three
+          times failed to (1280x720 by 11px, 1440x700 by 13px, and a `roomy:`
+          type step raised without its floor). A content sized row grows to what
+          it needs and this frame, already `overflow-y-auto`, scrolls when the
+          viewport is shorter. Do not reintroduce a `max-h` here.
 
           `m-auto` on a flex child, NOT `items-center`: margin auto centres
           without the overflow clipping that align-items causes in a scroll
           container, and this container scrolls by design (see the frame note
           above). */}
       <div className="flex min-h-0 flex-1 overflow-y-auto custom-scrollbar">
-        {/* `min-h` STEPS WITH THE TYPE, and it has to. The floor is what stops a
-            short viewport squeezing a tile below its own content: below it the
-            grid stops shrinking and this container scrolls instead. Raising the
-            headline at `roomy:` without raising the floor introduced a clip at
-            1440x700, where the tallest card needed 268px and got 255. Change one
-            of these and re-measure the other. */}
-        <div className="m-auto grid h-full min-h-[556px] max-h-[600px] w-full max-w-[1180px] grid-cols-2 grid-rows-5 gap-2.5 sm:grid-cols-3 sm:grid-rows-4 lg:grid-cols-5 lg:grid-rows-2 roomy:min-h-[560px] 2xl:min-h-[660px] 2xl:max-h-[720px] 2xl:max-w-[1400px]">
+        <div className="m-auto grid w-full max-w-[1180px] grid-cols-2 grid-rows-5 gap-2.5 sm:grid-cols-3 sm:grid-rows-4 lg:grid-cols-5 lg:grid-rows-2 2xl:max-w-[1400px]">
           {TEN_THINGS_POINTS.map((point, i) => (
             <TenThingsCard
               key={point.id}

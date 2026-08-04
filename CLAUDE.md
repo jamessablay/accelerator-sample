@@ -615,13 +615,13 @@ The caption is drawn OUTSIDE the plot area now, anchored to the rule it names, w
 
 ### Layout rules for the tile, and they are content rules
 
-A tile is about **171 x 277 at 1280, 203 x 295 at 1440 and 272 x 355 at 1920**, with the sidebar expanded. Four things keep ten tiles reading as one grid:
+A tile is about **171 x 259 at 1280, 203 x 252 at 1440, 222 x 267 at 1536 and 272 x 242 at 1920**, with the sidebar expanded. **That range is not monotonic**: a tile gets SHORTER as the viewport grows, because its height is its content's and a wider tile needs fewer headline lines. Four things keep ten tiles reading as one grid:
 
 - **`cardHeadline` is a separate field from `headline`**, short for the tile, full for the modal h2. Same split as `Persona.title` against `Persona.name`. When a headline does not fit, shorten the copy; never drop below the 14px prose floor.
 - **The headline is `flex-1` AND `items-center`.** Taking the slack is what lands the hairline level across a row; centring in that slack is what stops the leftover reading as a hole. Same fix and same reason as the market band heading in `ReadinessLadder`.
-- **`statLabel` has a three line `min-h-[4.05em]` and `statValue` must fit ONE line.** The headline taking the slack only levels the top half: the block BELOW the rule also varies, and a taller label or a wrapped value lifts its rule out of line. Two labels and one value were shortened at 1280 for exactly this. `"About 12 months"` became `"~12 months"`, keeping the approximation the source had.
+- **`statLabel` has a `min-h` of the tallest label and `statValue` must fit ONE line.** The headline taking the slack only levels the top half: the block BELOW the rule also varies, and a taller label or a wrapped value lifts its rule out of line. Two labels and one value were shortened at 1280 for exactly this. `"About 12 months"` became `"~12 months"`, keeping the approximation the source had. The floor is `4.05em` (three lines) stepping to `2xl:min-h-[2.7em]` (two), because the tallest label is a function of the column width; measured, three labels need the third line at 1440 and none do at 1536.
 
-- **THE GRID IS CAPPED AND CENTRED, and the type STEPS WITH THE TILE.** Added 2026-08-04, and it is the fix for the page reading empty. See below.
+- **THE GRID IS CONTENT SIZED AND CENTRED, and the type STEPS WITH THE TILE.** Added 2026-08-04 as a cap, finished the same day as content sizing. It is the fix for the page reading empty. See below.
 
 Verified across twelve viewport shapes from 1920x1080 to 1280x720: rule spread at most 1px in both rows, **zero clipped tiles**, page overflow 0, nothing under 11px, and the only sub 14px prose is the 12px sources line, which `type.ts` sanctions as a footnote.
 
@@ -629,7 +629,7 @@ Verified across twelve viewport shapes from 1920x1080 to 1280x720: rule spread a
 
 The tiles read as mostly empty. Measured before touching anything, the slack in the headline box was **211 to 236px of a 429px tile at 1920** (55% of every card), 98 to 147px of 339px at 1440, and 10 to 59px at 1280. **One number would have been a font size problem. Three make it a layout problem**, and the fix is three coordinated changes.
 
-1. **The grid was `h-full` with no ceiling**, so tiles absorbed every spare pixel of the viewport. A bigger tile is also a WIDER tile, which needs FEWER lines, so growing the viewport made cards emptier no matter what the type did. It now caps at `600x1180` (`720x1400` from 1536 up) and centres with `m-auto`. **Whitespace inside a card reads as a mistake; the same whitespace around a centred grid reads as margin.**
+1. **The grid was `h-full` with no ceiling**, so tiles absorbed every spare pixel of the viewport. A bigger tile is also a WIDER tile, which needs FEWER lines, so growing the viewport made cards emptier no matter what the type did. It capped at `600x1180` (`720x1400` from 1536 up) and centred with `m-auto`. **Whitespace inside a card reads as a mistake; the same whitespace around a centred grid reads as margin.** **The cap was then itself the residual problem and is gone; see the next section.**
 2. **The type steps with the tile**, headline `body` to `lead` to `title` to `figure`.
 3. **A four line stat label was breaking a row.** Point 09's `acquisitions,` is a 13 character unbreakable token that took a fourth line in a 147px column at 1280, pushing its stat block 81px to 96px and its hairline **15px out of line**. Shortened to `signups`, this page's own word for the same event. The documented rule held: shorten the label, never raise the min height.
 
@@ -641,7 +641,35 @@ The tiles read as mostly empty. Measured before touching anything, the slack in 
 - **Raising the type without raising the `min-h` floor introduced a clip** at 1440x700: the tallest card needed 268px and got 255. The floor is what makes a short viewport scroll instead of clip, so it steps with the type. They are one system.
 - **1280x720 was already clipping before any of this**, tiles 01 and 06 by 11px, because the old 520px floor was below the content's own height. Raised to 556.
 
-**Do not tune one of these in isolation.** The tile sizes quoted above, the `min-h` floors, the `max-h` caps and the card's breakpoints are a single system, and every one of the three regressions above came from moving one and not the others.
+**Do not tune one of these in isolation.** The tile sizes quoted above, the `min-h` floors, the `max-h` caps and the card's breakpoints were a single system, and every one of the three regressions above came from moving one and not the others. **That system is what the next section deletes.**
+
+### Finishing it: the grid is CONTENT SIZED, and six numbers went with the cap
+
+Same day, after the cap above was reported as still reading empty. **Measured before touching anything: the cap was set 179px above what the content needed.** At 1920 it pinned a tile at 272x355 holding 266px, and because the headline is `flex-1 items-center` that 89px showed up as **two 45px holes, one either side of the headline**. Two holes in the middle of a card is the worst available place to put slack.
+
+The fix is to delete the ceiling rather than lower it. `h-full`, both `max-h` caps and all three `min-h` floors are gone; `m-auto`, the two `max-w` caps, the `grid-cols` / `grid-rows` pairs and `gap-2.5` stay.
+
+**Why the rows stay equal without a height.** `grid-rows-N` is `repeat(N, minmax(0, 1fr))`, and in a grid with an indefinite height an `fr` track resolves from **the max content contribution of the items crossing it**, taking the maximum across all flexible tracks (CSS Grid 12.7.1). Columns are sized first and are definite, so the wrapped headline height is known by the time rows are sized. Both rows therefore land on the tallest card in the WHOLE grid, not their own row's tallest, which is what keeps the 5 x 2 block a rectangle: point 01 takes five headline lines and point 08 four, so independently sized rows would leave row 2 sitting 24px short.
+
+**It also cannot clip, which is the real prize.** The floors existed to stop a short viewport squeezing a tile, and three times failed to. A content sized row grows to what it needs and the frame, already `overflow-y-auto`, scrolls instead. At 1280x720 it scrolls 45px where the old 556 floor scrolled 72, and clips nothing.
+
+Interior spacing came down with it, `-24.85px` a card: `p-3` to `p-2.5`, `mb-2` to `mb-1.5`, `mt-2`/`pt-2` to `mt-1.5`/`pt-1.5`, and the stat label floor stepping to `2xl:min-h-[2.7em]`.
+
+**Net at 1920: a tile goes 272x355 to 272x242, and the tallest cards carry zero interior air.** Grid 1400x720 to 1400x494. No font size, no `type.ts` and no `brand.ts` change.
+
+#### The one regression it caused, and why only ink measurement found it
+
+Removing the slack exposed that **a line box here is SHORTER THAN ITS OWN FONT METRICS.** `figure` sets `line-height: 1` and DM Sans wants about 1.29em, so the first line's inline box starts ~4px above the headline block and the last line's ends ~3px below it, **whatever the line count**. With 89px of slack that overflow had somewhere to go. Once the box fit its line boxes exactly, the headline's `overflow-hidden` started clipping it, and on the tallest card the last line's descender lost **2px**.
+
+**A Range rect could not settle this and nearly gave the wrong answer.** `range.getClientRects()` returns the font metric box, so it reported 127.2px of "text" in a 120px box on a card whose glyphs were mostly fine. The question is whether INK is clipped, and the answer came from `TextMetrics.actualBoundingBoxAscent` / `actualBoundingBoxDescent` on a canvas set to the element's computed font, compared against the baseline derived from `fontBoundingBoxAscent`. Top cleared by 2px, bottom failed by 2px.
+
+The fix is that **the headline no longer sets `overflow-hidden`**: the 3 to 4px lands in the 6px of empty margin already above and below it, the amount is a font constant rather than a function of the copy, and the CARD still clips, which is what `rounded-xl` and the absolute accent rail actually need.
+
+**Two things worth carrying forward.** A tight `line-height` is free until you remove the slack around it, so **any layout change that makes a text box fit exactly should re-check ink, not boxes.** And `leading-snug` on that headline has never done anything: in this Tailwind CDN build the `fontSize` utilities' baked line-height beats a `leading-*` utility, so all four breakpoint steps override it. Left alone deliberately, because giving it real leading makes the tallest card taller and therefore every card taller, which is backwards for this brief.
+
+**Verified across ten viewport and sidebar combinations** (1280x720, 1280x800, 1440x900, 1536x864, 1920x1080, sidebar expanded and collapsed): rows equal at every one, **hairline spread 0.8px at worst** against the 1px invariant, **zero clipped tiles and zero clipped ink**, page overflow 0, min rendered font 11px, `[data integrity]` silent. Modal path re-checked end to end: opens with focus inside the dialog, stepper walks all ten, Escape returns focus to the tile and releases the scroll lock.
+
+**Residual, and it is honest content variance:** points 03, 07 and 10 have short headlines, so they still carry up to ~72px, centred. `items-center` is kept rather than `items-start` because collecting it into one hole above the hairline reads worse. **Do not fix it by lengthening a `cardHeadline`**, which is content serving layout.
 
 ## Interactive Media Plan page
 
