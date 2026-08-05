@@ -4,7 +4,9 @@ import BudgetBreakdownChart from '../components/mediaplan/BudgetBreakdownChart';
 import BudgetPieChart from '../components/mediaplan/BudgetPieChart';
 import ChannelDetail from '../components/mediaplan/ChannelDetail';
 import Modal from '../components/shared/Modal';
-import { PLAN_LAYERS, MediaRow, LayerKey, TOTAL_BUDGET, MEDIA_TOTAL, PRODUCTION } from '../data/mediaPlanData';
+import { PLAN_LAYERS, MediaRow, LayerKey, MEDIA_TOTAL } from '../data/mediaPlanData';
+import { LYKA } from '../data/brand';
+import { TRACKING } from '../data/type';
 
 type ModalState =
   | { type: 'budget' }
@@ -13,13 +15,42 @@ type ModalState =
   | null;
 
 const layerKeyForRow = (row: MediaRow): LayerKey =>
-  (PLAN_LAYERS.find((l) => l.rows.includes(row))?.key ?? 'Active Consideration');
+  (PLAN_LAYERS.find((l) => l.rows.includes(row))?.key ?? 'SHOW IT');
 
+const CHANNEL_COUNT = PLAN_LAYERS.reduce((s, l) => s + l.rows.length, 0);
+const IN_HOUSE_COUNT = PLAN_LAYERS.reduce((s, l) => s + l.rows.filter((r) => r.owner === 'lyka').length, 0);
+
+/**
+ * A KPI card: uppercase mono title, hero figure, supporting sub line.
+ *
+ * All three sizes come from data/type.ts tokens rather than arbitrary px, and
+ * both greys clear AA on the white card. Three things here were fixed on
+ * 2026-08-05 after the strip was reported as hard to read, and each one is a
+ * rule rather than a taste call:
+ *
+ * 1. THE SUB LINE WAS `LYKA.mintMuted` #A9C3B4 AT 1.88:1, which misses AA 4.5:1
+ *    and even the 3:1 non-text floor. It is `LYKA.muted` #5B6E64 at 5.44:1 now.
+ *    That token is fill and border only; see its comment in brand.ts.
+ * 2. The sub line is sentence case prose, so it cannot sit at `micro` 11 (which
+ *    type.ts reserves for uppercase mono eyebrows). `meta` 12 is the sanctioned
+ *    footnote step.
+ * 3. The title went `micro` 11 to `label` 13. 13 is the largest step that still
+ *    reads as an eyebrow: `body` 14 is the prose floor, above which it starts
+ *    competing with the figure. Tracking moves with it, from Tailwind's
+ *    `tracking-wide` 0.025em to `TRACKING.caps` 0.06em, because
+ *    `TRACKING.eyebrow` 0.08em is calibrated for `micro`.
+ *
+ * `font-medium` on the title and `font-semibold` on the figure are REAL loaded
+ * faces. The old `font-bold` asked for DM Mono 700, which index.html does not
+ * load (400 and 500 only), so the browser was synthesising it; the figure
+ * carried no weight class at all and rendered in Poppins Regular.
+ */
 const KpiCard: React.FC<{ label: string; value: string; sub?: string }> = ({ label, value, sub }) => (
-  <div className="rounded-xl border bg-white px-4 py-3 shadow-sm" style={{ borderColor: 'var(--lyka-mint)' }}>
-    <p className="text-[11px] font-bold uppercase tracking-wide font-mono" style={{ color: 'var(--lyka-muted)' }}>{label}</p>
-    <p className="mt-1 text-2xl md:text-3xl font-display" style={{ color: 'var(--lyka-teal-deep)' }}>{value}</p>
-    {sub && <p className="text-[11px]" style={{ color: 'var(--lyka-mint-muted)' }}>{sub}</p>}
+  <div className="rounded-xl border bg-white px-4 py-3 shadow-sm" style={{ borderColor: LYKA.mint }}>
+    <p className="font-mono text-label font-medium uppercase" style={{ letterSpacing: TRACKING.caps, color: LYKA.muted }}>{label}</p>
+    {/* mt-1.5, not mt-1: the token line box is tighter than Tailwind's text-2xl. */}
+    <p className="mt-1.5 font-display text-figure md:text-display font-semibold tabular-nums" style={{ color: LYKA.tealDeepest }}>{value}</p>
+    {sub && <p className="mt-0.5 text-meta" style={{ color: LYKA.muted }}>{sub}</p>}
   </div>
 );
 
@@ -40,16 +71,16 @@ const InteractiveMediaPlan: React.FC = () => {
           Interactive Media Plan
         </h1>
         <p className="mt-3 text-base md:text-xl text-[#143C33] max-w-4xl">
-          FY26 macro block plan. Click any flighting bar for the channel detail, or the Budget header for the stacked monthly breakdown.
+          12 month macro block plan, October to September. Click any flighting bar for the channel detail, or the Budget header for the stacked monthly breakdown.
         </p>
       </header>
 
       {/* KPI strip */}
       <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KpiCard label="Total budget" value={`$${(TOTAL_BUDGET / 1_000_000).toFixed(1)}M`} sub="Incl. production" />
-        <KpiCard label="Working media" value={`$${(MEDIA_TOTAL / 1_000_000).toFixed(2)}M`} />
-        <KpiCard label="Production" value={`$${(PRODUCTION / 1000).toFixed(0)}k`} sub="Content production" />
-        <KpiCard label="Flight" value="Nov ▸ Oct" sub="12 month FY26" />
+        <KpiCard label="SPEED managed media" value={`$${(MEDIA_TOTAL / 1_000_000).toFixed(1)}M`} sub="Working media" />
+        <KpiCard label="Flight" value="Oct ▸ Sep" sub="12 months" />
+        <KpiCard label="Funnel stages" value="5" sub="SHOW IT ▸ SHARE IT" />
+        <KpiCard label="Channels" value={`${CHANNEL_COUNT}`} sub={`${IN_HOUSE_COUNT} Lyka in house`} />
       </div>
 
       <div className="mt-6">
@@ -57,7 +88,7 @@ const InteractiveMediaPlan: React.FC = () => {
       </div>
 
       <p className="mt-3 text-sm font-semibold text-[#143C33]">
-        Total: ${(MEDIA_TOTAL / 1_000_000).toFixed(2)}M working media + ${(PRODUCTION / 1000).toFixed(0)}k production = ${(TOTAL_BUDGET / 1_000_000).toFixed(1)}M
+        Total: ${(MEDIA_TOTAL / 1_000_000).toFixed(1)}M SPEED managed media | Lyka in house channels (green) are flighted alongside and funded by Lyka
       </p>
 
       <Modal
@@ -72,7 +103,7 @@ const InteractiveMediaPlan: React.FC = () => {
         }
         subtitle={
           modal?.type === 'channel'
-            ? modal.layerKey
+            ? `${modal.layerKey}${modal.row.owner === 'lyka' ? ' | Lyka in house' : ''}`
             : modal?.type === 'pct'
             ? 'Budget allocation by media channel'
             : 'Stacked by media channel'

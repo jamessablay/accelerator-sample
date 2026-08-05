@@ -1,54 +1,21 @@
 import React from 'react';
 import PendingSection from '../components/shared/PendingSection';
 import ApexIcon from '../components/icons/ApexIcon';
-import CalendarAltIcon from '../components/icons/CalendarAltIcon';
 
 // -----------------------------------------------------------------------------
-// What a viewer sees instead of the two sections that are still Hamilton Island.
+// What a viewer sees instead of the one section that is still Hamilton Island.
 //
-// ONE FILE FOR BOTH, on purpose: they exist because of a single decision and
-// they come down together. When a Lyka brief and a Lyka Roy Morgan pull land,
-// delete the matching export here and drop the `SHOW_ALL` branch in App.tsx.
-// pages/InteractiveMediaPlan.tsx and pages/ApexBySpeed.tsx are UNTOUCHED and
-// still wired, so that switch is a two line change with nothing to rebuild.
+// The Interactive Media Plan's placeholder was deleted on 2026-08-05 when the
+// Lyka briefing workbook landed and the page was rebuilt with the real plan.
+// APEX comes down the same way: when a Lyka Roy Morgan pull lands, delete this
+// export and drop the `SHOW_ALL` ternary in App.tsx. pages/ApexBySpeed.tsx is
+// UNTOUCHED and still wired, so that switch is a two line change.
 //
-// The nav still lists both, so the deck reads as six sections rather than four
-// with two quietly missing. What changes is what opens.
+// The nav still lists it, so the deck reads as six sections rather than five
+// with one quietly missing. What changes is what opens.
 //
-// Internal review: append `?show=all` to the URL to get the real pages back.
+// Internal review: append `?show=all` to the URL to get the real page back.
 // -----------------------------------------------------------------------------
-
-/** Replaces pages/InteractiveMediaPlan.tsx until a Lyka brief lands. */
-export const MediaPlanPending: React.FC = () => (
-  <PendingSection
-    title="Interactive Media Plan"
-    subtitle="Where the money goes, by funnel stage, channel and month."
-    icon={<CalendarAltIcon />}
-    heading="The plan, once there is a Lyka brief to plan against"
-    body={
-      <>
-        This page is a working macro block plan: a funnel stage grid of channels with monthly
-        flighting, budget and share of spend, and a chart behind every number. It is built and
-        it runs. What it does not yet have is Lyka&apos;s brief, so it is held back rather than
-        shown against another client&apos;s figures.
-      </>
-    }
-    items={[
-      'Funnel stage grid with monthly flighting bars',
-      'Budget and share of media per channel',
-      'Channel pop-ups: rationale and execution',
-      'Creative examples, click to enlarge',
-      'Stacked monthly spend by channel',
-      'Budget allocation by channel',
-    ]}
-    needs={
-      <>
-        One Lyka media brief: the channel list, the monthly flighting and the budget split by
-        funnel stage. The grid, the gantt derivation and the three charts all recompute from it.
-      </>
-    }
-  />
-);
 
 /** Replaces pages/ApexBySpeed.tsx until a Lyka Roy Morgan pull lands. */
 export const ApexPending: React.FC = () => (

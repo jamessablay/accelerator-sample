@@ -3,44 +3,55 @@ import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
+  BarController,
   BarElement,
+  LineController,
+  LineElement,
+  PointElement,
   Tooltip,
   Legend,
   Plugin,
   ChartData,
   ChartOptions,
 } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
-import { PLAN_LAYERS, MONTHS, MEDIA_TOTAL } from '../../data/mediaPlanData';
-import { LAYER_COLORS, LYKA, CHART_INK, CHART_MUTED, CHART_GRID } from '../../data/brand';
+import { Chart } from 'react-chartjs-2';
+import { PLAN_LAYERS, MONTHS, MEDIA_TOTAL, FLIGHTING_PCT } from '../../data/mediaPlanData';
+import { LAYER_COLORS, LYKA, TEN_THINGS, lighten, CHART_INK, CHART_MUTED, CHART_GRID } from '../../data/brand';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
+// The generic <Chart> registers NO controllers, and the typed <Bar> registers
+// BarController only: a mixed bar-plus-line chart typechecks either way and
+// throws at runtime unless BOTH controllers (and the line's elements) are
+// registered explicitly. Same trap the Ten Things charts document in
+// components/tenthings/charts/chartBase.ts.
+ChartJS.register(CategoryScale, LinearScale, BarController, BarElement, LineController, LineElement, PointElement, Tooltip, Legend);
 
 /** How far the last channel in a layer is lightened toward white. */
 const LIGHTEN_CEILING = 0.34;
 
-/** Mix a hex colour toward white by t (0..1). */
-function lighten(hex: string, t: number): string {
-  const n = parseInt(hex.slice(1), 16);
-  const r = (n >> 16) & 255;
-  const g = (n >> 8) & 255;
-  const b = n & 255;
-  const mix = (c: number) => Math.round(c + (255 - c) * t);
-  return `rgb(${mix(r)}, ${mix(g)}, ${mix(b)})`;
-}
+/** The dashed overlay: the workbook's planned monthly flighting weight, in dollars. */
+const FLIGHTING_LABEL = 'Planned flighting weight';
+const flightingDollars = FLIGHTING_PCT.map((p) => Math.round((p / 100) * MEDIA_TOTAL));
 
 // Draw the stacked column total above each bar (replaces the datalabels plugin).
+// Sums ONLY the 'spend' stack: the flighting overlay is a reference line, and
+// summing it in would silently inflate every printed total by the demand value.
 const columnTotals: Plugin<'bar'> = {
   id: 'columnTotals',
   afterDatasetsDraw(chart) {
     const { ctx } = chart;
     const totals = MONTHS.map((_, i) =>
-      chart.data.datasets.reduce((sum, ds) => sum + (Number((ds.data as number[])[i]) || 0), 0),
+      chart.data.datasets.reduce(
+        (sum, ds) => sum + (ds.stack === 'spend' ? Number((ds.data as number[])[i]) || 0 : 0),
+        0,
+      ),
     );
-    // Topmost visible dataset gives the y of each stack top.
+    // Topmost visible SPEND dataset gives the y of each stack top.
     let topMeta = null as ReturnType<typeof chart.getDatasetMeta> | null;
     for (let d = chart.data.datasets.length - 1; d >= 0; d--) {
-      if (chart.isDatasetVisible(d)) { topMeta = chart.getDatasetMeta(d); break; }
+      if (chart.data.datasets[d].stack === 'spend' && chart.isDatasetVisible(d)) {
+        topMeta = chart.getDatasetMeta(d);
+        break;
+      }
     }
     if (!topMeta) return;
     ctx.save();
@@ -57,19 +68,45 @@ const columnTotals: Plugin<'bar'> = {
 };
 
 const BudgetBreakdownChart: React.FC = () => {
-  const data = useMemo<ChartData<'bar'>>(() => {
+  // Mixed chart: bar datasets plus the dashed line overlay, so the data is
+  // typed over the union rather than 'bar' alone.
+  const data = useMemo<ChartData<'bar' | 'line', number[], string>>(() => {
     const datasets = PLAN_LAYERS.flatMap((layer) => {
       const base = LAYER_COLORS[layer.key].base;
-      return layer.rows.map((row, idx) => ({
+      // In-house rows carry no dollars: a zero dataset draws nothing but still
+      // takes a legend entry, so they are filtered out, and the shade index
+      // runs over the FUNDED rows so the ramp has no gaps.
+      const funded = layer.rows.filter((row) => row.budget > 0);
+      return funded.map((row, idx) => ({
         label: row.channel,
         data: [...row.monthly],
-        backgroundColor: lighten(base, (idx / Math.max(1, layer.rows.length)) * LIGHTEN_CEILING),
+        backgroundColor: lighten(base, (idx / Math.max(1, funded.length)) * LIGHTEN_CEILING),
         borderColor: 'rgba(255,251,237,0.9)',
         borderWidth: 1,
         stack: 'spend',
       }));
     });
-    return { labels: [...MONTHS], datasets };
+    return {
+      labels: [...MONTHS],
+      datasets: [
+        ...datasets,
+        {
+          type: 'line' as const,
+          label: FLIGHTING_LABEL,
+          data: [...flightingDollars],
+          // TEN_THINGS.benchmark is the established dashed-benchmark stroke
+          // (5.25:1 against the cream mat).
+          borderColor: TEN_THINGS.benchmark,
+          borderWidth: 2,
+          borderDash: [6, 4],
+          pointRadius: 2,
+          pointBackgroundColor: TEN_THINGS.benchmark,
+          fill: false,
+          stack: 'flighting',
+          order: 0,
+        },
+      ],
+    };
   }, []);
 
   const options = useMemo<ChartOptions<'bar'>>(
@@ -96,8 +133,13 @@ const BudgetBreakdownChart: React.FC = () => {
         tooltip: {
           callbacks: {
             label: (c) => `${c.dataset.label}: $${Number(c.parsed.y).toLocaleString('en-AU')}`,
+            // Total the spend stack only: the flighting overlay is a reference
+            // line, not spend, and must not inflate the footer.
             footer: (items) => {
-              const total = items.reduce((s, it) => s + Number(it.parsed.y || 0), 0);
+              const total = items.reduce(
+                (s, it) => s + (it.dataset.stack === 'spend' ? Number(it.parsed.y || 0) : 0),
+                0,
+              );
               return `Total: $${total.toLocaleString('en-AU')}`;
             },
           },
@@ -110,10 +152,11 @@ const BudgetBreakdownChart: React.FC = () => {
   return (
     <div>
       <p className="text-sm mb-3" style={{ color: CHART_MUTED }}>
-        Total monthly spend, broken down by media channel. Media total {`$${MEDIA_TOTAL.toLocaleString('en-AU')}`} across the FY (Nov to Oct).
+        SPEED managed monthly spend, broken down by media channel, with the planned flighting weight as the dashed line.
+        Media total {`$${MEDIA_TOTAL.toLocaleString('en-AU')}`} across the year (Oct to Sep).
       </p>
       <div style={{ height: 'min(58vh, 460px)' }}>
-        <Bar data={data} options={options} plugins={[columnTotals]} />
+        <Chart type="bar" data={data} options={options} plugins={[columnTotals]} />
       </div>
     </div>
   );

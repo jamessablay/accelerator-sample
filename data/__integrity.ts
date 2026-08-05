@@ -27,8 +27,8 @@
 import { categoryData } from './categoryData';
 import { personaCategories } from './personasData';
 import { PERSONA_VIDEOS, personaVideo } from './personaMedia';
-import { PLAN_LAYERS, MEDIA_TOTAL } from './mediaPlanData';
-import { SEGMENT_COLORS, TEN_THINGS, TEN_THINGS_STROKE_TOKENS, LYKA, GAP_RAMP } from './brand';
+import { PLAN_LAYERS, MEDIA_TOTAL, FLIGHTING_PCT, MONTHS } from './mediaPlanData';
+import { SEGMENT_COLORS, LAYER_COLORS, OWNER_COLORS, TEN_THINGS, TEN_THINGS_STROKE_TOKENS, LYKA, GAP_RAMP } from './brand';
 import { SEGMENT_IMAGES } from '../components/personas/CategoryDetail';
 import { TEN_THINGS_POINTS } from './tenThingsData';
 import {
@@ -271,16 +271,63 @@ export function runIntegrityChecks(): void {
 
   // 5. The media plan budget invariant is hand maintained: change one monthly
   //    cell and the KPI strip silently disagrees with the Gantt total.
-  const rowSum = PLAN_LAYERS.flatMap((l) => l.rows).reduce((s, r) => s + r.budget, 0);
+  const planRows = PLAN_LAYERS.flatMap((l) => l.rows);
+  const rowSum = planRows.reduce((s, r) => s + r.budget, 0);
   if (rowSum !== MEDIA_TOTAL) {
     fail(`media plan row budgets sum to ${rowSum.toLocaleString('en-AU')} but MEDIA_TOTAL is ${MEDIA_TOTAL.toLocaleString('en-AU')}. The KPI strip and the Gantt total now disagree.`);
   }
-  for (const row of PLAN_LAYERS.flatMap((l) => l.rows)) {
+  for (const row of planRows) {
     const monthlySum = row.monthly.reduce((s, v) => s + v, 0);
     if (monthlySum !== row.budget) {
       warn(`"${row.channel}" monthly values sum to ${monthlySum.toLocaleString('en-AU')} but its budget is ${row.budget.toLocaleString('en-AU')}.`);
     }
+    if (row.monthly.length !== MONTHS.length) {
+      fail(`"${row.channel}" has ${row.monthly.length} monthly values, not ${MONTHS.length}. The gantt bars and the flighting chart are index-joined to MONTHS, so every bar after the gap lands under the wrong month.`);
+    }
   }
+
+  // 5b. The ownership split. An in-house row with dollars would silently change
+  //     every total (the client chose flighting only for the green rows), and an
+  //     in-house row without `activeMonths` renders NO bar at all, which reads as
+  //     a channel that was never planned.
+  for (const row of planRows) {
+    if (row.owner === 'lyka') {
+      if (row.budget !== 0 || row.monthly.some((v) => v > 0)) {
+        fail(`"${row.channel}" is Lyka in house but carries dollars. In-house rows are flighting only; their spend lives with Lyka, not in MEDIA_TOTAL.`);
+      }
+      if (!row.activeMonths) {
+        fail(`"${row.channel}" is Lyka in house but has no activeMonths, so its gantt track renders no bar at all.`);
+      } else {
+        if (row.activeMonths.length !== MONTHS.length) {
+          fail(`"${row.channel}" activeMonths has ${row.activeMonths.length} entries, not ${MONTHS.length}.`);
+        }
+        if (!row.activeMonths.some(Boolean)) {
+          fail(`"${row.channel}" activeMonths is all false: the row renders an empty track.`);
+        }
+      }
+    } else if (row.activeMonths) {
+      warn(`"${row.channel}" is SPEED managed but declares activeMonths, which the gantt ignores in favour of its monthly dollars.`);
+    }
+  }
+
+  // 5c. The flighting overlay is percentages that must describe the whole
+  //     budget: off by one entry and every point lands under the wrong month,
+  //     summing wrong and the dashed line quietly stops meaning "100% of $11M".
+  const flightingSum = FLIGHTING_PCT.reduce((s, v) => s + v, 0);
+  if (Math.abs(flightingSum - 100) > 0.01) {
+    fail(`FLIGHTING_PCT sums to ${flightingSum}, not 100. The dashed overlay no longer distributes the full media total.`);
+  }
+  if (FLIGHTING_PCT.length !== MONTHS.length) {
+    fail(`FLIGHTING_PCT has ${FLIGHTING_PCT.length} entries, not ${MONTHS.length}.`);
+  }
+
+  // 5d. Media plan creative. Same Content-Type rule as check 4: a missing
+  //     public/ image gets the SPA fallback from Vite, HTTP 200 and text/html,
+  //     and the gallery renders a broken frame that reads like a layout bug.
+  const mediaPlanAssets = new Set(
+    planRows.flatMap((r) => [...(r.images ?? []), ...(r.extraImages ?? [])]),
+  );
+  for (const url of mediaPlanAssets) checkAsset(url, fail);
 
   // 6. Palette floors.
   //
@@ -304,6 +351,55 @@ export function runIntegrityChecks(): void {
     const inkOnTint = contrast(set.tintInk, set.tint);
     if (inkOnTint < TEXT_FLOOR) {
       fail(`SEGMENT_COLORS["${key}"]: tintInk ${set.tintInk} on tint ${set.tint} is ${inkOnTint.toFixed(2)}:1, below AA (${TEXT_FLOOR}:1). Never put white on a tint.`);
+    }
+  }
+
+  // 6a. The media plan bands are ink pairs too. LAYER_COLORS.ink carries the
+  //     funnel rail labels and the pop-up strip text; OWNER_COLORS.ink is drawn
+  //     on the gantt-green month chips and the owner pills. The old
+  //     'Active Consideration' set shipped a 2.62:1 pair, which is exactly the
+  //     drift this stops recurring.
+  for (const [key, set] of Object.entries(LAYER_COLORS)) {
+    const ratio = contrast(set.ink, set.base);
+    if (ratio < TEXT_FLOOR) {
+      fail(`LAYER_COLORS["${key}"]: ink ${set.ink} on base ${set.base} is ${ratio.toFixed(2)}:1, below AA (${TEXT_FLOOR}:1). The rail label is unreadable.`);
+    }
+  }
+  for (const [key, set] of Object.entries(OWNER_COLORS)) {
+    const ratio = contrast(set.ink, set.base);
+    if (ratio < TEXT_FLOOR) {
+      fail(`OWNER_COLORS["${key}"]: ink ${set.ink} on base ${set.base} is ${ratio.toFixed(2)}:1, below AA (${TEXT_FLOOR}:1).`);
+    }
+  }
+
+  // 6c. THE PALE TOKENS ARE FILL ONLY, and this states the boundary in numbers
+  //     rather than in a comment.
+  //
+  //     `mintMuted` said "for faint labels" until 2026-08-05 and seven places had
+  //     taken it literally, every one of them between 1.67:1 and 1.88:1 against
+  //     the surface it sat on: under AA, and under the 3:1 non-text floor that
+  //     covers an icon or a control. `muted` is the palest ink here that clears
+  //     AA, so there is no lighter legal option and "make it fainter" is never
+  //     the answer.
+  //
+  //     This asserts the DIVIDING LINE holds: mintMuted below the non-text
+  //     floor (so nobody reads the comment as advisory) and muted above AA on
+  //     all four surfaces it is used on (so the replacement is safe everywhere,
+  //     not just on the white card the complaint came from).
+  const NON_TEXT_FLOOR = 3.0;
+  const SURFACES: [string, string][] = [
+    ['white', '#FFFFFF'],
+    ['cream page', LYKA.pageBg],
+    ['ivory', LYKA.ivory],
+    ['cream panel', LYKA.cream],
+  ];
+  if (contrastVsWhite(LYKA.mintMuted) >= NON_TEXT_FLOOR) {
+    fail(`LYKA.mintMuted ${LYKA.mintMuted} now clears ${NON_TEXT_FLOOR}:1 on white. If it was darkened deliberately, update its FILL ONLY comment in brand.ts and delete this check; if a paler ink is wanted, there is not one.`);
+  }
+  for (const [name, surface] of SURFACES) {
+    const ratio = contrast(LYKA.muted, surface);
+    if (ratio < TEXT_FLOOR) {
+      fail(`LYKA.muted ${LYKA.muted} is ${ratio.toFixed(2)}:1 on ${name} ${surface}, below AA (${TEXT_FLOOR}:1). It is the palest ink in the palette and the replacement for every faint label, so this failing means there is no legal muted ink left.`);
     }
   }
 
@@ -500,7 +596,8 @@ export function runIntegrityChecks(): void {
     console.info(
       `${TAG} ok. ${personas.length} personas, ${categoryKeys.size} segments, ${journeyMetrics.length} journeys, ` +
         `${PERSONA_VARIANTS.length}+${JOURNEY_VARIANTS.length} variants, ${TEN_THINGS_POINTS.length} findings, ` +
-        `${assets.size + tenThingsAssets.size} assets queued for check, ` +
+        `${planRows.length} media plan rows, ` +
+        `${assets.size + tenThingsAssets.size + mediaPlanAssets.size} assets queued for check, ` +
         `shares, budgets and published tables balance.`,
     );
   }

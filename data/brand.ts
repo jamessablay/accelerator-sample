@@ -44,7 +44,27 @@ export const LYKA = {
   cream: '#F0F2E9',
   /** Light Mint hairline. Lyka uses borders where other brands use shadows. */
   mint: '#DBE6DC',
-  /** Muted mint for faint labels. */
+  /**
+   * Muted mint. **FILL, BORDER AND STROKE ONLY. NEVER INK.**
+   *
+   * 1.88:1 on white, 1.75:1 on ivory. That misses AA 4.5:1 for text and also
+   * misses the 3:1 non-text floor, so it cannot carry a label, an axis value or
+   * an icon that means something. It said "for faint labels" until 2026-08-05,
+   * and seven places had taken it at its word: the media plan KPI sub lines and
+   * inactive month chips, the "tap to enlarge" hint, every modal's close
+   * button, the journey table's definition icon, the score graph's y axis
+   * labels and the gap matrix's "no data". All seven are `muted` #5B6E64 now.
+   *
+   * `muted` is the lightest ink in this palette that clears AA, at 5.44:1 on
+   * white, 5.26:1 on the cream page, 5.06:1 on ivory and 4.82:1 on the cream
+   * panel. **There is no paler one.** If something needs to read as quiet, make
+   * it smaller or lighter in WEIGHT, not fainter than `muted`.
+   *
+   * `VariantSwitcher.tsx` already recorded the lesson: a 9px eyebrow in this
+   * token was deleted in the type pass as "the worst size-and-contrast pairing
+   * on either page". `TEN_THINGS.inertFill` is the same hex, correctly labelled
+   * fill only. Asserted by `data/__integrity.ts` check 6c.
+   */
   mintMuted: '#A9C3B4',
   /** Teal-tinted muted text. */
   muted: '#5B6E64',
@@ -52,7 +72,12 @@ export const LYKA = {
   border: 'rgba(0,86,72,0.08)',
   /** Teal-tinted shadow. Lyka shadows are never black. */
   shadow: '0 18px 40px -16px rgba(0,86,72,0.22)',
-  /** SPEED brand mark. Reserved for the SPEED wordmark only. */
+  /**
+   * SPEED brand mark. Reserved for the SPEED wordmark, the APEX logo, and one
+   * sanctioned data use: OWNER_COLORS.speed on the media plan, where the colour
+   * denotes SPEED itself (the client-requested red = SPEED legend). It is still
+   * not a general UI colour.
+   */
   speedRed: '#E8151B',
   /** Lyka uses one easing curve for everything. */
   ease: 'cubic-bezier(0.4, 0, 0.2, 1)',
@@ -162,7 +187,7 @@ export const getSegmentColor = (key: string): SegmentColorSet =>
   SEGMENT_COLORS[key] ?? SEGMENT_COLOR_FALLBACK;
 
 // -----------------------------------------------------------------------------
-// Media plan layer colours (the funnel rail, gantt bars, and all 3 Chart.js views)
+// Media plan layer colours (the funnel rail and both Chart.js budget views)
 // -----------------------------------------------------------------------------
 //
 // Separation rule vs the segments: segments own the DARK band (3.2 to 12.3:1),
@@ -171,16 +196,23 @@ export const getSegmentColor = (key: string): SegmentColorSet =>
 //
 // `ink` is required, not decoration. White on Tangerine is 2.43:1 and on Orange
 // is 2.34:1, so the rail labels and header cells must be driven from `ink`
-// rather than a hardcoded text-white.
+// rather than a hardcoded text-white. One ink, #003D33, serves all five stages
+// (worst pair 4.51:1 on SHOW IT teal), so adjacent rails never flip ink.
+//
+// The five keys are Lyka's funnel stages from the media plan briefing workbook.
+// The three FUNDED stages carry the chart hues (teal, tangerine, orange); TRY IT
+// and SHARE IT are Lyka-in-house-only stages with zero SPEED spend, so their
+// quiet fills (peach, muted mint) only ever render on the funnel rail. Both
+// charts filter to `budget > 0` rows and never see them.
 //
 // LayerKey is declared HERE, not in mediaPlanData, so LAYER_COLORS can be typed
 // without a circular import. mediaPlanData re-exports it so its two existing
 // importers (InteractiveMediaPlan, ChannelDetail) keep working unchanged.
 
-export type LayerKey = 'Active Consideration' | 'Research' | 'Book';
+export type LayerKey = 'SHOW IT' | 'CHECK IT' | 'PROVE IT' | 'TRY IT' | 'SHARE IT';
 
 export interface LayerColorSet {
-  /** Rail background, gantt bars, chart series. */
+  /** Rail background and chart series. */
   base: string;
   /** Chart.js area fill under a line. */
   area: string;
@@ -189,9 +221,59 @@ export interface LayerColorSet {
 }
 
 export const LAYER_COLORS: Record<LayerKey, LayerColorSet> = {
-  'Active Consideration': { base: '#10B193', area: 'rgba(16,177,147,0.18)', ink: '#FFFBED' },
-  'Research':             { base: '#F68B1F', area: 'rgba(246,139,31,0.22)', ink: '#003D33' },
-  'Book':                 { base: '#FF886B', area: 'rgba(255,136,107,0.20)', ink: '#003D33' },
+  'SHOW IT':  { base: '#10B193', area: 'rgba(16,177,147,0.18)',  ink: '#003D33' }, // ink 4.51:1
+  'CHECK IT': { base: '#F68B1F', area: 'rgba(246,139,31,0.22)',  ink: '#003D33' }, // ink 5.03:1
+  'PROVE IT': { base: '#FF886B', area: 'rgba(255,136,107,0.20)', ink: '#003D33' }, // ink 5.24:1
+  'TRY IT':   { base: '#FEE9DA', area: 'rgba(254,233,218,0.30)', ink: '#003D33' }, // ink 10.43:1
+  'SHARE IT': { base: '#A9C3B4', area: 'rgba(169,195,180,0.25)', ink: '#003D33' }, // ink 6.50:1
+};
+
+// -----------------------------------------------------------------------------
+// Media plan OWNER colours (the gantt bars and the bottom-of-plan legend)
+// -----------------------------------------------------------------------------
+//
+// The Lyka plan splits every channel by who runs it, and the client asked for
+// exactly this encoding: GREEN bars are Lyka in house, RED bars are SPEED
+// managed. Bars encode OWNER; the rail and the two budget charts encode STAGE.
+// The two dimensions never share a surface, so the hues cannot collide.
+//
+// `lyka` is an existing system hue (LYKA.accentInk, SEGMENT_COLORS.Ready.base):
+// no new colour. `speed` is LYKA.speedRed, the one sanctioned data use of SPEED
+// red (see its comment above). White ink: 5.06:1 on the green, 4.61:1 on the
+// red. Against the white grid track the bars sit at 4.89:1 and 4.45:1.
+//
+// Colour is not the only encoding: in-house rows also read "In house" in the
+// Budget column and say so in their pop-up, so the green/red pair degrades
+// safely for colour-blind viewers.
+
+export type OwnerKey = 'speed' | 'lyka';
+
+export interface OwnerColorSet {
+  /** Gantt bar fill and legend swatch. */
+  base: string;
+  /** Chart.js area fill under the in-house pop-up accents. */
+  area: string;
+  /** Text drawn ON TOP of `base`. */
+  ink: string;
+}
+
+export const OWNER_COLORS: Record<OwnerKey, OwnerColorSet> = {
+  lyka:  { base: '#0A7D68', area: 'rgba(10,125,104,0.15)', ink: '#FFFFFF' },
+  speed: { base: '#E8151B', area: 'rgba(232,21,27,0.12)',  ink: '#FFFFFF' },
+};
+
+/**
+ * Mix `hex` toward white by `t` (0 to 1), returning an `rgb()` string.
+ *
+ * Lives here rather than in the chart components (which each used to carry an
+ * identical private copy) because it is pure string math and both budget charts
+ * shade their per-channel series with it. Same constraints as the rest of this
+ * file: no React, no DOM.
+ */
+export const lighten = (hex: string, t: number): string => {
+  const n = parseInt(hex.slice(1), 16);
+  const mix = (c: number) => Math.round(c + (255 - c) * t);
+  return `rgb(${mix((n >> 16) & 255)}, ${mix((n >> 8) & 255)}, ${mix(n & 255)})`;
 };
 
 // -----------------------------------------------------------------------------

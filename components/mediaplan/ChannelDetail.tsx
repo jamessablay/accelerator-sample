@@ -13,17 +13,39 @@ import {
   ChartOptions,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { MONTHS, MEDIA_TOTAL, MediaRow, LayerKey } from '../../data/mediaPlanData';
-import { LAYER_COLORS, LYKA, CHART_MUTED, CHART_GRID, CHART_SEPARATOR } from '../../data/brand';
+import { MONTHS, MEDIA_TOTAL, MediaRow, LayerKey, OwnerKey } from '../../data/mediaPlanData';
+import { LAYER_COLORS, OWNER_COLORS, LYKA, CHART_MUTED, CHART_GRID, CHART_SEPARATOR } from '../../data/brand';
+import { TRACKING } from '../../data/type';
 import Lightbox from '../shared/Lightbox';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
-/** Layer accent for the flighting line. Sourced from the single source of truth. */
-const accentFor = (key: LayerKey) => ({
-  line: LAYER_COLORS[key].base,
-  area: LAYER_COLORS[key].area,
-});
+/**
+ * Pop-up accent. SPEED rows keep their STAGE accent, for continuity with the
+ * funnel rail and both budget charts. In-house rows take the OWNER green, so
+ * the pop-up matches the green bar that was clicked (and never lands on the
+ * deliberately quiet TRY IT / SHARE IT rail fills, which cannot carry text on
+ * a white card).
+ *
+ * `line` fills the strip and decorates; `ink` is the text ON `line`; `text`
+ * is the stage-flavoured heading and chart stroke on the WHITE card. `line`
+ * hues like SHOW IT teal are 2.62:1 on white, fine as a fill, too faint as a
+ * heading or a data stroke (the 3:1 stroke floor documented on TEN_THINGS),
+ * which is why `text` exists.
+ */
+const accentFor = (key: LayerKey, owner: OwnerKey) => {
+  if (owner === 'lyka') {
+    return { line: OWNER_COLORS.lyka.base, area: OWNER_COLORS.lyka.area, ink: OWNER_COLORS.lyka.ink, text: OWNER_COLORS.lyka.base };
+  }
+  const headingFor: Record<LayerKey, string> = {
+    'SHOW IT': '#0A7D68',  // 4.89:1 on white; the teal band's established stroke tone
+    'CHECK IT': '#B8571C', // 4.70:1; the warm band's established stroke tone
+    'PROVE IT': '#B8571C',
+    'TRY IT': '#003D33',   // unreachable (no SPEED rows), typed for totality
+    'SHARE IT': '#003D33',
+  };
+  return { line: LAYER_COLORS[key].base, area: LAYER_COLORS[key].area, ink: LAYER_COLORS[key].ink, text: headingFor[key] };
+};
 
 const money = (n: number) => `$${Math.round(n).toLocaleString('en-AU')}`;
 
@@ -101,7 +123,8 @@ interface ChannelDetailProps {
 }
 
 const ChannelDetail: React.FC<ChannelDetailProps> = ({ row, layerKey }) => {
-  const accent = accentFor(layerKey);
+  const accent = accentFor(layerKey, row.owner);
+  const inHouse = row.owner === 'lyka';
   const images = row.images ?? [];
   const d = row.detail ?? {};
   const [zoomed, setZoomed] = useState<string | null>(null);
@@ -116,8 +139,13 @@ const ChannelDetail: React.FC<ChannelDetailProps> = ({ row, layerKey }) => {
     ['Key metrics', d.metrics],
   ];
   const visibleRows = tableRows.filter(([, v]) => v && v.trim().length > 0);
+  // The TRY IT and SHARE IT rows carry no description copy at all (their
+  // description sheets are hidden in the briefing workbook, excluded per
+  // client direction), so the whole rationale block goes, not just its rows.
+  const hasCopy = !!d.role || visibleRows.length > 0;
 
   const paired = !!row.pairedImages && images.length > 0;
+  const activeMonths = row.activeMonths ?? row.monthly.map((v) => (v || 0) > 0);
 
   const dataMax = Math.max(...row.monthly);
   const step = dataMax > 500000 ? 100000 : dataMax > 100000 ? 20000 : 5000;
@@ -132,8 +160,11 @@ const ChannelDetail: React.FC<ChannelDetailProps> = ({ row, layerKey }) => {
           data: [...row.monthly],
           fill: true,
           backgroundColor: accent.area,
-          borderColor: accent.line,
-          pointBackgroundColor: accent.line,
+          // The stage `line` hues are fills, not strokes (SHOW IT teal is
+          // 2.62:1 on white): the data line uses the stroke-safe `text` tone,
+          // same pattern as TEN_THINGS seriesFill + seriesInk.
+          borderColor: accent.text,
+          pointBackgroundColor: accent.text,
           pointBorderColor: CHART_SEPARATOR,
           pointRadius: 3,
           tension: 0.1,
@@ -163,39 +194,59 @@ const ChannelDetail: React.FC<ChannelDetailProps> = ({ row, layerKey }) => {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Themed strip */}
+      {/* Themed strip. Text on the fill comes from the paired ink token, never
+          a hardcoded white: white on the stage hues is as low as 2.34:1. */}
       <div className="flex flex-wrap items-center gap-3 rounded-lg px-4 py-3" style={{ backgroundColor: accent.line }}>
-        <span className="text-xs font-bold uppercase tracking-wide text-white/90">{layerKey}</span>
-        <span className="ml-auto text-lg font-bold text-white">{money(row.budget)}</span>
-        <span className="text-xs text-white/80">{((row.budget / MEDIA_TOTAL) * 100).toFixed(1)}% of media</span>
-        {row.provisional && <span className="w-full text-xs font-semibold text-white/90">Performance still being finalised. Figures are provisional.</span>}
+        <span className="text-xs font-bold uppercase tracking-wide" style={{ color: accent.ink, opacity: 0.92 }}>{layerKey}</span>
+        {/* The owner pill ties the pop-up back to the bar colour and the legend. */}
+        {inHouse ? (
+          <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-white" style={{ color: OWNER_COLORS.lyka.base }}>
+            Lyka in house
+          </span>
+        ) : (
+          <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full" style={{ backgroundColor: OWNER_COLORS.speed.base, color: OWNER_COLORS.speed.ink }}>
+            SPEED managed
+          </span>
+        )}
+        {inHouse ? (
+          <span className="ml-auto text-sm font-semibold" style={{ color: accent.ink }}>Managed and funded by Lyka's in house team</span>
+        ) : (
+          <>
+            <span className="ml-auto text-lg font-bold" style={{ color: accent.ink }}>{money(row.budget)}</span>
+            <span className="text-xs" style={{ color: accent.ink, opacity: 0.85 }}>{((row.budget / MEDIA_TOTAL) * 100).toFixed(1)}% of media</span>
+          </>
+        )}
+        {row.provisional && <span className="w-full text-xs font-semibold" style={{ color: accent.ink, opacity: 0.92 }}>Performance still being finalised. Figures are provisional.</span>}
       </div>
 
       {/* Rationale + execution table */}
-      <div>
-        <h3 className="text-base font-bold mb-1" style={{ color: accent.line }}>{row.channel} rationale</h3>
-        {d.role && <p className="text-sm text-[#143C33] leading-relaxed mb-4">{d.role}</p>}
-        {visibleRows.length > 0 && (
-          <div className="rounded-lg overflow-hidden border border-[#DBE6DC]">
-            {visibleRows.map(([label, value], i) => (
-              <div key={label} className={`grid grid-cols-[110px_1fr] ${i < visibleRows.length - 1 ? 'border-b border-[#DBE6DC]' : ''}`}>
-                <div className="px-3 py-2.5 text-[11px] font-bold uppercase tracking-wide text-white flex items-start" style={{ backgroundColor: 'var(--lyka-teal-deep)' }}>
-                  {label}
+      {hasCopy && (
+        <div>
+          <h3 className="text-base font-bold mb-1" style={{ color: accent.text }}>{row.channel} rationale</h3>
+          {d.role && <p className="text-sm text-[#143C33] leading-relaxed mb-4">{d.role}</p>}
+          {visibleRows.length > 0 && (
+            <div className="rounded-lg overflow-hidden border border-[#DBE6DC]">
+              {visibleRows.map(([label, value], i) => (
+                <div key={label} className={`grid grid-cols-[110px_1fr] ${i < visibleRows.length - 1 ? 'border-b border-[#DBE6DC]' : ''}`}>
+                  <div className="px-3 py-2.5 text-[11px] font-bold uppercase tracking-wide text-white flex items-start" style={{ backgroundColor: 'var(--lyka-teal-deep)' }}>
+                    {label}
+                  </div>
+                  <div className="px-3 py-2.5 text-sm text-[#143C33] leading-relaxed">{value}</div>
                 </div>
-                <div className="px-3 py-2.5 text-sm text-[#143C33] leading-relaxed">{value}</div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Example creative: framed gallery cards, click any to enlarge */}
       {images.length > 0 && (
         <div>
           <div className="mb-3 flex items-center gap-2.5">
             <span className="h-px w-6 flex-shrink-0" style={{ backgroundColor: accent.line }} />
-            <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#5B6E64]">Examples</span>
-            <span className="text-[11px] italic text-[#A9C3B4]">tap to enlarge</span>
+            <span className="font-mono text-micro font-medium uppercase" style={{ letterSpacing: TRACKING.eyebrow, color: LYKA.muted }}>Examples</span>
+            {/* Was #A9C3B4 at 1.88:1 on white, and lowercase prose at 11px. `meta` 12 in muted is 5.44:1. */}
+            <span className="text-meta italic" style={{ color: LYKA.muted }}>tap to enlarge</span>
           </div>
           <div className="mx-auto max-w-4xl">
             {paired ? (
@@ -272,14 +323,40 @@ const ChannelDetail: React.FC<ChannelDetailProps> = ({ row, layerKey }) => {
         </div>
       )}
 
-      {/* Flighting */}
-      <div>
-        <h3 className="text-base font-bold" style={{ color: accent.line }}>Flighting: {row.channel}</h3>
-        <p className="text-sm italic text-[#5B6E64] mb-2">Spend by month, Nov to Oct</p>
-        <div className="rounded-xl border border-[#DBE6DC] p-3" style={{ height: 320 }}>
-          <Line data={chartData} options={chartOptions} plugins={[pointLabels]} />
+      {/* Flighting. In-house rows have no dollars to chart (the client chose
+          flighting only for them), so they get the month strip instead: the
+          same 12 columns as the gantt, active months filled in owner green. */}
+      {inHouse ? (
+        <div>
+          <h3 className="text-base font-bold" style={{ color: accent.text }}>Flighting: {row.channel}</h3>
+          <p className="text-sm italic text-[#5B6E64] mb-2">Active months, Oct to Sep. Run by Lyka in house, so no SPEED media investment is shown.</p>
+          <div className="grid grid-cols-12 gap-1.5">
+            {MONTHS.map((m, i) => (
+              <div
+                key={m}
+                className="rounded-md py-2 text-center text-meta font-semibold"
+                style={
+                  activeMonths[i]
+                    ? { backgroundColor: OWNER_COLORS.lyka.base, color: OWNER_COLORS.lyka.ink }
+                    // An inactive month is quiet, not invisible: mintMuted was
+                    // 1.75:1 on ivory. muted is 5.06:1 and still reads as off.
+                    : { backgroundColor: LYKA.ivory, color: LYKA.muted }
+                }
+              >
+                {m}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div>
+          <h3 className="text-base font-bold" style={{ color: accent.text }}>Flighting: {row.channel}</h3>
+          <p className="text-sm italic text-[#5B6E64] mb-2">Spend by month, Oct to Sep</p>
+          <div className="rounded-xl border border-[#DBE6DC] p-3" style={{ height: 320 }}>
+            <Line data={chartData} options={chartOptions} plugins={[pointLabels]} />
+          </div>
+        </div>
+      )}
 
       {/* Click-to-enlarge. Extracted to components/shared/Lightbox.tsx so the Ten
           Things postcode maps use the same one; that move added Escape and focus

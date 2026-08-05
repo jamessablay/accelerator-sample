@@ -8,23 +8,24 @@ import InteractiveMediaPlan from './pages/InteractiveMediaPlan';
 import BusinessDashboard from './pages/BusinessDashboard';
 import ApexBySpeed from './pages/ApexBySpeed';
 import TenThings from './pages/TenThings';
-import { ApexPending, MediaPlanPending } from './pages/PendingSections';
+import { ApexPending } from './pages/PendingSections';
 import { Page } from './types';
 
 // -----------------------------------------------------------------------------
-// TWO SECTIONS ARE HELD BACK, and this is the only switch that does it.
+// ONE SECTION IS HELD BACK, and this is the only switch that does it.
 //
-// The Interactive Media Plan and APEX by SPEED still carry HAMILTON ISLAND
-// content: a travel media plan and an affluent traveller Roy Morgan pull. Both
-// pages are complete and stay wired below; what a viewer opens is a designed
-// "awaiting Lyka data" placeholder instead. See pages/PendingSections.tsx.
+// APEX by SPEED still carries HAMILTON ISLAND content: an affluent traveller
+// Roy Morgan pull. The page is complete and stays wired below; what a viewer
+// opens is a designed "awaiting Lyka data" placeholder instead. See
+// pages/PendingSections.tsx. (The Interactive Media Plan got its Lyka brief
+// on 2026-08-05 and now opens for everyone.)
 //
-// `?show=all` restores the real pages, for internal review only. It is read
+// `?show=all` restores the real page, for internal review only. It is read
 // ONCE at module scope because it never changes within a session, and it is
 // deliberately not surfaced anywhere in the UI.
 //
-// TO SHIP THE REAL PAGES: delete this const and the two ternaries in
-// renderPage(). Nothing else has to change.
+// TO SHIP THE REAL PAGE: delete this const and the ternary in renderPage().
+// Nothing else has to change.
 // -----------------------------------------------------------------------------
 const SHOW_ALL = (() => {
   if (typeof window === 'undefined') return false;
@@ -80,7 +81,7 @@ const App: React.FC = () => {
       case Page.CUSTOMER_JOURNEY:
         return <CustomerJourney />;
       case Page.INTERACTIVE_MEDIA_PLAN:
-        return SHOW_ALL ? <InteractiveMediaPlan /> : <MediaPlanPending />;
+        return <InteractiveMediaPlan />;
       case Page.APEX_BY_SPEED:
         return SHOW_ALL ? <ApexBySpeed /> : <ApexPending />;
       default:
