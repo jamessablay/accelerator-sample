@@ -209,8 +209,11 @@ const JourneyScoreGraph: React.FC<JourneyScoreGraphProps> = ({
               strokeWidth={1}
               strokeDasharray="1 4"
             />
+            {/* Axis value fill is #5B6E64, not the old #A9C3B4: a number a reader
+                has to read, and 1.88:1 on white was under every floor. Colour
+                only, so the Table baseline's geometry is untouched. */}
             {!compact && (
-              <text x={8} y={yFromScore(s) - 4} fontSize="10" fill="#A9C3B4" className="select-none">
+              <text x={8} y={yFromScore(s) - 4} fontSize="10" fill="#5B6E64" className="select-none">
                 {s}
               </text>
             )}

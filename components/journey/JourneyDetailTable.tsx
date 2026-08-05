@@ -84,7 +84,10 @@ const JourneyDetailTable: React.FC<JourneyDetailTableProps> = ({ journey }) => {
                                         </div>
                                         <div className="flex items-center">
                                             <span className="text-base font-semibold" style={{ color: LYKA.tealDeepest }}>{stage.title}</span>
-                                            {stage.definition && <InfoIcon className="w-5 h-5 ml-1.5" style={{ color: LYKA.mintMuted }} />}
+                                            {/* muted, not mintMuted: the affordance for a click
+                                                target, and 1.88:1 misses the 3:1 non-text floor.
+                                                Colour only; this file is the A/B baseline. */}
+                                            {stage.definition && <InfoIcon className="w-5 h-5 ml-1.5" style={{ color: LYKA.muted }} />}
                                         </div>
                                     </div>
                                 </th>

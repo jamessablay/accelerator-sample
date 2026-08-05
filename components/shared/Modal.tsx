@@ -250,7 +250,10 @@ const Modal: React.FC<ModalProps> = ({
             <button
               ref={closeRef}
               onClick={onClose}
-              className="flex-shrink-0 p-2 rounded-full text-[#A9C3B4] hover:bg-[#F0F2E9] hover:text-[#143C33] transition-colors focus:outline-none focus:ring-2 focus:ring-[#0A7D68]"
+              // #5B6E64, not the old #A9C3B4: this is an interactive control, and
+              // 1.88:1 missed even the 3:1 non-text floor in WCAG 1.4.11. Every
+              // pop-up in the app shares this button.
+              className="flex-shrink-0 p-2 rounded-full text-[#5B6E64] hover:bg-[#F0F2E9] hover:text-[#143C33] transition-colors focus:outline-none focus:ring-2 focus:ring-[#0A7D68]"
               aria-label="Close modal"
             >
               <XIcon />

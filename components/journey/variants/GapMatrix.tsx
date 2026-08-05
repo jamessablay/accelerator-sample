@@ -260,7 +260,9 @@ const GapMatrix: React.FC<JourneyVizProps> = ({
                       className={`px-2.5 py-2.5 flex items-center ${ROW_H}`}
                       style={{ backgroundColor: '#FFFFFF' }}
                     >
-                      <span className="text-meta" style={{ color: LYKA.mintMuted }}>
+                      {/* muted, not mintMuted: 1.88:1 on white. Quiet is a job
+                          for a smaller size, never for sub-AA ink. */}
+                      <span className="text-meta" style={{ color: LYKA.muted }}>
                         no data
                       </span>
                     </div>

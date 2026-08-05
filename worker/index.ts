@@ -150,7 +150,11 @@ function loginPage(next: string, failed: boolean): Response {
     --teal: ${LYKA.tealDark};
     --accent: ${LYKA.accent};
     --accent-ink: ${LYKA.accentInk};
-    --mint: ${LYKA.mintMuted};
+    /* Deliberately NOT declaring a pale mint here. The old --mint token was
+       LYKA.mintMuted, was referenced nowhere, and its name invited the next
+       person to use a 1.88:1 colour as ink on this page. See the FILL ONLY
+       comment on mintMuted in brand.ts. (No backticks in this block: the whole
+       page is a template literal, so one would terminate it.) */
     --speed-red: ${LYKA.speedRed};
   }
   * { box-sizing: border-box; }
