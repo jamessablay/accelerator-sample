@@ -4,24 +4,25 @@ This file gives Claude Code the architecture, data model and known quirks for th
 
 > ## READ THIS FIRST: what is Lyka and what is not
 >
-> Converted from the **Hamilton Island** Standard Accelerator on **2026-07-31** (shell), then given the real Lyka audience model on the same day (personas and segments). Two of six pages still carry Hamilton Island content.
+> Converted from the **Hamilton Island** Standard Accelerator on **2026-07-31** (shell), then given the real Lyka audience model on the same day (personas and segments), and the real Lyka media plan on **2026-08-05**. One of six pages still carries Hamilton Island content.
 >
 > | Real Lyka | Still Hamilton Island |
 > |---|---|
-> | Brand palette, typography, client logo, page chrome, every page heading | `data/mediaPlanData.ts` (FY26 numbers, channels, copy) |
-> | All colour, centralised in [data/brand.ts](data/brand.ts) | `data/apexData.ts` (HNWT traveller Roy Morgan pull) |
+> | Brand palette, typography, client logo, page chrome, every page heading | `data/apexData.ts` (HNWT traveller Roy Morgan pull) |
+> | All colour, centralised in [data/brand.ts](data/brand.ts) | |
 > | **[data/personasData.ts](data/personasData.ts)** 5 personas | |
 > | **[data/categoryData.ts](data/categoryData.ts)** the 4-stage readiness ladder | |
 > | **[data/journeyDetailsData.ts](data/journeyDetailsData.ts)** 5 journeys × 5 stages | |
 > | **[data/tenThingsData.ts](data/tenThingsData.ts)** + **[data/tenThingsSeries.ts](data/tenThingsSeries.ts)** 10 findings | |
-> | The Personas sunburst, the Consumer Journey, Ten Things, and every detail panel | |
+> | **[data/mediaPlanData.ts](data/mediaPlanData.ts)** the Oct→Sep plan: 5 stages, 23 channels, $11.0M | |
+> | The Personas sunburst, the Consumer Journey, Ten Things, the Interactive Media Plan, and every detail panel | |
 > | Hamilton Island Power BI embed **removed** | |
 >
-> So: **Personas, Consumer Journey and Ten Things are real. Interactive Media Plan and APEX are not.**
+> So: **Personas, Consumer Journey, Ten Things and the Interactive Media Plan are real. APEX is not.**
 >
-> ### Which is why those two no longer open (2026-08-04)
+> ### Which is why APEX no longer opens (2026-08-04; the media plan was re-enabled 2026-08-05)
 >
-> Both pages are still wired and still complete. What a viewer opens is a designed "awaiting Lyka data" placeholder from [pages/PendingSections.tsx](pages/PendingSections.tsx), so the Hamilton Island travel plan and the affluent traveller Roy Morgan tables cannot be reached from the deck at all. `SHOW_ALL` in [App.tsx](App.tsx) is the only switch, and **`?show=all` in the URL restores the real pages for internal review**. Turning either back on for good is deleting one ternary. Do not solve this by deleting the pages.
+> The APEX page is still wired and still complete. What a viewer opens is a designed "awaiting Lyka data" placeholder from [pages/PendingSections.tsx](pages/PendingSections.tsx), so the affluent traveller Roy Morgan tables cannot be reached from the deck at all. `SHOW_ALL` in [App.tsx](App.tsx) is the only switch, and **`?show=all` in the URL restores the real page for internal review**. Turning it back on for good is deleting one ternary. Do not solve this by deleting the page. (The Interactive Media Plan sat behind the same gate until its Lyka briefing workbook landed; its placeholder export was deleted with the rebuild.)
 >
 > ### The audience model
 >
@@ -51,7 +52,7 @@ This file gives Claude Code the architecture, data model and known quirks for th
 >
 > **Two format rules the parsers depend on.** Bullet fields in `journeyDetailsData` are SEMICOLON delimited, because `renderStandardList` splits on `;`; use full stops only and the whole cell renders as one long bullet. Score strings need a DASH before the description, because `JourneyScoreGraph` matches `[-–—]` and not a colon; omit the separator entirely and it concatenates every digit in the string.
 >
-> **Do not "fix" the remaining travel content by find-and-replacing Hamilton to Lyka.** The media plan is travel shaped and needs a real brief, not renaming.
+> **Do not "fix" the remaining travel content by find-and-replacing Hamilton to Lyka.** The APEX tables are affluent traveller data and need a real Roy Morgan pull, not renaming. (The media plan got its real brief on 2026-08-05 and no longer applies here.)
 >
 > **Never relabel `data/apexData.ts` figures as Lyka.** The file looks generic (roughly 5% client specific) so a label-only sweep is tempting, but `heavyPct` and `rmIndex` are affluent-traveller media consumption. Presenting them as dog owner behaviour, inside a panel that cites Roy Morgan Single Source by name, is the highest severity honesty failure available here. [pages/ApexBySpeed.tsx](pages/ApexBySpeed.tsx) carries a visible "Placeholder audience" notice and a deliberately client-neutral tagline for exactly this reason. Both stay until a real Lyka pull lands.
 
@@ -235,7 +236,7 @@ A SPEED Standard Accelerator for **Lyka** (fresh, human grade dog food, direct t
 
 - **Personas**: a custom 3-layer SVG sunburst. Five Lyka personas across a four-stage readiness ladder. Default landing page.
 - **Consumer Journey**: 5 segment-specific six-stage journeys, each with an emotional + rational score line over time.
-- **Interactive Media Plan**: macro block grid + Chart.js pop-ups, modelled on the Carnival FY26 reference. **Shows a placeholder** until a Lyka brief lands; the built page is behind `?show=all`.
+- **Interactive Media Plan**: the real Lyka plan since 2026-08-05. A 5-stage macro block grid (SHOW IT to SHARE IT), 23 channels over Oct→Sep, every bar owned by SPEED (red) or Lyka in house (green) with a legend at the foot, Chart.js pop-ups. See "Interactive Media Plan page".
 - **APEX by SPEED**: the channel scorecard. **Shows a placeholder** until a Lyka Roy Morgan pull lands; the built page is behind `?show=all`.
 - **Business Dashboard**: a designed empty state awaiting a Lyka Power BI report.
 - **Ten Things The Data Says**: ten findings in a one viewport 5 x 2 grid, each opening a modal with a Chart.js chart, the published numbers, an implication and a test. Real Lyka. Ported 2026-08-03 from a standalone HTML page. Last in the nav.
@@ -275,11 +276,11 @@ export enum Page {
 **Adding a page touches exactly eight places**, and nothing else in the app needs to know: `types.ts` (the enum), a new `components/icons/*Icon.tsx` (the sidebar renders `{item.icon}` unconditionally, so a missing icon is a blank cell), the page component, two edits in `App.tsx` (import and switch case), two in `Sidebar.tsx` (import and `navItems`), then `metadata.json`.
 
 - **Personas** is the default landing page.
-- **Two of the six nav items do not open their page.** Interactive Media Plan and APEX by SPEED render a placeholder unless `?show=all` is in the URL. See "Which is why those two no longer open" at the top of this file. The nav still lists both, deliberately: the deck should read as six sections with two pending, not as four.
+- **One of the six nav items does not open its page.** APEX by SPEED renders a placeholder unless `?show=all` is in the URL. See "Which is why APEX no longer opens" at the top of this file. The nav still lists it, deliberately: the deck should read as six sections with one pending, not as five.
 - **Sidebar order differs from the enum order.** The visible nav order is set by the `navItems` array in [components/Sidebar.tsx](components/Sidebar.tsx), where **APEX by SPEED sits above Interactive Media Plan** (the two were swapped). The `Page` enum order above is just the enum definition, not the rendered order.
 - **Ten Things sits last, below Interactive Media Plan.** It shipped second, on the argument that the ten findings set up the audience model. Moved on request 2026-08-04: the deck leads with who the audience is and closes on the evidence. The rendered order is the `navItems` array, so moving it is a one line change and nothing else needs to know.
 - **Business Dashboard** is a designed empty state. It previously embedded a Power BI report belonging to **another client**, which was removed. To wire Lyka's report, set `REPORT_URL` at the top of [pages/BusinessDashboard.tsx](pages/BusinessDashboard.tsx) to a publish-to-web `app.powerbi.com/view?r=...` URL and the iframe renders in place of the empty state.
-- **Interactive Media Plan** is the FY26 macro block plan, modelled on the Carnival FY26 reference. A funnel-stage grid (Active Consideration | Research | Book) of media channels with monthly gantt flighting bars and Budget + % columns, fed by [data/mediaPlanData.ts](data/mediaPlanData.ts) (sourced from the briefing workbook's visible `Budget Distribution $3.5` + `Media Description` sheets). Each funnel rail shows the layer name plus its **% of media** (Active Consideration 72.3% / Research 16.5% / Book 11.4%). The rail label size derives from the layer's row count, because a vertical label's available length is the rail height, not its width. Clicking a gantt bar opens a channel pop-up (rationale + dark-label execution table, then an **Examples** creative gallery, then an area flighting chart with point labels). The gold **Budget** header opens a stacked-by-media monthly bar chart, the **%** header opens a budget-allocation pie. A bottom line states the working-media + production total. Uses Chart.js via `react-chartjs-2`. Components live in [components/mediaplan/](components/mediaplan/). The page is compressed (smaller header/KPIs, tight gaps, `pb-4`) so it fits a normal-height viewport without scrolling. **No dashed average-spend line and no provisional fineprint** (both removed per client feedback).
+- **Interactive Media Plan** is the Lyka Oct→Sep macro block plan. A funnel-stage grid of five stages (SHOW IT | CHECK IT | PROVE IT | TRY IT | SHARE IT) and 23 channels with monthly gantt flighting bars and Budget + % columns, fed by [data/mediaPlanData.ts](data/mediaPlanData.ts). **Bars are OWNER coloured** (green = Lyka in house, red = SPEED managed, keyed by the legend at the foot of the grid); rails and both budget charts stay stage coloured. In-house rows are flighting only: no dollars anywhere, "In house" in the Budget column. Clicking a gantt bar opens a channel pop-up (ownership strip, rationale + dark-label execution table, an **Examples** creative gallery, then a flighting chart for SPEED rows or an active-months strip for in-house rows). The gold **Budget** header opens a stacked-by-media monthly bar chart **with the workbook's planned flighting weight as a dashed overlay**, the **%** header opens a budget-allocation pie; both filter to funded rows. A bottom line states the $11.0M SPEED managed total. Uses Chart.js via `react-chartjs-2`. Components live in [components/mediaplan/](components/mediaplan/). With 23 rows the grid is taller than one viewport at 1440; the page scrolls rather than clips.
 - **APEX by SPEED** is the channel scorecard tab added after the initial build. Behind the placeholder, like the media plan above.
 
 ## Data model
@@ -300,7 +301,7 @@ All data lives in flat TypeScript files under `data/`. There is no database, no 
 | [data/brand.ts](data/brand.ts) | **The single source of truth for colour.** The `LYKA` palette, `SEGMENT_COLORS` + `getSegmentColor()`, `LayerKey` + `LAYER_COLORS`, `TEN_THINGS`, the **gap ramp** (`gapWash()`, `GAP_SCALE_MAX`, the capped wash bounds and `GAP_RAMP`), and the `CHART_*` chrome constants. No React, no DOM types, literal hex only. See "Brand and typography". |
 | [data/__integrity.ts](data/__integrity.ts) | Dev-only assertions on the data joins `tsc` cannot see. Imported from `index.tsx` behind `import.meta.env.DEV`, so it is tree shaken out of production. |
 | [data/apexData.ts](data/apexData.ts) | **Still Hamilton.** The APEX methodology (SPEED generic, carries over) plus two audience tables whose `heavyPct` / `rmIndex` are an affluent-traveller Roy Morgan pull. See the warning in the header. |
-| [data/mediaPlanData.ts](data/mediaPlanData.ts) | **Still Hamilton.** The FY26 media plan. `MONTHS` (Nov→Oct), `PLAN_LAYERS` (Active Consideration / Research / Book), `ALL_ROWS`, `MONTHLY_TOTALS`, and the budget constants. Each `MediaRow` has `monthly` (12 values), `budget`, optional `detail` (role/strategyLink/comesToLife/metrics), `images`, `captions`, `imageWeights` (per-image flex-grow in the horizontal Examples row), `extraImages` + `extraCaptions` (a **second** Examples row, e.g. the Screens TV mock-ups), and layout flags `provisional`, `pairedImages`, `stackedImages`. Sourced from the briefing workbook's **visible** `Budget Distribution $3.5` + `Media Description` sheets. **BVOD, SVOD and YouTube are merged into one `Screens: BVOD, SVOD and YouTube` row** (summed spend, budget $1,655,000); `Special Format (LG & Samsung)` is renamed `Screens: LG and Samsung TV`. **Budget constants are `MEDIA_TOTAL = 4,850,000` + `PRODUCTION = 150,000` = `TOTAL_BUDGET = 5,000,000`**, matching the row-budget sum (includes the +$10k Research Social Mar/Apr add). |
+| [data/mediaPlanData.ts](data/mediaPlanData.ts) | **Real Lyka since 2026-08-05.** The Oct→Sep plan: `MONTHS` (Oct→Sep), `PLAN_LAYERS` (SHOW IT / CHECK IT / PROVE IT / TRY IT / SHARE IT, each with a `blurb`), `MEDIA_TOTAL = TOTAL_BUDGET = 11,000,000` (SPEED managed; no production line), `FLIGHTING_PCT` (the dashed overlay). Each `MediaRow` has **`owner: 'speed' \| 'lyka'`** (drives bar colour, the In house cells and the pop-up), `monthly` (12 values; all zeros on lyka rows), `budget` (0 on lyka rows), **`activeMonths`** (in-house flighting), optional `detail` (role/strategyLink/comesToLife/metrics), `images`, `captions`, `imageWeights`, `extraImages` + `extraCaptions`, and layout flags `provisional`, `pairedImages`, `stackedImages`, `stackedFirstSmall`. Sourced from the Lyka briefing workbook's **visible** `Budget Distribution $ Lyka SPEE` sheet + the three visible `Media Description` sheets; hidden content excluded per client direction (the `$ Lyka` sheet with the in-house dollars, the TRY IT / SHARE IT description sheets, the Australian Open row). **The workbook's own monthly grand-total row omits PROVE IT**, so monthly totals are derived from rows: January is $3,295,000, not the sheet's 3,200,000. Read the file header before editing. |
 
 ### Persona schema
 
@@ -673,26 +674,125 @@ The fix is that **the headline no longer sets `overflow-hidden`**: the 3 to 4px 
 
 ## Interactive Media Plan page
 
-[pages/InteractiveMediaPlan.tsx](pages/InteractiveMediaPlan.tsx) is the FY26 macro block plan, modelled on the **Carnival FY26 Interactive Media Plan** (a vanilla HTML/JS + Chart.js reference at `1. Clients/Carnival/Interactive Media Plan/FY 26`). It is data-driven from [data/mediaPlanData.ts](data/mediaPlanData.ts) and holds a single modal state (`budget` | `pct` | `channel`) reusing [components/shared/Modal.tsx](components/shared/Modal.tsx). Components live in [components/mediaplan/](components/mediaplan/):
+[pages/InteractiveMediaPlan.tsx](pages/InteractiveMediaPlan.tsx) is the **Lyka Oct→Sep macro block plan**, rebuilt 2026-08-05 from the client briefing workbook (the grid architecture is the Carnival FY26 lineage, via Hamilton Island). It is data-driven from [data/mediaPlanData.ts](data/mediaPlanData.ts) and holds a single modal state (`budget` | `pct` | `channel`) reusing [components/shared/Modal.tsx](components/shared/Modal.tsx). Components live in [components/mediaplan/](components/mediaplan/):
 
-- **[MacroBlockPlan.tsx](components/mediaplan/MacroBlockPlan.tsx)** — the grid. A funnel rail (Active Consideration → teal, Research → gold, Book → coral), a Media column, 12 month columns (Nov→Oct), then Budget + %. Each channel row renders contiguous-spend **gantt bars** (clickable → channel pop-up). The gold **Budget** and **%** headers are buttons (with a hover underline-sweep animation) that open the stacked chart and the pie. Months order is **Nov→Oct** (the briefing's fiscal year).
-- **[BudgetBreakdownChart.tsx](components/mediaplan/BudgetBreakdownChart.tsx)** — opened from the Budget header. A **stacked-by-media** monthly bar (one dataset per channel, layer-shaded), with column totals drawn by an inline `columnTotals` plugin (no datalabels package). This is the differentiator vs CCL's single-series totals.
-- **[BudgetPieChart.tsx](components/mediaplan/BudgetPieChart.tsx)** — opened from the % header. Budget allocation by channel, layer-shaded; slices pop out on hover (`hoverOffset`), % drawn inside via an inline `sliceLabels` plugin.
-- **[ChannelDetail.tsx](components/mediaplan/ChannelDetail.tsx)** — the gantt-bar pop-up. Stacked top to bottom: themed strip (layer + budget + % of media) → rationale + dark-label execution table (Strategy / Activation / Assets / Key metrics) → an **Examples** creative gallery → full-width **flighting area line chart** with per-point `$` labels (inline `pointLabels` plugin). **No average-spend line** (removed). The gallery uses a `CreativeCard` sub-component: a framed card on a `#f7f5f1` mat with an optional caption footer, a hover lift + layer-coloured underline sweep + a magnify badge, and click-to-enlarge. Clicking opens a **lightbox portalled to `document.body`** (so it escapes the modal's transformed/`overflow-hidden` box) showing the image large on a **white** background.
+- **[MacroBlockPlan.tsx](components/mediaplan/MacroBlockPlan.tsx)**: the grid. A funnel rail of the five stages (SHOW IT teal, CHECK IT tangerine, PROVE IT orange, TRY IT peach, SHARE IT muted mint), a Media column, 12 month columns (Oct→Sep), then Budget + %. Each channel row renders contiguous-run **gantt bars** (clickable → channel pop-up). **Bars are OWNER coloured, not stage coloured**: `OWNER_COLORS[row.owner].base`, green `#0A7D68` = Lyka in house, red `#E8151B` = SPEED managed, and the `OwnerLegend` row at the foot of the card is the key (a client requirement). Runs derive from `row.activeMonths ?? monthly > 0`, so in-house rows with zero dollars still draw their flighting. In-house rows read "In house" in the Budget column (the non-colour encoding of the split) and blank in %. A rail whose stage total is $0 (TRY IT, SHARE IT) shows the stage name without the `| 0.0%` suffix, which would neither fit its 1-row rail nor read as intended.
+- **[BudgetBreakdownChart.tsx](components/mediaplan/BudgetBreakdownChart.tsx)**: opened from the Budget header. A **stacked-by-media** monthly bar (one dataset per FUNDED channel, stage-shaded via the shared `lighten()` in brand.ts), plus the **dashed "Planned flighting weight" line** from `FLIGHTING_PCT`. Three traps live here, all documented in the file: it must use the generic `<Chart type='bar'>` with `BarController` AND `LineController`/`LineElement`/`PointElement` registered (the typed `<Bar>` registers BarController only, passes tsc, throws at runtime); the `columnTotals` plugin and the tooltip `footer` sum **only `stack === 'spend'` datasets** or the overlay silently inflates every printed total; and in-house rows are filtered out with the shade index running over the filtered array, or 10 zero-datasets clutter the legend and the ramp gets gaps.
+- **[BudgetPieChart.tsx](components/mediaplan/BudgetPieChart.tsx)**: opened from the % header. Budget allocation by funded channel, stage-shaded; slices pop out on hover (`hoverOffset`), % drawn inside via an inline `sliceLabels` plugin. Same `budget > 0` filter.
+- **[ChannelDetail.tsx](components/mediaplan/ChannelDetail.tsx)**: the gantt-bar pop-up. Stacked top to bottom: ownership strip → rationale + dark-label execution table (Strategy / Activation / Assets / Key metrics) → an **Examples** creative gallery → flighting. **The accent is owner-aware** (`accentFor(layerKey, owner)`): SPEED rows keep their stage accent for continuity with the rail and charts; in-house rows take the owner green, matching the bar that was clicked and avoiding the quiet TRY/SHARE fills that cannot carry text on white. The strip text uses the paired `ink` token (the old hardcoded `text-white` was 2.43:1 on tangerine) and carries an owner pill ("SPEED managed" red / "Lyka in house" white-on-green). SPEED rows show budget + % of media and the **flighting area chart** (stroke = `accent.text`, the stroke-safe dark tone, because the stage `line` hues are fill-only at ~2.6:1); in-house rows show "Managed and funded by Lyka's in house team", no dollars, and an **active-months strip** of 12 chips instead of the chart. TRY IT and SHARE IT rows have no `detail` at all (their description sheets are hidden in the workbook), so the whole rationale block is guarded out. The gallery uses `CreativeCard` with a **lightbox portalled to `document.body`**; capture-phase Escape closes the lightbox without the modal.
+
+**The KPI strip is tokenised, and it was the one card in the app that was not
+(2026-08-05).** All three of its sizes came from outside `data/type.ts`: the
+title and sub line were `text-[11px]` arbitrary values and the figure was
+Tailwind's own `text-2xl md:text-3xl`. Reported as hard to read, and measuring
+found three separate causes rather than one:
+
+- **The sub line was `mintMuted` at 1.88:1**, the real failure. See the
+  FILL ONLY section under "Brand and typography": it was a seven-instance pattern.
+- **The title was 11px `micro`**, which is legal for an uppercase mono eyebrow but
+  is the smallest step in the scale. It is `label` 13 now, **+18% and the largest
+  step that still reads as an eyebrow**: `body` 14 is the prose floor, above which
+  it competes with the figure. Tracking moved with it, `tracking-wide` 0.025em to
+  `TRACKING.caps` 0.06em, because `TRACKING.eyebrow` 0.08em is calibrated for
+  `micro`. The sub line went to `meta` 12, since it is sentence case prose and
+  `micro` is uppercase mono only.
+- **Two weights were not real faces.** `font-bold` asked for DM Mono 700, which
+  `index.html` does not load (400 and 500 only), so the browser synthesised it;
+  the figure carried no weight class at all and rendered in Poppins Regular 400.
+  They are `font-medium` 500 and `font-semibold` 600 now, both loaded. The figure
+  also gained `tabular-nums`, so `$11.0M`, `5` and `23` align across the four cards.
+
+Verified at 1440 and 1280: every line clears AA (**minimum 5.44:1, was 1.88:1**),
+all four cards equal at 103px, no title or sub wraps or clips, page overflow 0.
+**The figure is unchanged at 24/30px**, since `display` 30 is the top of the scale.
+
+**Known, and NOT fixed here: `font-mono` does not resolve to DM Mono anywhere in
+this app.** Tailwind ships `.font-mono` as a default utility and its generated CSS
+loads AFTER the hand-written `.font-mono, code, pre { font-family: 'DM Mono' }`
+rule in `index.html`, so at equal specificity Tailwind wins and all **72**
+`font-mono` elements render in the OS monospace stack (`ui-monospace`, i.e.
+Consolas on Windows). This is the mirror image of the documented `.font-display`
+warning: `display` has no Tailwind default so the hand-written rule survives,
+`mono` does. The fix is one line, `fontFamily: { mono: [...] }` in the inline
+`theme.extend`, but it restyles 72 elements across six pages including the
+painstakingly measured Ten Things tiles and the Ladder's truncating chips, and
+Consolas is arguably the more legible of the two at 11px. **It is a brand
+consistency bug, not a legibility one**, so it is recorded rather than bundled
+into a legibility fix. Do it as its own pass, with the Ten Things and Ladder
+measurements re-run after.
 
 Creative layout is per-row via flags on `MediaRow`:
-- **default** = a horizontal row of `CreativeCard`s, all shown at once (no thumbnail click-in). `items-stretch` + a uniform image-box height + a flex caption footer keep every card the same height regardless of caption length; `imageWeights` set each card's relative width (e.g. Screens `[1, 1, 1.4, 2.2]`). `captions` label each card.
-- `extraImages` + `extraCaptions` = an optional **second** horizontal row below the main one (used by Screens for the `tv3.png` / `tv2.png` "THE UNLISTED" TV mock-ups, titled "BVOD: Water + Chef" / "SVOD / YouTube: Beach Walk").
-- `pairedImages` = two ads side by side with the caption above each (Social, Research Social).
-- `stackedImages` = images stacked vertically full-width (Book social); add `stackedFirstSmall` to render only the first image small (Property Platforms logo lockup above the realestate.com.au listing).
+- **default** = a horizontal row of `CreativeCard`s; `imageWeights` set relative widths (the pattern here: a 16:9 mockup at ~2.6 beside partner logos at 1). `captions` label each card.
+- `extraImages` + `extraCaptions` = an optional **second** horizontal row (BVOD logos over SVOD logos; the Cinema poster strip; Outdoor's partner logos under the shelter mockup).
+- `stackedImages` + `stackedFirstSmall` = a small logo lockup above a full-width creative (realestate.com.au, Uber Pet).
+- `pairedImages` is currently unused but still supported.
 
-The **"Examples" header** (small accent tick + "tap to enlarge") sits above the gallery, per the client's "add the word Examples" request.
+**`provisional` flag:** renders a **PENDING** pill on the channel name + a "finalised" note in the pop-up. Not set on any row.
 
-Chart.js colours must be hex/rgb (canvas can't read the CSS-var brand tokens), so the layer hexes are duplicated in the chart components.
+**A DROPPED LOGO IS SILENT, and two were dropped on the first pass (found 2026-08-05).**
+The gallery just renders one card fewer and looks deliberate, so nothing flags it:
+not `tsc`, not `__integrity` (which checks that a declared path RESOLVES, never
+that a workbook image was declared at all), and not a visual check unless you
+already know what should be there. **QMS** was missing from Local OOH, reported by
+the user, and re-auditing the workbook then turned up **10play and Kayo** missing
+from BVOD & SVOD as well.
 
-**`provisional` flag:** renders a **PENDING** pill on the channel name + a "finalised" note in the pop-up. Currently not set on any row (removed once performance copy/numbers were confirmed); set it back to `true` on a row to flag it again.
+Both had the same cause: **I reconciled against the description copy instead of
+against the tab.** The Activation cell for BVOD & SVOD names four BVOD platforms,
+so I shipped four logos, but the Screens tab is headed **"Visuals to be included"**
+and groups its images under labels in **column G** ("LINEAR TV" at G1, **"BVOD" at
+G9**, "YouTube" at G12). The BVOD label spans rows 9 to 10, which hold **six**
+logos. The tab governs the gallery; the description column is the strategy note.
+Local OOH was simpler: the Local Messaging Outdoor tab carries JCDecaux, oOh! AND
+QMS, exactly as the Trilogy Outdoor tab does, and I copied only the first two.
 
-**Source of truth:** the briefing workbook (the user's `Downloads/Interactive Media Plan Briefing Template for Hamilton Island.xlsx`). Only **visible** sheets/columns were used (`Budget Distribution $3.5` for numbers, `Media Description` for copy); hidden sheets (`Layer Description`, `Media Plan Overview`, `Budget Distribution`, `Peak Moments`) and hidden channel-tab columns were excluded per client direction. Client-supplied formatted creative lives in `public/images/`. Current per-channel set: Screens = `svod.png` (Disney/Stan/Netflix/Prime) + `bvod.png` (7+/10play/9Now/Kayo/SBS) + `youtube-logo.png` + `youtube.png` (ad-examples mock) + second row `tv3.png` + `tv2.png`; LG/Samsung = separate `lg.png` + `samsung.png` (side by side); Digital News & Print = individual mastheads `print-age.png` / `print-smh.png` / `print-couriermail.png` / `print-afr.png` (white backgrounds stripped to transparent via a PIL near-white→alpha pass); Cinema = `doomsday/dune/jumanji.jpg`; Property = `property.png` + `property-listing.png`; Social pairs = `ac-social1/2.png`, `r-social1/2.png`, `book-social1/2.png`. **Superseded / now-unused:** `lg&samsung.png` (combined), `print.png` (combined), `Screens.png` (old BVOD collage), `tv1.png`, `social.png` — safe to delete. The original `public/media-plan/` channel-tab extracts also remain but are mostly superseded. **Note: the Downloads workbook frequently lags the user's live Excel edits (it stays open with a `~$` lock file); if an extract returns byte-identical images, the file hasn't saved/synced yet — ask the user to close Excel or hand over the images directly.**
+**`data/mediaPlanData.ts` now carries the full tab to row manifest in its header**,
+so the next audit is a diff rather than a hunt: extract each visible tab's drawing
+rels, list its images, confirm each appears against the row named there. Two facts
+that audit needs: the oOh! logo exists twice in the workbook as near identical
+files (568x262 and 570x262, different bytes) and both map to one `ooh.png`; and the
+visible `LYKA LOGO` tab's three files are brand assets, not channel creative.
+
+Verified after the fix: **41 wired images** (16 JPEG mockups and posters, 25 PNG
+logos), none missing from `public/`, and the six BVOD cards render at exactly
+276px each with **zero bottom spread** despite two captions wrapping to two lines,
+because `CreativeCard`'s `items-stretch` plus its flex caption footer absorbs the
+difference. When counting these, strip comments first: the manifest above names
+`lyka-logo.png` in prose, and a naive grep for `/images/` scores it as wired.
+
+### Stripping a logo's white background: FLOOD FILL, never a global replace (2026-08-05)
+
+Six of the 25 partner logos arrived as opaque files (`paramount`, `val-morgan`,
+`jcdecaux`, `qms`, `triple-m`, `uber-pet`), so each rendered as a **white rectangle
+on the card's `LYKA.ivory` mat** while the other nineteen sat flush. Fixed with a
+PIL plus numpy pass, which is the same technique Hamilton used on its mastheads.
+
+**The method matters. "All near white pixels become transparent" is the obvious
+approach and it is wrong**: it also deletes white that is INSIDE the artwork.
+Concretely, it would have destroyed the counter in QMS's **Q**, the ring of
+**stars** and the snow on Paramount's mountain, and the bowl of the **b** in
+UberPET. Instead: threshold near white, label connected components
+(`scipy.ndimage.label`), and clear alpha **only on components touching the image
+border**. Enclosed white is unreachable from the border, so it survives by
+construction. The run preserved 2,697 interior pixels on Paramount and 10,143 on
+QMS, which is the number that proves it worked.
+
+**Verified by compositing all 25 on magenta**, not by eyeballing them on the app's
+near white card. `#F9F6F1` against `#FFFFFF` hides exactly the defect being fixed
+and would hide a punched-out counter too. A hostile background is the only
+readable test.
+
+Anti-aliasing was left alone deliberately: the glyph edges are blended against
+white, and every surface they land on here (the ivory mat, the white lightbox) is
+near white, so the residual fringe is invisible and unmixing it would shift the
+colours of the coloured marks. If one of these is ever placed on a dark fill, that
+fringe becomes visible and the file needs a real matte, not a threshold.
+
+Originals were NOT kept beside the stripped files. A backup folder inside
+`public/` ships to `dist/`, and the workbook one folder up is the source of truth,
+so re-extraction is a few lines against `xl/media/`.
+
+**Source of truth:** `Interactive Media Plan Briefing Template for Lyka.xlsx`, one folder above the app. Only **visible** content was used, per the same client direction the Hamilton build followed: sheet `Budget Distribution $ Lyka SPEE` for the numbers and legend, the three visible `Media Description` sheets (SHOW IT, CHECK IT, PROVE IT) for the pop-up copy, and the visible channel tabs for the embedded creative (the tabs' TEXT is stale Hamilton template; only their images are Lyka). Excluded as hidden: the `$ Lyka` budget sheet (the superseded first pass, and the only place the in-house channels carry dollars, which is why green rows are flighting only), the TRY IT and SHARE IT description sheets, and the Australian Open Integration row. The **41** extracted images live in `public/images/` as kebab-case names, 16 JPEG and 25 PNG, 5.7MB with the two chrome logos; the 2-3MB photographic PNG mockups were re-encoded to ≤1920w JPEG q85. All Hamilton media plan creative and `public/media-plan/` were deleted with the rebuild.
 
 ## Brand and typography
 
@@ -710,13 +810,50 @@ Chart.js colours must be hex/rgb (canvas can't read the CSS-var brand tokens), s
 - **No React and no DOM types.** [worker/index.ts](worker/index.ts) imports `LYKA` to build the login page, and `worker/tsconfig.json` runs with `lib: ["ES2022"]`, no DOM lib and no `@types/node`. A React import there breaks `npm run typecheck`.
 - **Literal hex only, never `var(--token)`.** Chart.js draws to a canvas and cannot resolve custom properties.
 
-It exports `LYKA` (the palette), `SEGMENT_COLORS` + `getSegmentColor()` (the wheel and journey tabs), `LayerKey` + `LAYER_COLORS` (the media plan), and the `CHART_*` chrome constants.
+It exports `LYKA` (the palette), `SEGMENT_COLORS` + `getSegmentColor()` (the wheel and journey tabs), `LayerKey` + `LAYER_COLORS` (the media plan's five stages, all paired with the one ink `#003D33`), **`OwnerKey` + `OWNER_COLORS`** (the media plan's green/red bar split: `lyka #0A7D68`, `speed #E8151B`, the one sanctioned data use of SPEED red because the colour denotes SPEED itself), the shared `lighten()` helper both budget charts shade with, and the `CHART_*` chrome constants.
 
 **This killed three duplications** that existed in the Hamilton build: segment colours in 2 places, media-plan layer colours in 4, and a third `:root` block inside the Worker. If you are about to paste a hex, you are probably about to reintroduce one.
 
 **`LayerKey` is declared in `brand.ts`, not `mediaPlanData.ts`.** `mediaPlanData` re-exports it (`export type { LayerKey }`, required because `isolatedModules` is on) so its two existing importers keep working. Declaring it the other way round creates a circular import.
 
-**`LAYER_COLORS[key].ink` is not decoration.** White on Lyka Tangerine is 2.43:1 and on Lyka Orange is 2.34:1, so any text drawn on a layer colour must use `ink`, never a hardcoded `text-white`. The funnel rail in [components/mediaplan/MacroBlockPlan.tsx](components/mediaplan/MacroBlockPlan.tsx) is the main consumer.
+**`LAYER_COLORS[key].ink` is not decoration.** White on Lyka Tangerine is 2.43:1 and on Lyka Orange is 2.34:1, so any text drawn on a layer colour must use `ink`, never a hardcoded `text-white`. The funnel rail and the pop-up strip in [components/mediaplan/](components/mediaplan/) are the consumers, and since 2026-08-05 the pairing is asserted by `__integrity.ts` (check 6a) for both `LAYER_COLORS` and `OWNER_COLORS`, because the old 'Active Consideration' set had shipped a 2.62:1 pair.
+
+### `LYKA.mintMuted` is FILL ONLY, and seven places had to learn that (2026-08-05)
+
+Its comment used to read "Muted mint for faint labels", and **seven places took it
+at its word.** `#A9C3B4` is **1.88:1 on white and 1.75:1 on ivory**: it misses AA
+4.5:1 for text and it also misses the **3:1 non-text floor**, which is the one
+that covers an icon or a control. So it was not a quiet label, it was an
+invisible one. Found when the media plan KPI strip was reported as hard to read;
+the strip was one instance of a pattern.
+
+All seven are `LYKA.muted` `#5B6E64` now: the KPI sub lines and the pop-up's
+inactive month chips and "tap to enlarge" hint (media plan), **every modal's
+close button** (`Modal.tsx`, so this one was on every pop-up in the app), the
+journey table's definition `InfoIcon`, the score graph's y axis numbers, and the
+gap matrix's "no data". The two journey files are the documented untouched A/B
+baseline; these are **colour only**, which cannot invalidate a layout comparison.
+
+**`muted` is the palest ink in this palette that clears AA** (5.44:1 on white,
+5.26:1 on the cream page, 5.06:1 on ivory, 4.82:1 on the cream panel). There is
+nothing legal below it: `accent` is 2.72:1 and `mint` is about 1.24:1. **So
+"make it fainter" is never available. Quiet has to come from a smaller size or a
+lighter weight.**
+
+Two things now keep it true. The token's comment says FILL, BORDER AND STROKE
+ONLY with the ratios in it, and **`__integrity.ts` check 6c asserts the dividing
+line from both sides**: that `mintMuted` still fails the 3:1 non-text floor (so
+nobody reads the comment as advisory) and that `muted` still clears AA on all
+four surfaces (so the replacement stays safe everywhere, not just on the white
+card the complaint came from). `VariantSwitcher.tsx` had already recorded the
+lesson in a comment, having deleted a 9px eyebrow in this token as "the worst
+size-and-contrast pairing on either page"; the comment was there and the other
+seven instances still shipped, which is why this is an assertion now.
+
+Also removed: a dead `--mint: ${LYKA.mintMuted}` in [worker/index.ts](worker/index.ts).
+Nothing referenced it, and the NAME invited the next person to make the same
+mistake on the login page. **No backticks in that file's CSS**, incidentally: the
+whole page is one template literal, so a backtick in a comment terminates it.
 
 ### Typography
 
@@ -777,7 +914,7 @@ lyka-accelerator/
 │   ├── journeyModel.ts           DERIVED journey metrics + the score-string parsers.
 │   ├── tenThingsData.ts          10 findings: copy, tables, chart join key. Real Lyka.
 │   ├── tenThingsSeries.ts        Every number a Ten Things chart plots. Real Lyka.
-│   ├── mediaPlanData.ts          FY26 media plan. Re-exports LayerKey.           [Hamilton content]
+│   ├── mediaPlanData.ts          The Oct→Sep Lyka plan: 5 stages, 23 rows, owner split. Real Lyka.
 │   └── apexData.ts               APEX methodology + 2 audience tables            [Hamilton content]
 ├── hooks/
 │   ├── useVariant.ts             Variant state: ?pv= / ?jv= then localStorage. Scaffolding.
@@ -787,9 +924,9 @@ lyka-accelerator/
 │   ├── CustomerJourney.tsx       Segment journey selector + table. Tabs derive from segmentKey.
 │   ├── BusinessDashboard.tsx     Designed empty state. Power BI iframe REMOVED (see header).
 │   ├── TenThings.tsx             One viewport 5 x 2 finding grid + stepper modal. Real Lyka.
-│   ├── InteractiveMediaPlan.tsx  Macro block plan. WIRED BUT NOT SHOWN (?show=all).
+│   ├── InteractiveMediaPlan.tsx  The Lyka macro block plan. OPEN since 2026-08-05.
 │   ├── ApexBySpeed.tsx           Channel scorecard. WIRED BUT NOT SHOWN (?show=all).
-│   └── PendingSections.tsx       What opens instead: MediaPlanPending + ApexPending.
+│   └── PendingSections.tsx       What opens instead of APEX: ApexPending.
 ├── components/
 │   ├── Sidebar.tsx               6-item nav. Black panel (SPEED chrome), active pill #0A7D68.
 │   ├── personas/
@@ -832,14 +969,16 @@ lyka-accelerator/
 │       ├── Lightbox.tsx                  Click to enlarge. CAPTURE phase Escape, so it nests inside Modal.
 │       ├── PendingSection.tsx            Designed "awaiting Lyka data" shell. Follows BusinessDashboard.
 │       └── VariantSwitcher.tsx           Segmented control on both pages. Scaffolding.
-└── public/                               22 MB (was 120 MB as Hamilton)
+└── public/
     ├── images/
     │   ├── lyka-logo.png                        Top-right client mark
     │   ├── apex-by-speed-logo.png               SPEED asset
-    │   └── (media-plan creative)                Platform logos are client agnostic and reusable.
-    │                                            The *-social*, tv2/tv3 and property-listing
-    │                                            files are Hamilton creative. [Hamilton content]
-    ├── media-plan/                      3 podcast images (the rest were purged as superseded)
+    │   └── (media-plan creative)                41 Lyka files from the briefing workbook,
+    │                                            2026-08-05: 16 JPEG mockups and posters
+    │                                            (re-encoded ≤1920w) + 25 PNG partner logos,
+    │                                            all 25 alpha (6 had their white background
+    │                                            flood filled off). All the Hamilton creative
+    │                                            and media-plan/ were deleted.
     ├── icons/
     │   ├── accelerator_logo.png         Sidebar badge
     │   ├── tab_icon.png                 SPEED house favicon. Shared across projects.
@@ -862,7 +1001,7 @@ lyka-accelerator/
         are now Lyka's own.
 ```
 
-`public/` went 120 MB (Hamilton) to 78 MB (shell pass) to 22 MB (audience pass) to **72 MB** once the Lyka films and emblems landed: 47 MB `personaVideos/`, 23 MB `images/`, 1 MB each `icons/` and `snapshot_emblems/`, 192 KB `media-plan/`. **Two thirds is persona film and most of the rest is media-plan creative, which is still Hamilton's**, so the largest single saving available here is not compression, it is a Lyka media brief.
+`public/` went 120 MB (Hamilton) to 78 MB (shell pass) to 22 MB (audience pass) to 72 MB (films and emblems) to **55 MB** with the media plan pass, measured: 47 MB `personaVideos/`, 5.7 MB `images/`, 1 MB each `icons/` and `snapshot_emblems/`. The ~23 MB of Hamilton creative came out and 5.7 MB of re-encoded Lyka creative went in. **86% of it is persona film**, so the largest single saving available here is re-encoding the five vignettes before a deploy, not touching the creative.
 
 **The films are unoptimised source.** Roughly 13 Mbps for an 8 second clip, and the slot renders them at about 285x507 CSS px, so they are delivered at more than double the resolution they are shown at. Re-encoding to 720x1280 at a sane CRF would cut about 80% with no visible difference in that frame. Not done: it is lossy, the originals are the only copy in the project folder, and nobody asked. Do it before deploying if payload matters, and keep the originals.
 
@@ -885,12 +1024,16 @@ No tests, no lint. **`npm run typecheck` runs both configs** and must be used ra
 1. **[data/__integrity.ts](data/__integrity.ts)** runs on every dev page load. Open the console. A clean run logs exactly one line and nothing else:
 
    ```
-   [data integrity] ok. 5 personas, 5 segments, 5 journeys, 3+5 variants, 10 findings, 15 assets queued for check, shares, budgets and published tables balance.
+   [data integrity] ok. 5 personas, 5 segments, 5 journeys, 3+5 variants, 10 findings, 23 media plan rows, 54 assets queued for check, shares, budgets and published tables balance.
    ```
 
-   **The counts in that line are derived, so they move.** `3+5` was `3+4` before the gap matrix and `4+4` before the Index view was cut, and `15` was `6` before the persona films and the stage emblems landed. Treat a change in them as expected after adding or removing either; treat any OTHER output as a real problem.
+   **The counts in that line are derived, so they move.** `3+5` was `3+4` before the gap matrix and `4+4` before the Index view was cut; `54` was `15` before the media plan creative joined the asset check. Treat a change in them as expected after adding or removing either; treat any OTHER output as a real problem.
 
-   It asserts persona categories against `categoryData`, `categoryData` keys against `SEGMENT_COLORS`, `categoryData[k].title` against `SEGMENT_IMAGES` **in both directions**, every `journeyMeta.personaId`, every `PERSONA_VIDEOS` id, every asset path, the media-plan budget invariant, the palette floors (2.7:1 vs white for wedge fills, 4.5:1 pair based for `ink`/`tintInk`), that the derived stage shares sum to 100% and agree with `categoryData`, and that both variant registries have unique ids and a resolvable default.
+   It asserts persona categories against `categoryData`, `categoryData` keys against `SEGMENT_COLORS`, `categoryData[k].title` against `SEGMENT_IMAGES` **in both directions**, every `journeyMeta.personaId`, every `PERSONA_VIDEOS` id, every asset path, the media-plan budget invariant, the palette floors (2.7:1 vs white for wedge fills, 4.5:1 pair based for `ink`/`tintInk`, and for the `LAYER_COLORS`/`OWNER_COLORS` pairs), that the derived stage shares sum to 100% and agree with `categoryData`, and that both variant registries have unique ids and a resolvable default.
+
+   **Five media plan checks came in with the Lyka rebuild (2026-08-05)**: every `monthly` has 12 entries (the gantt and the flighting chart are index joined to `MONTHS`); every `owner: 'lyka'` row has zero dollars and a 12-entry `activeMonths` with at least one true (an in-house row with dollars silently changes every total, one without `activeMonths` renders no bar at all); `FLIGHTING_PCT` sums to 100 with 12 entries; the media plan creative joins the Content-Type asset check (it was the one uncovered image group); and the `LAYER_COLORS` / `OWNER_COLORS` ink pairs clear AA.
+
+   **Check 6c came the same day** and is a different shape from the rest: it asserts a token is UNUSABLE. `mintMuted` must keep failing the 3:1 non-text floor and `muted` must keep clearing AA on all four surfaces, which pins the fill-versus-ink boundary from both sides. See the FILL ONLY section under "Brand and typography".
 
    **Four checks came in with the gap matrix (2026-08-04)**, all of them promoting something that was merely expected into something enforced: that **all five journeys carry the same five stage titles in the same order** (`JOURNEY_STAGE_NAMES` is derived from `TAB_ORDER[0]` alone, so a renamed stage put real numbers under the wrong column headers); that **all 50 score strings parse, descriptor included** (a colon instead of a dash parses the number and silently drops the text, which on the matrix is an empty pop-up); that there are **25 cells and they fall inside `GAP_DOMAIN`** (outside it the ramp clamps, so two different gaps render as one colour); and that **every `GAP_RAMP` step clears AA as a fill and ink pair**, which is what stops a future edit raising the wash ceiling. **Both of the first two were negative tested and seen to fire, then reverted.**
 
@@ -1000,6 +1143,36 @@ To take the public URL down entirely instead, set `"workers_dev": false` in [wra
 
 ## Source control
 
+> ### OPEN ITEM, NEXT SESSION (2026-08-06): COMMIT AND PUSH PASSES 14 AND 15
+>
+> **Nothing from 2026-08-05 is committed.** `lyka-main` is level with
+> `origin/lyka-main` (0 ahead, 0 behind) while the working tree holds the entire
+> media plan rebuild and the legibility pass: **18 modified, 23 deleted, 38
+> untracked** as of the end of that session.
+>
+> - **Modified:** `data/mediaPlanData.ts` (full rewrite), `data/brand.ts`,
+>   `data/__integrity.ts`, all four `components/mediaplan/*`,
+>   `pages/InteractiveMediaPlan.tsx`, `pages/PendingSections.tsx`, `App.tsx`,
+>   `components/shared/Modal.tsx`, three `components/journey/*`, and `CLAUDE.md`.
+> - **Deleted:** the Hamilton media plan creative and all of `public/media-plan/`.
+> - **Untracked:** the 41 Lyka creative files.
+>
+> Worth splitting into two commits, because they are two unrelated changes: the
+> media plan rebuild (pass 14), then the contrast and type fixes (pass 15), which
+> touch the journey baselines and the shared Modal for reasons that have nothing
+> to do with the media plan.
+>
+> **Gate before pushing:** `npm run typecheck` (both configs) and `npm run dev`
+> with the console open, confirming the single `[data integrity] ok` line. Both
+> were clean at the end of the session.
+>
+> **THEN READ THE BRANCH WARNING BELOW BEFORE TYPING A PUSH COMMAND.** Plain
+> `git push` is safe and is the only form to use. `git push --all` or
+> `--mirror` would put Hamilton Island's 26 commits into a Lyka named repo.
+>
+> Pushing **builds and deploys nothing**: there is no GitHub auto deploy and the
+> app is not deployed anywhere. See "Deploy".
+
 **Repo: `The-Speed-Agency/speed-x-lyka-accelerator`, private.** Created 2026-08-04.
 https://github.com/The-Speed-Agency/speed-x-lyka-accelerator
 
@@ -1021,7 +1194,7 @@ https://github.com/The-Speed-Agency/speed-x-lyka-accelerator
 
 **Verified at creation:** the remote carries one branch and one commit; no `.env`, `.dev.vars`, `.netlify/state.json` or `.wrangler` is tracked or anywhere in history; and a fresh clone installs, typechecks and builds, so the repo is self contained.
 
-**The repo does contain Hamilton Island content**, and that is not an oversight: `data/mediaPlanData.ts`, `data/apexData.ts` and the media plan creative in `public/images/` are still theirs. Both pages render a placeholder rather than that data (see the top of this file). It is agency internal and the repo is private, but do not make this repo public while that is true.
+**The repo does contain Hamilton Island content**, and that is not an oversight: `data/apexData.ts` is still theirs (the media plan and its creative became Lyka's on 2026-08-05). The APEX page renders a placeholder rather than that data (see the top of this file). It is agency internal and the repo is private, but do not make this repo public while that is true.
 
 The uncommitted Cloudflare Worker gate that existed in this folder before the conversion was captured to `../worker-gate-and-tooling.patch` (141 KB) so it can be landed on the canonical Hamilton Island repo separately, without ever pushing from here.
 
@@ -1059,11 +1232,14 @@ Field mapping, all verbatim:
 
 If the study is revised, regenerate rather than hand-editing, and remember the two format rules: semicolon delimited bullets, en dash before score descriptions.
 
-### Interactive Media Plan and APEX
+### Interactive Media Plan: DONE (2026-08-05)
 
-Both need inputs that do not exist yet, so **since 2026-08-04 neither opens.** Each nav item renders a placeholder from [pages/PendingSections.tsx](pages/PendingSections.tsx) naming the one input that unblocks it, and the built pages sit behind `?show=all`. When the input lands, delete that export and its ternary in `App.tsx`: the page underneath has not been touched.
+The Lyka briefing workbook landed and the page was rebuilt and re-enabled the same day: 5 stages, 23 rows, the green/red owner split, the dashed flighting overlay. `MediaPlanPending` was deleted from `PendingSections.tsx` and its ternary from `App.tsx`. Method notes worth keeping: only VISIBLE workbook content was used (the hidden `$ Lyka` sheet, the hidden TRY IT / SHARE IT description sheets and the hidden Australian Open row were excluded per client direction, matching the Hamilton precedent); the workbook's own monthly grand-total row omits PROVE IT, so monthly totals are derived from rows; and the channel tabs' text is stale Hamilton template while their embedded images are the Lyka creative, so text and images came from different sheets.
 
-- **Media plan**: a Lyka brief. The `MediaRow` / `PlanLayer` model and the gantt derivation are fully reusable; `MONTHS` is a hardcoded Nov to Oct fiscal year and `LayerKey` is baked into five places. The `provisional` flag renders a PENDING pill if you want to ship illustrative numbers honestly.
+### APEX
+
+Still needs an input that does not exist yet, so **since 2026-08-04 it does not open.** The nav item renders a placeholder from [pages/PendingSections.tsx](pages/PendingSections.tsx) naming the one input that unblocks it, and the built page sits behind `?show=all`. When the input lands, delete that export and its ternary in `App.tsx`: the page underneath has not been touched.
+
 - **APEX**: one Roy Morgan Single Source pull, 13 channels x 2 Lyka audience definitions, giving 26 `heavyPct` and 26 `rmIndex` values. **Everything else recomputes**: `methodB` is rebase(rmIndex x knfScore, mean 100) and `methodC` is rebase(rmIndex x knfScore x ttdMultiplier, mean 100). `knfScore`, `ttdMultiplier` and `ttdStars` are channel constants and carry over untouched. The derived columns must be recomputed, never hand edited, and must be recomputed if the row set changes at all, because the rebase is over the rows present.
 
 ### If the segment model itself is ever revised
