@@ -248,18 +248,60 @@ export const LAYER_COLORS: Record<LayerKey, LayerColorSet> = {
 
 export type OwnerKey = 'speed' | 'lyka';
 
+/**
+ * How much presence a channel has in a given month, straight from the workbook.
+ *
+ * The briefing sheet shades every bar cell at one of three intensities per
+ * owner, and **it is an editorial weighting, not a function of spend.** That was
+ * tested before building it: the darkest red spans $10,000 to $2,000,000 and the
+ * mid red spans $5,000 to $1,000,000, so the ranges overlap almost completely.
+ * Cinema settles it outright, with December at $70,000 shaded medium and
+ * February at the same $70,000 shaded heavy. And the in-house rows carry all
+ * three shades while having no dollars at all.
+ *
+ * So it cannot be derived and is read cell by cell into `MediaRow.weight`.
+ */
+export type Weight = 'heavy' | 'medium' | 'light';
+
 export interface OwnerColorSet {
-  /** Gantt bar fill and legend swatch. */
+  /** Legend swatch, owner pill, and the mid rung of `weight`. */
   base: string;
   /** Chart.js area fill under the in-house pop-up accents. */
   area: string;
   /** Text drawn ON TOP of `base`. */
   ink: string;
+  /**
+   * The three gantt bar fills. OWNER is carried by hue and WEIGHT by lightness,
+   * which is what makes the two readable at once: the two families are
+   * luminance matched rung for rung (green 8.66 / 5.06 / 3.44 against red 8.03 /
+   * 4.61 / 3.14 vs white), so heavy green and heavy red are only 1.08:1 apart
+   * and hue is doing all the owner work.
+   *
+   * **Every rung clears 3:1 against white**, the non-text floor for a meaningful
+   * mark, which is the constraint that sets the range. The obvious approach of
+   * lightening the base by a fixed HLS step fails it: it lands the light green
+   * at 1.77:1 and the light red at 2.84:1. These are solved for target contrast
+   * with hue and saturation held instead. Asserted in `data/__integrity.ts`.
+   *
+   * The greens are all EXISTING tokens (`tealDark`, `accentInk` and
+   * `SEGMENT_COLORS.Ready.lighter`), so only red needed new values.
+   */
+  weight: Record<Weight, string>;
 }
 
 export const OWNER_COLORS: Record<OwnerKey, OwnerColorSet> = {
-  lyka:  { base: '#0A7D68', area: 'rgba(10,125,104,0.15)', ink: '#FFFFFF' },
-  speed: { base: '#E8151B', area: 'rgba(232,21,27,0.12)',  ink: '#FFFFFF' },
+  lyka: {
+    base: '#0A7D68',
+    area: 'rgba(10,125,104,0.15)',
+    ink: '#FFFFFF',
+    weight: { heavy: '#005648', medium: '#0A7D68', light: '#0E9C82' }, // 8.66 / 5.06 / 3.44 : 1
+  },
+  speed: {
+    base: '#E8151B',
+    area: 'rgba(232,21,27,0.12)',
+    ink: '#FFFFFF',
+    weight: { heavy: '#A20F13', medium: '#E8151B', light: '#F16266' }, // 8.03 / 4.61 / 3.14 : 1
+  },
 };
 
 /**

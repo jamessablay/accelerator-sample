@@ -1,5 +1,5 @@
 import React from 'react';
-import { PLAN_LAYERS, MONTHS, MEDIA_TOTAL, MediaRow, PlanLayer } from '../../data/mediaPlanData';
+import { PLAN_LAYERS, MONTHS, MEDIA_TOTAL, MediaRow, PlanLayer, Weight } from '../../data/mediaPlanData';
 import { LAYER_COLORS, OWNER_COLORS, LYKA, CHART_GRID } from '../../data/brand';
 
 interface MacroBlockPlanProps {
@@ -36,12 +36,24 @@ function activeRuns(active: boolean[]): { start: number; len: number }[] {
   return runs;
 }
 
-// Bars are OWNER coloured (green = Lyka in house, red = SPEED managed), per the
-// client's legend. The rail keeps the STAGE colour; the two never encode the
-// same dimension.
+/**
+ * Bars carry TWO dimensions at once, which is why they are built as a run of
+ * per-month segments rather than one flat block.
+ *
+ * OWNER is the hue (green = Lyka in house, red = SPEED managed, per the client's
+ * legend) and WEIGHT is the lightness within that hue, straight from the
+ * workbook's own three-level shading. The rail keeps the STAGE colour, so no two
+ * of the three encodings share a surface.
+ *
+ * A contiguous flight stays ONE bar with one set of rounded ends and one shadow,
+ * and the months inside it butt together with no gaps, so the shading reads as a
+ * gradient across a single flight rather than as separate bursts. That matches
+ * the workbook, where a flight is a run of adjacent cells at varying intensity.
+ */
 const GanttTrack: React.FC<{ row: MediaRow; onClick: () => void }> = ({ row, onClick }) => {
-  const runs = activeRuns(row.activeMonths ?? row.monthly.map((v) => (v || 0) > 0));
-  const color = OWNER_COLORS[row.owner].base;
+  const active = row.activeMonths ?? row.monthly.map((v) => (v || 0) > 0);
+  const runs = activeRuns(active);
+  const shades = OWNER_COLORS[row.owner].weight;
   return (
     <div
       className="relative h-7 my-0.5 rounded-md cursor-pointer group"
@@ -56,23 +68,30 @@ const GanttTrack: React.FC<{ row: MediaRow; onClick: () => void }> = ({ row, onC
       tabIndex={0}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onClick()}
       aria-label={`${row.channel} flighting. Click for detail.`}
-      title={`${row.channel} — click for detail`}
+      title={`${row.channel} | click for detail`}
     >
-      {runs.map((run, idx) => {
+      {runs.map((run) => {
         const left = (run.start / 12) * 100;
         const width = (run.len / 12) * 100;
         return (
           <div
-            key={idx}
-            className="absolute top-1/2 -translate-y-1/2 rounded-md transition-transform duration-150 group-hover:brightness-110 group-hover:scale-y-110 flex items-center justify-center"
+            key={run.start}
+            className="absolute top-1/2 flex -translate-y-1/2 overflow-hidden rounded-md transition-transform duration-150 group-hover:brightness-110 group-hover:scale-y-110"
             style={{
               left: `calc(${left}% + 3px)`,
               width: `calc(${width}% - 6px)`,
               height: '16px',
-              backgroundColor: color,
               boxShadow: '0 1px 2px rgba(0,86,72,0.18)',
             }}
-          />
+          >
+            {Array.from({ length: run.len }, (_, k) => {
+              const month = run.start + k;
+              // A month inside a run always has a weight; `medium` is the
+              // fallback so a data gap renders the mid rung rather than nothing.
+              const w = row.weight[month] ?? 'medium';
+              return <span key={month} className="flex-1" style={{ backgroundColor: shades[w] }} />;
+            })}
+          </div>
         );
       })}
     </div>
@@ -161,21 +180,34 @@ const LayerBlock: React.FC<{ layer: PlanLayer; onSelectChannel: (row: MediaRow) 
   );
 };
 
-/** The client-requested key to the bar colours, at the bottom of the plan. */
+/**
+ * The client-requested key to the bar colours, at the bottom of the plan.
+ *
+ * It has to teach TWO dimensions without turning into six unlabelled swatches,
+ * so each owner is one graded ramp read left to right, and the heavy / medium /
+ * light captions are stated ONCE underneath rather than repeated per owner. That
+ * is what makes it legible as "hue is who, lightness is how much".
+ */
+const MONO: React.CSSProperties = { fontFamily: '"DM Mono", monospace', letterSpacing: '0.08em' };
+const WEIGHT_ORDER: Weight[] = ['heavy', 'medium', 'light'];
+
 const OwnerLegend: React.FC = () => (
-  <div className="flex items-center justify-center gap-8 py-2.5 border-t" style={{ borderColor: LYKA.mint, backgroundColor: LYKA.ivory }}>
-    <span className="flex items-center gap-2">
-      <span className="inline-block w-7 h-3.5 rounded" style={{ backgroundColor: OWNER_COLORS.speed.base }} />
-      <span className="text-[11px] font-semibold uppercase tracking-[0.08em]" style={{ color: LYKA.ink, fontFamily: '"DM Mono", monospace' }}>
-        SPEED managed
+  <div className="border-t py-2.5" style={{ borderColor: LYKA.mint, backgroundColor: LYKA.ivory }}>
+    <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-2">
+      {([['speed', 'SPEED managed'], ['lyka', 'Lyka in house']] as const).map(([owner, label]) => (
+        <span key={owner} className="flex items-center gap-2.5">
+          <span className="flex overflow-hidden rounded" style={{ boxShadow: '0 1px 2px rgba(0,86,72,0.18)' }}>
+            {WEIGHT_ORDER.map((w) => (
+              <span key={w} className="inline-block h-3.5 w-6" style={{ backgroundColor: OWNER_COLORS[owner].weight[w] }} />
+            ))}
+          </span>
+          <span className="text-micro font-medium uppercase" style={{ ...MONO, color: LYKA.ink }}>{label}</span>
+        </span>
+      ))}
+      <span className="text-micro font-medium uppercase" style={{ ...MONO, color: LYKA.muted }}>
+        Darker to lighter: heavy, medium, light presence
       </span>
-    </span>
-    <span className="flex items-center gap-2">
-      <span className="inline-block w-7 h-3.5 rounded" style={{ backgroundColor: OWNER_COLORS.lyka.base }} />
-      <span className="text-[11px] font-semibold uppercase tracking-[0.08em]" style={{ color: LYKA.ink, fontFamily: '"DM Mono", monospace' }}>
-        Lyka in house
-      </span>
-    </span>
+    </div>
   </div>
 );
 

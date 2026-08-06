@@ -329,23 +329,30 @@ const ChannelDetail: React.FC<ChannelDetailProps> = ({ row, layerKey }) => {
       {inHouse ? (
         <div>
           <h3 className="text-base font-bold" style={{ color: accent.text }}>Flighting: {row.channel}</h3>
-          <p className="text-sm italic text-[#5B6E64] mb-2">Active months, Oct to Sep. Run by Lyka in house, so no SPEED media investment is shown.</p>
+          <p className="text-sm italic text-[#5B6E64] mb-2">
+            Active months, Oct to Sep, shaded by presence. Run by Lyka in house, so no SPEED media investment is shown.
+          </p>
           <div className="grid grid-cols-12 gap-1.5">
-            {MONTHS.map((m, i) => (
-              <div
-                key={m}
-                className="rounded-md py-2 text-center text-meta font-semibold"
-                style={
-                  activeMonths[i]
-                    ? { backgroundColor: OWNER_COLORS.lyka.base, color: OWNER_COLORS.lyka.ink }
-                    // An inactive month is quiet, not invisible: mintMuted was
-                    // 1.75:1 on ivory. muted is 5.06:1 and still reads as off.
-                    : { backgroundColor: LYKA.ivory, color: LYKA.muted }
-                }
-              >
-                {m}
-              </div>
-            ))}
+            {MONTHS.map((m, i) => {
+              // Same encoding as the gantt bar, so the pop-up and the grid agree.
+              const w = activeMonths[i] ? row.weight[i] ?? 'medium' : null;
+              return (
+                <div
+                  key={m}
+                  className="rounded-md py-2 text-center text-meta font-semibold"
+                  title={w ? `${m}: ${w} presence` : `${m}: not running`}
+                  style={
+                    w
+                      ? { backgroundColor: OWNER_COLORS.lyka.weight[w], color: OWNER_COLORS.lyka.ink }
+                      // An inactive month is quiet, not invisible: mintMuted was
+                      // 1.75:1 on ivory. muted is 5.06:1 and still reads as off.
+                      : { backgroundColor: LYKA.ivory, color: LYKA.muted }
+                  }
+                >
+                  {m}
+                </div>
+              );
+            })}
           </div>
         </div>
       ) : (

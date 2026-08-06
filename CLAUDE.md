@@ -721,6 +721,62 @@ consistency bug, not a legibility one**, so it is recorded rather than bundled
 into a legibility fix. Do it as its own pass, with the Ten Things and Ladder
 measurements re-run after.
 
+### The bars carry TWO dimensions: owner by hue, presence by lightness (2026-08-06)
+
+The workbook shades every bar cell at **three intensities per owner**, and the
+first build flattened that to one flat colour per owner. It is back, and the
+important part is what the shading is NOT.
+
+**It is an editorial presence weighting, not a function of spend.** That was
+tested before building anything: the darkest red spans **$10,000 to $2,000,000**
+and the mid red spans **$5,000 to $1,000,000**, so the ranges overlap almost
+entirely. Cinema settles it on its own, with December at $70,000 shaded medium
+and February at the same $70,000 shaded heavy. And the in-house rows carry all
+three shades while having **no dollars at all**. So it cannot be derived, and
+`MediaRow.weight` is a 12-slot array read cell by cell from the fills.
+
+Reading it required resolving Excel theme colours: the reds are `theme4`/`theme5`
+with tints, which have to be composited through **HLS luminance**, not RGB, or
+they come out wrong. Four distinct reds collapse to three rungs (`#B80F15` and
+`#C00000` are the same "heavy" to the eye, 0.106 against 0.112 luminance) and
+three greens map one to one. The arrays were **generated** from the workbook and
+then round-tripped back out of the TS and compared, all 23 rows matching, because
+133 hand-typed cells is exactly where a transcription slip hides.
+
+**Seven always-on rows share one signature, `H H M H H M M M M M M L`**: heavy at
+launch, medium in December, heavy again for the Jan and Feb peak, medium through
+the sustain, light in the September tail. That pattern is also what settled the
+BVOD & SVOD February gap: every sibling row is heavy there, so the empty cell was
+a slip and the level is heavy.
+
+**`OWNER_COLORS[owner].weight` is a three rung ramp, and the 3:1 floor sets its
+range.** A gantt bar is a data mark, so every rung has to clear 3:1 against white
+on its own. The obvious approach of lightening the base by a fixed HLS step fails
+that: it lands the light green at **1.77:1** and the light red at **2.84:1**. The
+rungs are solved for target contrast with hue and saturation held instead, giving
+green 8.66 / 5.06 / 3.44 and red 8.03 / 4.61 / 3.14. The two families are
+luminance matched rung for rung, so **heavy green and heavy red are only 1.08:1
+apart and hue is doing all the owner work**, which is what lets a reader take in
+both dimensions at once. All three greens are existing tokens (`tealDark`,
+`accentInk`, `SEGMENT_COLORS.Ready.lighter`); only red needed new values.
+
+**A flight stays ONE bar.** `GanttTrack` renders a contiguous run as a single
+rounded, shadowed container and fills it with per-month segments that butt
+together with no gaps, so the shading reads as a gradient across one flight
+rather than as separate bursts. Always On Radio is the clearest case: two runs,
+and the second is one Jan to Sep bar grading heavy, heavy, medium six times, then
+light. The pop-up's in-house month strip uses the same ramp, so the grid and the
+detail agree.
+
+`__integrity.ts` asserts the join both ways (a month that runs must have a weight,
+a weight on a month that does not run is a value rendering nowhere), plus the 3:1
+floor per rung and a 1.25:1 minimum between adjacent rungs, because three levels
+nobody can tell apart encode nothing.
+
+The legend now teaches two dimensions without becoming six unlabelled swatches:
+each owner is one graded ramp, and "darker to lighter: heavy, medium, light
+presence" is said **once** underneath rather than repeated per owner.
+
 Creative layout is per-row via flags on `MediaRow`:
 - **default** = a horizontal row of `CreativeCard`s; `imageWeights` set relative widths (the pattern here: a 16:9 mockup at ~2.6 beside partner logos at 1). `captions` label each card.
 - `extraImages` + `extraCaptions` = an optional **second** horizontal row (BVOD logos over SVOD logos; the Cinema poster strip; Outdoor's partner logos under the shelter mockup).
@@ -1143,28 +1199,22 @@ To take the public URL down entirely instead, set `"workers_dev": false` in [wra
 
 ## Source control
 
-> ### OPEN ITEM, NEXT SESSION (2026-08-06): COMMIT AND PUSH PASSES 14 AND 15
+> ### OPEN ITEM: PASS 16 IS UNCOMMITTED
 >
-> **Nothing from 2026-08-05 is committed.** `lyka-main` is level with
-> `origin/lyka-main` (0 ahead, 0 behind) while the working tree holds the entire
-> media plan rebuild and the legibility pass: **18 modified, 23 deleted, 38
-> untracked** as of the end of that session.
+> **Passes 14 and 15 landed on 2026-08-05** as three commits, `81fb0d7..cfe4377`:
+> the media plan rebuild, then the `mintMuted` contrast fix, then the docs. Split
+> by SCOPE rather than by pass, because `brand.ts`, `__integrity.ts`,
+> `ChannelDetail.tsx` and `InteractiveMediaPlan.tsx` each carry changes from both
+> and a strict per-pass split would have needed hunk surgery.
 >
-> - **Modified:** `data/mediaPlanData.ts` (full rewrite), `data/brand.ts`,
->   `data/__integrity.ts`, all four `components/mediaplan/*`,
->   `pages/InteractiveMediaPlan.tsx`, `pages/PendingSections.tsx`, `App.tsx`,
->   `components/shared/Modal.tsx`, three `components/journey/*`, and `CLAUDE.md`.
-> - **Deleted:** the Hamilton media plan creative and all of `public/media-plan/`.
-> - **Untracked:** the 41 Lyka creative files.
->
-> Worth splitting into two commits, because they are two unrelated changes: the
-> media plan rebuild (pass 14), then the contrast and type fixes (pass 15), which
-> touch the journey baselines and the shared Modal for reasons that have nothing
-> to do with the media plan.
+> **Pass 16, the three level bar shading, is verified but NOT committed:** six
+> modified files, `data/brand.ts`, `data/mediaPlanData.ts`, `data/__integrity.ts`,
+> `components/mediaplan/MacroBlockPlan.tsx`, `components/mediaplan/ChannelDetail.tsx`
+> and this file. `npm run typecheck` and `npm run build` both clean; the weight
+> arrays were round-tripped against the workbook, all 23 rows matching.
 >
 > **Gate before pushing:** `npm run typecheck` (both configs) and `npm run dev`
-> with the console open, confirming the single `[data integrity] ok` line. Both
-> were clean at the end of the session.
+> with the console open, confirming the single `[data integrity] ok` line.
 >
 > **THEN READ THE BRANCH WARNING BELOW BEFORE TYPING A PUSH COMMAND.** Plain
 > `git push` is safe and is the only form to use. `git push --all` or

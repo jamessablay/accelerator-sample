@@ -310,6 +310,31 @@ export function runIntegrityChecks(): void {
     }
   }
 
+  // 5b-ii. THE PRESENCE WEIGHTS MUST LINE UP WITH THE FLIGHTING.
+  //
+  //     `weight` is a second 12-slot array beside `monthly` / `activeMonths`, and
+  //     the two can drift apart silently in both directions: a null where the
+  //     channel IS running renders the mid rung as a guess, and a weight where it
+  //     is NOT running renders nothing at all, so the value is simply lost with no
+  //     sign on screen. The shading is hand read from the workbook's cell fills
+  //     and cannot be derived from spend (see `Weight` in brand.ts), so nothing
+  //     else can catch a transcription slip.
+  for (const row of planRows) {
+    const active = row.activeMonths ?? row.monthly.map((v) => (v || 0) > 0);
+    if (row.weight.length !== MONTHS.length) {
+      fail(`"${row.channel}" weight has ${row.weight.length} entries, not ${MONTHS.length}.`);
+      continue;
+    }
+    active.forEach((on, i) => {
+      if (on && !row.weight[i]) {
+        fail(`"${row.channel}" runs in ${MONTHS[i]} but has no presence weight, so its bar segment falls back to medium.`);
+      }
+      if (!on && row.weight[i]) {
+        warn(`"${row.channel}" has a "${row.weight[i]}" weight in ${MONTHS[i]} but is not running then, so that value renders nowhere.`);
+      }
+    });
+  }
+
   // 5c. The flighting overlay is percentages that must describe the whole
   //     budget: off by one entry and every point lands under the wrong month,
   //     summing wrong and the dashed line quietly stops meaning "100% of $11M".
@@ -369,6 +394,25 @@ export function runIntegrityChecks(): void {
     const ratio = contrast(set.ink, set.base);
     if (ratio < TEXT_FLOOR) {
       fail(`OWNER_COLORS["${key}"]: ink ${set.ink} on base ${set.base} is ${ratio.toFixed(2)}:1, below AA (${TEXT_FLOOR}:1).`);
+    }
+    // Every WEIGHT rung is a data mark on the white gantt track, so each one has
+    // to clear the 3:1 non-text floor on its own. This is the constraint that
+    // sets the palette's range: lightening the base by a plain HLS step lands
+    // the light rungs at 1.77:1 and 2.84:1, which is why they are solved for
+    // contrast instead. And each pair of rungs must stay TELLABLE APART, or the
+    // three levels collapse into one and the encoding says nothing.
+    const rungs = ['heavy', 'medium', 'light'] as const;
+    for (const w of rungs) {
+      const r = contrastVsWhite(set.weight[w]);
+      if (r < 3.0) {
+        fail(`OWNER_COLORS["${key}"].weight.${w} = ${set.weight[w]} is ${r.toFixed(2)}:1 against white, below the 3:1 non-text floor. A gantt bar is a data mark, not decoration.`);
+      }
+    }
+    for (const [a, b] of [['heavy', 'medium'], ['medium', 'light']] as const) {
+      const sep = contrast(set.weight[a], set.weight[b]);
+      if (sep < 1.25) {
+        fail(`OWNER_COLORS["${key}"]: the ${a} and ${b} rungs are only ${sep.toFixed(2)}:1 apart, so adjacent months in one flight read as the same weight.`);
+      }
     }
   }
 

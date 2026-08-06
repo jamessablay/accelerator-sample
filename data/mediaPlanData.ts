@@ -71,7 +71,7 @@
 // (568x262 and 570x262, different bytes); both map to the one ooh.png.
 // -----------------------------------------------------------------------------
 
-import { LAYER_COLORS, type LayerKey, type OwnerKey } from './brand';
+import { LAYER_COLORS, type LayerKey, type OwnerKey, type Weight } from './brand';
 
 export const MONTHS = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'] as const;
 
@@ -90,7 +90,7 @@ export const FLIGHTING_PCT = [7.66, 8.51, 7.2, 13.9, 10.2, 8.0, 8.0, 6.0, 8.5, 8
 // OWNER_COLORS can be typed without a circular import. Re-exported here so the
 // existing importers (InteractiveMediaPlan, ChannelDetail) keep working.
 // `export type` is required: tsconfig has isolatedModules.
-export type { LayerKey, OwnerKey };
+export type { LayerKey, OwnerKey, Weight };
 
 export interface ChannelDetailCopy {
   assets?: string;
@@ -120,6 +120,13 @@ export interface MediaRow {
    * dollars to derive bars from. SPEED rows derive their bars from `monthly`.
    */
   activeMonths?: boolean[];
+  /**
+   * How much presence the channel has each month, indexed to MONTHS, null when
+   * it is not running. Read cell by cell from the workbook's bar shading, which
+   * is an editorial weighting and NOT derivable from spend: see the `Weight`
+   * comment in data/brand.ts for the evidence. Drives the gantt bar shade.
+   */
+  weight: (Weight | null)[];
   /** Performance still being finalised: render as a clearly-marked stub. */
   provisional?: boolean;
   detail?: ChannelDetailCopy;
@@ -170,6 +177,7 @@ const showIt: PlanLayer = {
       assets: 'Earned',
       monthly: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 0,
+      weight: ['heavy', null, null, null, null, null, null, null, null, null, null, null],
       activeMonths: [true, false, false, false, false, false, false, false, false, false, false, false],
       detail: {
         assets: 'University of Sydney research paper; expert spokesperson; media release; morning show segments.',
@@ -188,6 +196,7 @@ const showIt: PlanLayer = {
       assets: 'Boosting PR morning shows',
       monthly: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 0,
+      weight: ['heavy', null, null, null, null, null, null, null, null, null, null, null],
       activeMonths: [true, false, false, false, false, false, false, false, false, false, false, false],
       detail: {
         assets: 'Morning show cutdowns; expert clips; host content; social videos; Poo, Pep and Polish checklist.',
@@ -203,6 +212,7 @@ const showIt: PlanLayer = {
       assets: 'Segment',
       monthly: [50000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 50000,
+      weight: ['heavy', null, null, null, null, null, null, null, null, null, null, null],
       detail: {
         assets: 'Integrated host segment; live discussion; listener interaction; social content with Nova’s Wippa.',
         role: 'Add personality, entertainment and cultural momentum through trusted and popular voices.',
@@ -220,6 +230,7 @@ const showIt: PlanLayer = {
       assets: 'Host reads',
       monthly: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 0,
+      weight: ['heavy', 'heavy', null, null, null, null, null, null, null, null, null, null],
       activeMonths: [true, true, false, false, false, false, false, false, false, false, false, false],
       detail: {
         assets: 'Bespoke host reads tailored to each podcast and its audience.',
@@ -237,6 +248,7 @@ const showIt: PlanLayer = {
       assets: 'Day takeovers',
       monthly: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 0,
+      weight: ['heavy', null, null, null, null, null, null, null, null, null, null, null],
       activeMonths: [true, false, false, false, false, false, false, false, false, false, false, false],
       detail: {
         assets: 'Premium Samsung and LG home screen takeover featuring Fine Dog Syndrome and Poo, Pep and Polish.',
@@ -254,6 +266,7 @@ const showIt: PlanLayer = {
       assets: 'News',
       monthly: [100000, 100000, 0, 100000, 100000, 0, 0, 0, 0, 0, 0, 0],
       budget: 400000,
+      weight: ['heavy', 'heavy', null, 'heavy', 'heavy', null, null, null, null, null, null, null],
       detail: {
         assets: 'Three 30 second masterbrand films: Poo, Pep and Polish.',
         role: 'Build mass awareness, stature and fame for Lyka’s three step thriving check.',
@@ -271,6 +284,7 @@ const showIt: PlanLayer = {
       assets: 'Seven | Foxtel',
       monthly: [0, 0, 0, 0, 0, 250000, 250000, 250000, 250000, 250000, 250000, 250000],
       budget: 1750000,
+      weight: [null, null, null, null, null, 'medium', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium'],
       detail: {
         assets: 'Poo, Pep and Polish masterbrand trilogy spot package across Seven and Foxtel.',
         role: 'Provide continuity across a high reach, high affinity sport and keep Lyka’s three step check mentally available throughout the AFL season.',
@@ -287,6 +301,7 @@ const showIt: PlanLayer = {
       assets: 'Summer blockbusters | Affluent postcodes',
       monthly: [0, 0, 70000, 150000, 70000, 0, 0, 0, 0, 0, 0, 0],
       budget: 290000,
+      weight: [null, null, 'medium', 'heavy', 'heavy', null, null, null, null, null, null, null],
       detail: {
         assets: 'Three 30 second masterbrand films: Poo, Pep and Polish. Placed as one spot per film but rotated across the season.',
         role: 'Add premium, high attention reach to the screen strategy during Lyka’s peak season, building stature and fame for the three step thriving check.',
@@ -305,6 +320,7 @@ const showIt: PlanLayer = {
       assets: 'Programmatic',
       monthly: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 0,
+      weight: ['heavy', 'heavy', 'medium', 'heavy', 'heavy', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium', 'light'],
       // The sheet's green fills skip February. A one month hole in an
       // always-on channel is a formatting slip, not a planned dark month
       // (the superseded first-pass sheet funds it in February), so the
@@ -333,6 +349,7 @@ const showIt: PlanLayer = {
       assets: 'Non skippable',
       monthly: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 0,
+      weight: ['heavy', 'heavy', 'medium', 'heavy', 'heavy', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium', 'light'],
       activeMonths: [true, true, true, true, true, true, true, true, true, true, true, true],
       detail: {
         assets: 'Sequential trilogy films; shorter video cutdowns; calls to discover more.',
@@ -351,6 +368,7 @@ const showIt: PlanLayer = {
       assets: 'Large format & triplet bus shelters',
       monthly: [0, 565000, 0, 700000, 500000, 0, 0, 0, 0, 0, 0, 0],
       budget: 1765000,
+      weight: [null, 'heavy', null, 'heavy', 'heavy', null, null, null, null, null, null, null],
       detail: {
         assets: 'High impact outdoor featuring Lyka’s three step thriving checklist.',
         role: 'Build fame, stature and repeated visibility in the affluent locations with the greatest growth potential for Lyka.',
@@ -381,6 +399,7 @@ const checkIt: PlanLayer = {
       assets: 'Sponsorship',
       monthly: [0, 0, 1000000, 2000000, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 3000000,
+      weight: [null, null, 'medium', 'heavy', null, null, null, null, null, null, null, null],
       detail: {
         assets: 'Seven sponsorship across Linear TV and BVOD; opening and closing billboards; squeezebacks; pull-throughs; segment sponsorship; bespoke cricket integration; masterbrand trilogy spot plan.',
         role: 'Deliver high reach and deep engagement with Lyka’s audience during the December to January category peak, increasing share of voice when purchase interest is highest.',
@@ -400,6 +419,7 @@ const checkIt: PlanLayer = {
       assets: 'Segment',
       monthly: [0, 0, 50000, 50000, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 100000,
+      weight: [null, null, 'medium', 'heavy', null, null, null, null, null, null, null, null],
       detail: {
         assets: 'Bespoke MMM integrated segment; James Brayshaw and Brad Haddin commentary; Seven TV integration linkage; social and audio cutdowns.',
         role: 'Create theatre of the mind and connect the radio and television ideas into one distinctive sporting moment across Seven and SCA.',
@@ -417,6 +437,7 @@ const checkIt: PlanLayer = {
       assets: 'Segment | Socials',
       monthly: [200000, 150000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 350000,
+      weight: ['heavy', 'heavy', null, null, null, null, null, null, null, null, null, null],
       detail: {
         assets: 'Original Poo, Pep and Polish song composed by Rosala Boy and his dad; in-show launch; presenter discussion; station content highlights; social cutdowns.',
         role: 'Create a culturally relevant performance that makes the check famous, memorable and easy to repeat.',
@@ -433,6 +454,7 @@ const checkIt: PlanLayer = {
       assets: 'Boosting Ear Worm',
       monthly: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 0,
+      weight: ['heavy', 'heavy', null, null, null, null, null, null, null, null, null, null],
       activeMonths: [true, true, false, false, false, false, false, false, false, false, false, false],
       detail: {
         assets: 'Rosala Boy hero song content; MMM cutdowns; creator versions; audience responses; paid amplification assets.',
@@ -448,6 +470,7 @@ const checkIt: PlanLayer = {
       assets: 'Segment | Socials',
       monthly: [0, 100000, 0, 0, 100000, 0, 0, 0, 0, 0, 0, 0],
       budget: 200000,
+      weight: [null, 'heavy', null, null, 'heavy', null, null, null, null, null, null, null],
       detail: {
         assets: 'Bespoke song recreations and social videos from selected podcasters, led by Toni and Ryan; podcast mentions; social cutdowns.',
         role: 'Extend the song cycle through trusted talent with strong audio and social influence, bringing new interpretations and audiences into the idea.',
@@ -465,6 +488,7 @@ const checkIt: PlanLayer = {
       assets: '2 stations',
       monthly: [0, 150000, 0, 200000, 300000, 200000, 200000, 200000, 200000, 200000, 200000, 150000],
       budget: 2000000,
+      weight: [null, 'heavy', null, 'heavy', 'heavy', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium', 'light'],
       detail: {
         assets: '30 second radio spots reinforcing the 3Ps check; seven day BMAD spot plan; rotating reminders and masterbrand messaging.',
         role: 'Remain a constant in Lyka’s most important channel, using daily repetition to reinforce the check and build behavioural memory.',
@@ -493,6 +517,7 @@ const proveIt: PlanLayer = {
       assets: 'Bus shelters',
       monthly: [0, 80000, 80000, 80000, 80000, 80000, 80000, 80000, 80000, 80000, 80000, 80000],
       budget: 880000,
+      weight: [null, 'heavy', 'medium', 'heavy', 'heavy', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium', 'light'],
       detail: {
         assets: 'Static and digital bus shelter creative; suburb level Lyka dog counts; local owner testimonials; Poo, Pep and Polish proof points.',
         role: 'Build grassroots awareness and social proof in the places owners walk every day, making Lyka feel established and relevant locally.',
@@ -513,6 +538,7 @@ const proveIt: PlanLayer = {
       assets: 'High impact display',
       monthly: [0, 0, 0, 0, 10000, 10000, 5000, 5000, 5000, 5000, 5000, 5000],
       budget: 50000,
+      weight: [null, null, null, null, 'heavy', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium', 'light'],
       detail: {
         assets: 'Industry first "Lyka Thriving Count"; suburb level data; high impact display; interactive map or postcode experience; PR ready data story.',
         role: 'Reach an affluent, property engaged Lyka audience and give local proof scale, novelty and talkability.',
@@ -530,6 +556,7 @@ const proveIt: PlanLayer = {
       assets: 'App display ads',
       monthly: [0, 15000, 15000, 15000, 15000, 15000, 15000, 15000, 15000, 15000, 15000, 15000],
       budget: 165000,
+      weight: [null, 'heavy', 'medium', 'heavy', 'heavy', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium', 'light'],
       detail: {
         assets: 'Journey duration display ads; destination based Lyka dog counts; local thriving messages; dynamic suburb creative. 3 ads in one trip (3Ps, Thriving Dogs, Offer).',
         role: 'Access one of the most qualified dog owner audiences available and make local proof personally relevant in real time.',
@@ -547,6 +574,7 @@ const proveIt: PlanLayer = {
       assets: 'Always on',
       monthly: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 0,
+      weight: ['heavy', 'heavy', 'medium', 'heavy', 'heavy', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium', 'light'],
       activeMonths: [true, true, true, true, true, true, true, true, true, true, true, true],
       detail: {
         assets: 'Localised social ads; customer testimonials; science and expert proof; suburb creative; paid search copy and landing pages.',
@@ -578,6 +606,7 @@ const tryIt: PlanLayer = {
       owner: 'lyka',
       monthly: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 0,
+      weight: ['heavy', 'heavy', 'medium', 'heavy', 'heavy', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium', 'light'],
       activeMonths: [true, true, true, true, true, true, true, true, true, true, true, true],
     },
   ],
@@ -593,6 +622,7 @@ const shareIt: PlanLayer = {
       owner: 'lyka',
       monthly: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 0,
+      weight: ['heavy', 'heavy', 'medium', 'heavy', 'heavy', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium', 'light'],
       activeMonths: [true, true, true, true, true, true, true, true, true, true, true, true],
     },
   ],
