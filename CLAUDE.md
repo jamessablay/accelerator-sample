@@ -301,7 +301,7 @@ All data lives in flat TypeScript files under `data/`. There is no database, no 
 | [data/brand.ts](data/brand.ts) | **The single source of truth for colour.** The `LYKA` palette, `SEGMENT_COLORS` + `getSegmentColor()`, `LayerKey` + `LAYER_COLORS`, `TEN_THINGS`, the **gap ramp** (`gapWash()`, `GAP_SCALE_MAX`, the capped wash bounds and `GAP_RAMP`), and the `CHART_*` chrome constants. No React, no DOM types, literal hex only. See "Brand and typography". |
 | [data/__integrity.ts](data/__integrity.ts) | Dev-only assertions on the data joins `tsc` cannot see. Imported from `index.tsx` behind `import.meta.env.DEV`, so it is tree shaken out of production. |
 | [data/apexData.ts](data/apexData.ts) | **Still Hamilton.** The APEX methodology (SPEED generic, carries over) plus two audience tables whose `heavyPct` / `rmIndex` are an affluent-traveller Roy Morgan pull. See the warning in the header. |
-| [data/mediaPlanData.ts](data/mediaPlanData.ts) | **Real Lyka since 2026-08-05.** The Oct→Sep plan: `MONTHS` (Oct→Sep), `PLAN_LAYERS` (SHOW IT / CHECK IT / PROVE IT / TRY IT / SHARE IT, each with a `blurb`), `MEDIA_TOTAL = TOTAL_BUDGET = 11,000,000` (SPEED managed; no production line), `FLIGHTING_PCT` (the dashed overlay). Each `MediaRow` has **`owner: 'speed' \| 'lyka'`** (drives bar colour, the In house cells and the pop-up), `monthly` (12 values; all zeros on lyka rows), `budget` (0 on lyka rows), **`activeMonths`** (in-house flighting), optional `detail` (role/strategyLink/comesToLife/metrics), `images`, `captions`, `imageWeights`, `extraImages` + `extraCaptions`, and layout flags `provisional`, `pairedImages`, `stackedImages`, `stackedFirstSmall`. Sourced from the Lyka briefing workbook's **visible** `Budget Distribution $ Lyka SPEE` sheet + the three visible `Media Description` sheets; hidden content excluded per client direction (the `$ Lyka` sheet with the in-house dollars, the TRY IT / SHARE IT description sheets, the Australian Open row). **The workbook's own monthly grand-total row omits PROVE IT**, so monthly totals are derived from rows: January is $3,295,000, not the sheet's 3,200,000. Read the file header before editing. |
+| [data/mediaPlanData.ts](data/mediaPlanData.ts) | **Real Lyka since 2026-08-05.** The Oct→Sep plan: `MONTHS` (Oct→Sep), `PLAN_LAYERS` (SHOW IT / CHECK IT / PROVE IT / TRY IT / SHARE IT, each with a `blurb`), `MEDIA_TOTAL = TOTAL_BUDGET = 11,000,000` (SPEED managed; no production line), `FLIGHTING_PCT` (the dashed overlay). Each `MediaRow` has **`owner: 'speed' \| 'lyka'`** (drives bar colour, the In house cells and the pop-up), `monthly` (12 values; all zeros on lyka rows), `budget` (0 on lyka rows), **`activeMonths`** (in-house flighting), optional `detail` (role/strategyLink/comesToLife/metrics), `images`, `captions`, `imageWeights`, `extraImages` + `extraCaptions`, and layout flags `provisional`, `pairedImages`, `stackedImages`, `stackedFirstSmall`. Sourced from the Lyka briefing workbook's **visible** `Budget Distribution $ Lyka SPEE` sheet + the three visible `Media Description` sheets; hidden content excluded per client direction (the `$ Lyka` sheet with the in-house dollars, the TRY IT / SHARE IT description sheets, the Australian Open row). **The workbook's own monthly grand-total row omits PROVE IT**, so monthly totals are derived from rows: January is $3,295,000, not the sheet's 3,200,000. **Since the 2026-08-06 review round it ALSO carries client copy and three creatives from `Changes to the intereactive media plan.pptx`, so it is no longer a pure transcription of the workbook and must not be "restored" to it.** Read the file header before editing. |
 
 ### Persona schema
 
@@ -977,7 +977,19 @@ Originals were NOT kept beside the stripped files. A backup folder inside
 `public/` ships to `dist/`, and the workbook one folder up is the source of truth,
 so re-extraction is a few lines against `xl/media/`.
 
-**Source of truth:** `Interactive Media Plan Briefing Template for Lyka.xlsx`, one folder above the app. Only **visible** content was used, per the same client direction the Hamilton build followed: sheet `Budget Distribution $ Lyka SPEE` for the numbers and legend, the three visible `Media Description` sheets (SHOW IT, CHECK IT, PROVE IT) for the pop-up copy, and the visible channel tabs for the embedded creative (the tabs' TEXT is stale Hamilton template; only their images are Lyka). Excluded as hidden: the `$ Lyka` budget sheet (the superseded first pass, and the only place the in-house channels carry dollars, which is why green rows are flighting only), the TRY IT and SHARE IT description sheets, and the Australian Open Integration row. The **41** extracted images live in `public/images/` as kebab-case names, 16 JPEG and 25 PNG, 5.7MB (40 of them WIRED since Paramount+ came off on 2026-08-06; the file stays on disk). **Three wired images did NOT come from the workbook**, all supplied by the client as loose files on 2026-08-06: `nova-earworm.jpg` (from `boy.png`) on Nova Ear Worm, `social-creators.jpg` (from `picture.png`) on Paid & Organic Social, and `we-mean-well.jpg` (from `use-this-picture.png`) on Podcaster Performance. A re-audit against the workbook will find no source for either, which the header manifest records so they are not "restored" as dropped assets with the two chrome logos; the 2-3MB photographic PNG mockups were re-encoded to ≤1920w JPEG q85. All Hamilton media plan creative and `public/media-plan/` were deleted with the rebuild.
+**Source of truth:** `Interactive Media Plan Briefing Template for Lyka.xlsx`, one folder above the app. Only **visible** content was used, per the same client direction the Hamilton build followed: sheet `Budget Distribution $ Lyka SPEE` for the numbers and legend, the three visible `Media Description` sheets (SHOW IT, CHECK IT, PROVE IT) for the pop-up copy, and the visible channel tabs for the embedded creative (the tabs' TEXT is stale Hamilton template; only their images are Lyka). Excluded as hidden: the `$ Lyka` budget sheet (the superseded first pass, and the only place the in-house channels carry dollars, which is why green rows are flighting only), the TRY IT and SHARE IT description sheets, and the Australian Open Integration row. The **41** extracted images live in `public/images/` as kebab-case names, 16 JPEG and 25 PNG, and the 2-3MB photographic PNG mockups were re-encoded to ≤1920w JPEG q85. All Hamilton media plan creative and `public/media-plan/` were deleted with the rebuild.
+
+**SECOND SOURCE, and the workbook is no longer the whole story (2026-08-06).** The client review round arrived as `Changes to the intereactive media plan.pptx` and added **three images that are not in the workbook at all**, plus copy that departs from it in a dozen places. Media plan creative now stands at **44 files on disk, 42 WIRED**:
+
+| | |
+|---|---|
+| `nova-earworm.jpg` | Nova Ear Worm. Re-cut from the deck's slide 10 embed at 1306x629, header cropped. |
+| `social-creators.jpg` | Paid & Organic Social. From the loose `picture.png`, 1333x584, which beat the embed. |
+| `we-mean-well.jpg` | Podcaster Performance. From the deck's slide 12 embed, full frame 1672x941. |
+| `paramount.png` | **UNWIRED**, removed on client direction. Still on disk. |
+| `toni-and-ryan.jpg` | **UNWIRED**, removed on client direction. Still on disk. |
+
+**A re-audit against the workbook alone will produce false positives in both directions**: it will find no source for the three new images and will find two workbook logos the rows no longer wire. All five are recorded in the manifest in `mediaPlanData.ts`'s header for exactly that reason. The two unwired files are photos of talent and a platform no longer on the plan, so remove them together in a cleanup pass, which also trims them from `dist/`.
 
 ## Brand and typography
 
@@ -1328,10 +1340,10 @@ To take the public URL down entirely instead, set `"workers_dev": false` in [wra
 
 ## Source control
 
-> ### Everything through pass 16 is committed and pushed (2026-08-06)
+> ### Everything through pass 17 is committed and pushed (2026-08-06)
 >
-> `origin/lyka-main` is at **`f320b2c`** and the working tree is clean. Four
-> commits landed for the media plan work:
+> `origin/lyka-main` is at **`5769db2`** and the working tree is clean. Seven
+> commits, four from the build and three from the client review round:
 >
 > | | |
 > |---|---|
@@ -1339,11 +1351,20 @@ To take the public URL down entirely instead, set `"workers_dev": false` in [wra
 > | `dd8291e` | `mintMuted` is fill only: the four ink uses outside the media plan |
 > | `cfe4377` | docs for both of the above |
 > | `f320b2c` | the workbook's three level presence shading on the bars |
+> | `d4598ff` | pass 17 content and creative: renames, copy, three new images |
+> | `cf19072` | pass 17 presentation: five rationale rows, 3 KPI cards, light rung |
+> | `5769db2` | pass 17 docs |
 >
-> The first three were split by **scope, not by pass**, because `brand.ts`,
+> The build three were split by **scope, not by pass**, because `brand.ts`,
 > `__integrity.ts`, `ChannelDetail.tsx` and `InteractiveMediaPlan.tsx` each carry
 > changes from passes 14 and 15, so a strict per-pass split needed hunk surgery
 > and risked an intermediate commit that did not build.
+>
+> **The pass 17 pair is split DATA BEFORE PRESENTATION for a specific reason.**
+> Emptying `KNOWN_BLANK` in `__integrity` is only valid once Cinema has the
+> Strategy line the client supplied, so committing the code first would have left
+> an intermediate commit whose dev assertions warned. Content first, the code that
+> renders it second, and neither commit is in a state that complains.
 >
 > **Before any future push, read the branch warning below.** Plain `git push` is
 > the only safe form: `--all` or `--mirror` would put Hamilton Island's 26 commits
