@@ -273,8 +273,8 @@ export interface OwnerColorSet {
   /**
    * The three gantt bar fills. OWNER is carried by hue and WEIGHT by lightness,
    * which is what makes the two readable at once: the two families are
-   * luminance matched rung for rung (green 8.66 / 5.06 / 3.44 against red 8.03 /
-   * 4.61 / 3.14 vs white), so heavy green and heavy red are only 1.08:1 apart
+   * luminance matched rung for rung (green 8.66 / 5.06 / 3.07 against red 8.03 /
+   * 4.61 / 3.07 vs white), so heavy green and heavy red are only 1.08:1 apart
    * and hue is doing all the owner work.
    *
    * **Every rung clears 3:1 against white**, the non-text floor for a meaningful
@@ -283,8 +283,44 @@ export interface OwnerColorSet {
    * at 1.77:1 and the light red at 2.84:1. These are solved for target contrast
    * with hue and saturation held instead. Asserted in `data/__integrity.ts`.
    *
-   * The greens are all EXISTING tokens (`tealDark`, `accentInk` and
-   * `SEGMENT_COLORS.Ready.lighter`), so only red needed new values.
+   * -------------------------------------------------------------------------
+   * THE LIGHT RUNGS NOW SIT ON THE FLOOR, AND THAT IS THE WHOLE STORY OF THIS
+   * TOKEN (2026-08-06). Asked to make the light shade lighter, both were solved
+   * down to 3.07:1, which is as light as anything here can legally be. Green
+   * moved usefully, `#0E9C82` 3.44:1 to `#0FA68B` 3.07:1, widening the medium to
+   * light step from 1.47:1 to 1.65:1. **Red barely moved**, `#F16266` 3.14:1 to
+   * `#F1666A` 3.07:1 and a step of 1.47:1 to 1.50:1, because red was already
+   * sitting on the floor before anyone asked.
+   *
+   * **There is no headroom left, and the reason is a tautology worth writing
+   * down: "looks lighter" IS "closer to white", so a rung cannot look lighter
+   * than 3:1 against white while still clearing 3:1 against white.** Further
+   * lightening is a decision to go below the floor, not a tuning exercise.
+   *
+   * THREE LEVERS ARE THEREFORE ALREADY SPENT, and saying so is cheaper than
+   * having the next person rediscover them:
+   *   - Lightening `light` again breaches the floor and `__integrity` fails.
+   *   - Darkening `medium` to widen the step moves THE BRAND COLOUR: `medium`
+   *     is `accentInk` / `speedRed` and equals `base`, which draws the legend
+   *     swatch and the owner pill. It would take SPEED red off SPEED red.
+   *   - Desaturating rather than lightening does nothing, because contrast is
+   *     luminance: it changes the hue's purity, not its apparent lightness.
+   *
+   * If the tail still does not read as tailing off, the honest options are to
+   * accept it, to breach the floor deliberately (2.50:1 is `#11B99A` and
+   * `#F48386`, a clearly visible lift), or to stop encoding the third level
+   * with lightness at all.
+   *
+   * One side benefit, since both landed on the same target: the light rungs are
+   * luminance matched at 1.00:1, tighter than the 1.08:1 and 1.10:1 above them,
+   * so hue carries even more of the owner work than it did.
+   *
+   * COST, recorded because it breaks a property this file used to have: the
+   * light green is no longer an existing token. Heavy and medium are still
+   * `tealDark` and `accentInk`, but `#0FA68B` replaces what was
+   * `SEGMENT_COLORS.Ready.lighter`. That token is UNCHANGED and still owns its
+   * wheel wedge; this is a fourth green, deliberately.
+   * -------------------------------------------------------------------------
    */
   weight: Record<Weight, string>;
 }
@@ -294,13 +330,13 @@ export const OWNER_COLORS: Record<OwnerKey, OwnerColorSet> = {
     base: '#0A7D68',
     area: 'rgba(10,125,104,0.15)',
     ink: '#FFFFFF',
-    weight: { heavy: '#005648', medium: '#0A7D68', light: '#0E9C82' }, // 8.66 / 5.06 / 3.44 : 1
+    weight: { heavy: '#005648', medium: '#0A7D68', light: '#0FA68B' }, // 8.66 / 5.06 / 3.07 : 1
   },
   speed: {
     base: '#E8151B',
     area: 'rgba(232,21,27,0.12)',
     ink: '#FFFFFF',
-    weight: { heavy: '#A20F13', medium: '#E8151B', light: '#F16266' }, // 8.03 / 4.61 / 3.14 : 1
+    weight: { heavy: '#A20F13', medium: '#E8151B', light: '#F1666A' }, // 8.03 / 4.61 / 3.07 : 1
   },
 };
 

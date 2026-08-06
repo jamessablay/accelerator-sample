@@ -132,9 +132,32 @@ const ChannelDetail: React.FC<ChannelDetailProps> = ({ row, layerKey }) => {
   // tear down and re-add the capture listener on every parent render.
   const closeZoom = useCallback(() => setZoomed(null), []);
 
+  /**
+   * The five rationale rows, in the client's stated reading order:
+   * Strategy, Role of Channel, Implementation, Assets, Key metrics.
+   *
+   * TWO CHANGES HERE WERE CLIENT DIRECTION, and both are labelling rather than
+   * content: every string below already came from the briefing workbook.
+   *
+   * `role` is the workbook's own "Role of the Channel" column (D) and it was
+   * ALREADY on all 21 funded rows, but it rendered as an unlabelled paragraph
+   * above this table. Unlabelled, it read as an intro to the channel rather
+   * than as one of the five rationale fields, so the report back was that Role
+   * of Channel was missing from every rationale. **A field with no label is a
+   * field nobody can find.** It is a labelled row now, second, and the
+   * paragraph is gone.
+   *
+   * `comesToLife` is the workbook's "How It Comes to Life" column (E). It was
+   * labelled "Activation"; the client asked for "Implementation" instead.
+   *
+   * The order is the CLIENT'S, not the workbook's: the sheet runs Consumer
+   * Journey, Assets, Role of the Channel, How It Comes to Life, so Assets moves
+   * down two and Role of Channel up one. Do not "restore" the sheet order.
+   */
   const tableRows: [string, string | undefined][] = [
     ['Strategy', d.strategyLink],
-    ['Activation', d.comesToLife],
+    ['Role of Channel', d.role],
+    ['Implementation', d.comesToLife],
     ['Assets', d.assets ?? row.assets],
     ['Key metrics', d.metrics],
   ];
@@ -142,7 +165,8 @@ const ChannelDetail: React.FC<ChannelDetailProps> = ({ row, layerKey }) => {
   // The TRY IT and SHARE IT rows carry no description copy at all (their
   // description sheets are hidden in the briefing workbook, excluded per
   // client direction), so the whole rationale block goes, not just its rows.
-  const hasCopy = !!d.role || visibleRows.length > 0;
+  // `role` is inside `tableRows` now, so this is simply "are there any rows".
+  const hasCopy = visibleRows.length > 0;
 
   const paired = !!row.pairedImages && images.length > 0;
   const activeMonths = row.activeMonths ?? row.monthly.map((v) => (v || 0) > 0);
@@ -222,12 +246,20 @@ const ChannelDetail: React.FC<ChannelDetailProps> = ({ row, layerKey }) => {
       {/* Rationale + execution table */}
       {hasCopy && (
         <div>
-          <h3 className="text-base font-bold mb-1" style={{ color: accent.text }}>{row.channel} rationale</h3>
-          {d.role && <p className="text-sm text-[#143C33] leading-relaxed mb-4">{d.role}</p>}
+          <h3 className="text-base font-bold mb-3" style={{ color: accent.text }}>{row.channel} rationale</h3>
           {visibleRows.length > 0 && (
             <div className="rounded-lg overflow-hidden border border-[#DBE6DC]">
+              {/* 150px, not the old 110px, and the number is MEASURED rather than
+                  taste. The two new labels are the longest in the set, and
+                  "IMPLEMENTATION" is a single unbreakable token, so it cannot
+                  wrap out of an undersized cell the way "KEY METRICS" can: it
+                  would simply overflow. At 11px bold uppercase + 0.025em it
+                  needs 102.8px in Arial Bold and 118.3px in the widest bold
+                  sans on this machine, and DM Sans Bold is narrower than both.
+                  150px leaves 126px after `px-3`, clearing even that upper
+                  bound. The old 110px left 86px and would have clipped it. */}
               {visibleRows.map(([label, value], i) => (
-                <div key={label} className={`grid grid-cols-[110px_1fr] ${i < visibleRows.length - 1 ? 'border-b border-[#DBE6DC]' : ''}`}>
+                <div key={label} className={`grid grid-cols-[150px_1fr] ${i < visibleRows.length - 1 ? 'border-b border-[#DBE6DC]' : ''}`}>
                   <div className="px-3 py-2.5 text-[11px] font-bold uppercase tracking-wide text-white flex items-start" style={{ backgroundColor: 'var(--lyka-teal-deep)' }}>
                     {label}
                   </div>

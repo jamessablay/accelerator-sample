@@ -17,9 +17,6 @@ type ModalState =
 const layerKeyForRow = (row: MediaRow): LayerKey =>
   (PLAN_LAYERS.find((l) => l.rows.includes(row))?.key ?? 'SHOW IT');
 
-const CHANNEL_COUNT = PLAN_LAYERS.reduce((s, l) => s + l.rows.length, 0);
-const IN_HOUSE_COUNT = PLAN_LAYERS.reduce((s, l) => s + l.rows.filter((r) => r.owner === 'lyka').length, 0);
-
 /**
  * A KPI card: uppercase mono title, hero figure, supporting sub line.
  *
@@ -75,12 +72,19 @@ const InteractiveMediaPlan: React.FC = () => {
         </p>
       </header>
 
-      {/* KPI strip */}
-      <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* KPI strip. THREE CARDS, not four: the Channels card ("23 | 10 Lyka in
+          house") was removed on client direction 2026-08-06. Its two derived
+          counts went with it, since nothing else read them.
+
+          THE COLUMN COUNT HAS TO MOVE WITH THE CARD COUNT. Three cards left in
+          a `md:grid-cols-4` track would sit two thirds of the way across with a
+          dead fourth column, which reads as a card that failed to load rather
+          than as one that was removed. Below `sm:` they stack one up rather
+          than the old two up, because 3 in a 2 column grid orphans the last. */}
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
         <KpiCard label="SPEED managed media" value={`$${(MEDIA_TOTAL / 1_000_000).toFixed(1)}M`} sub="Working media" />
         <KpiCard label="Flight" value="Oct ▸ Sep" sub="12 months" />
         <KpiCard label="Funnel stages" value="5" sub="SHOW IT ▸ SHARE IT" />
-        <KpiCard label="Channels" value={`${CHANNEL_COUNT}`} sub={`${IN_HOUSE_COUNT} Lyka in house`} />
       </div>
 
       <div className="mt-6">

@@ -354,6 +354,81 @@ export function runIntegrityChecks(): void {
   );
   for (const url of mediaPlanAssets) checkAsset(url, fail);
 
+  // 5d-ii. CAPTIONS ARE JOINED TO IMAGES BY INDEX, so their lengths must match.
+  //
+  //     `CreativeCard` takes `row.captions?.[i]` for image `i`. Removing an
+  //     image from the MIDDLE of the array without removing its caption
+  //     therefore does not drop a label, it SHIFTS every later one onto the
+  //     wrong logo, and every card still renders looking entirely deliberate.
+  //     Paramount+ came out of the BVOD & SVOD row at index 2 on 2026-08-06,
+  //     which is exactly the edit this guards.
+  for (const row of planRows) {
+    if (row.captions && row.images && row.captions.length !== row.images.length) {
+      fail(
+        `"${row.channel}" has ${row.images.length} images but ${row.captions.length} captions. ` +
+          `They are joined by index, so the labels after the shortest array are on the wrong cards.`,
+      );
+    }
+    if (row.extraCaptions && row.extraImages && row.extraCaptions.length !== row.extraImages.length) {
+      fail(
+        `"${row.channel}" has ${row.extraImages.length} extraImages but ${row.extraCaptions.length} extraCaptions. ` +
+          `Same index join, same silent mislabelling.`,
+      );
+    }
+    if (row.imageWeights && row.images && row.imageWeights.length !== row.images.length) {
+      warn(`"${row.channel}" has ${row.images.length} images but ${row.imageWeights.length} imageWeights; the unmatched cards fall back to equal width.`);
+    }
+  }
+
+  // 5e. THE FIVE RATIONALE FIELDS, because a missing one is invisible: the
+  //     pop-up renders four rows instead of five and reads as complete.
+  //
+  //     This is the check the media plan port did not have, and the defect it
+  //     would NOT have caught is instructive. `role` (the workbook's "Role of
+  //     the Channel", column D) was populated on all 21 funded rows the whole
+  //     time and still came back reported as missing from every rationale,
+  //     because it rendered as an UNLABELLED paragraph above the table rather
+  //     than as a row in it. **A populated field with no label is a field nobody
+  //     can find**, and no data assertion can see that: only rendering can.
+  //
+  //     Labelling it fixed that instance. What this check adds is the other
+  //     direction: nothing yet stopped a genuinely EMPTY `role` shipping and
+  //     looking equally deliberate, since the table just drops absent rows.
+  //
+  //     `KNOWN_BLANK` IS DELIBERATELY EMPTY AS OF 2026-08-06, and it is worth
+  //     knowing why it exists at all. Cinema was the one entry: its "The
+  //     Consumer Journey" cell is blank on the SHOW IT sheet, so it rendered
+  //     four rows. Flagging that gap got the client to SUPPLY the line, which is
+  //     the outcome an exemption list should be aiming at. **So all 21 funded
+  //     rows now carry all five fields, and any warning here is real.** Add an
+  //     entry only for a gap the client has confirmed stays open, never to
+  //     quieten output.
+  //
+  //     Non `role` fields warn rather than fail, so a genuine workbook blank
+  //     does not get mistaken for a code bug.
+  const RATIONALE_FIELDS = ['strategyLink', 'role', 'comesToLife', 'assets', 'metrics'] as const;
+  const KNOWN_BLANK: Record<string, readonly string[]> = {};
+  for (const row of planRows) {
+    // No detail at all = TRY IT and SHARE IT, whose description sheets are
+    // hidden in the workbook and excluded per client direction. Not a gap.
+    if (!row.detail) continue;
+    for (const field of RATIONALE_FIELDS) {
+      // `assets` falls back to the row's own format descriptor, so it counts as
+      // present when either source has copy.
+      const value = field === 'assets' ? row.detail.assets ?? row.assets : row.detail[field];
+      if (value && value.trim().length > 0) continue;
+      if (KNOWN_BLANK[row.channel]?.includes(field)) continue;
+      if (field === 'role') {
+        fail(
+          `"${row.channel}" has a rationale but no Role of Channel copy, so its pop-up renders one row fewer and still reads as complete. ` +
+            `The source is the "Role of the Channel" column (D) on the visible Media Description sheet.`,
+        );
+      } else {
+        warn(`"${row.channel}" rationale has no ${field}, so that row is absent from the pop-up table.`);
+      }
+    }
+  }
+
   // 6. Palette floors.
   //
   //    Two checks, not one. The original tested every fill against white, which
