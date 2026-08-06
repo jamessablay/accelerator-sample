@@ -679,7 +679,7 @@ The fix is that **the headline no longer sets `overflow-hidden`**: the 3 to 4px 
 - **[MacroBlockPlan.tsx](components/mediaplan/MacroBlockPlan.tsx)**: the grid. A funnel rail of the five stages (SHOW IT teal, CHECK IT tangerine, PROVE IT orange, TRY IT peach, SHARE IT muted mint), a Media column, 12 month columns (Oct→Sep), then Budget + %. Each channel row renders contiguous-run **gantt bars** (clickable → channel pop-up). **Bars are OWNER coloured, not stage coloured**: `OWNER_COLORS[row.owner].base`, green `#0A7D68` = Lyka in house, red `#E8151B` = SPEED managed, and the `OwnerLegend` row at the foot of the card is the key (a client requirement). Runs derive from `row.activeMonths ?? monthly > 0`, so in-house rows with zero dollars still draw their flighting. In-house rows read "In house" in the Budget column (the non-colour encoding of the split) and blank in %. A rail whose stage total is $0 (TRY IT, SHARE IT) shows the stage name without the `| 0.0%` suffix, which would neither fit its 1-row rail nor read as intended.
 - **[BudgetBreakdownChart.tsx](components/mediaplan/BudgetBreakdownChart.tsx)**: opened from the Budget header. A **stacked-by-media** monthly bar (one dataset per FUNDED channel, stage-shaded via the shared `lighten()` in brand.ts), plus the **dashed "Planned flighting weight" line** from `FLIGHTING_PCT`. Three traps live here, all documented in the file: it must use the generic `<Chart type='bar'>` with `BarController` AND `LineController`/`LineElement`/`PointElement` registered (the typed `<Bar>` registers BarController only, passes tsc, throws at runtime); the `columnTotals` plugin and the tooltip `footer` sum **only `stack === 'spend'` datasets** or the overlay silently inflates every printed total; and in-house rows are filtered out with the shade index running over the filtered array, or 10 zero-datasets clutter the legend and the ramp gets gaps.
 - **[BudgetPieChart.tsx](components/mediaplan/BudgetPieChart.tsx)**: opened from the % header. Budget allocation by funded channel, stage-shaded; slices pop out on hover (`hoverOffset`), % drawn inside via an inline `sliceLabels` plugin. Same `budget > 0` filter.
-- **[ChannelDetail.tsx](components/mediaplan/ChannelDetail.tsx)**: the gantt-bar pop-up. Stacked top to bottom: ownership strip → rationale + dark-label execution table (Strategy / Activation / Assets / Key metrics) → an **Examples** creative gallery → flighting. **The accent is owner-aware** (`accentFor(layerKey, owner)`): SPEED rows keep their stage accent for continuity with the rail and charts; in-house rows take the owner green, matching the bar that was clicked and avoiding the quiet TRY/SHARE fills that cannot carry text on white. The strip text uses the paired `ink` token (the old hardcoded `text-white` was 2.43:1 on tangerine) and carries an owner pill ("SPEED managed" red / "Lyka in house" white-on-green). SPEED rows show budget + % of media and the **flighting area chart** (stroke = `accent.text`, the stroke-safe dark tone, because the stage `line` hues are fill-only at ~2.6:1); in-house rows show "Managed and funded by Lyka's in house team", no dollars, and an **active-months strip** of 12 chips instead of the chart. TRY IT and SHARE IT rows have no `detail` at all (their description sheets are hidden in the workbook), so the whole rationale block is guarded out. The gallery uses `CreativeCard` with a **lightbox portalled to `document.body`**; capture-phase Escape closes the lightbox without the modal.
+- **[ChannelDetail.tsx](components/mediaplan/ChannelDetail.tsx)**: the gantt-bar pop-up. Stacked top to bottom: ownership strip → rationale + dark-label execution table (**Strategy / Role of Channel / Implementation / Assets / Key metrics**, the client's order since 2026-08-06, and **not** the workbook's column order) → an **Examples** creative gallery → flighting. **The accent is owner-aware** (`accentFor(layerKey, owner)`): SPEED rows keep their stage accent for continuity with the rail and charts; in-house rows take the owner green, matching the bar that was clicked and avoiding the quiet TRY/SHARE fills that cannot carry text on white. The strip text uses the paired `ink` token (the old hardcoded `text-white` was 2.43:1 on tangerine) and carries an owner pill ("SPEED managed" red / "Lyka in house" white-on-green). SPEED rows show budget + % of media and the **flighting area chart** (stroke = `accent.text`, the stroke-safe dark tone, because the stage `line` hues are fill-only at ~2.6:1); in-house rows show "Managed and funded by Lyka's in house team", no dollars, and an **active-months strip** of 12 chips instead of the chart. TRY IT and SHARE IT rows have no `detail` at all (their description sheets are hidden in the workbook), so the whole rationale block is guarded out. The gallery uses `CreativeCard` with a **lightbox portalled to `document.body`**; capture-phase Escape closes the lightbox without the modal.
 
 **The KPI strip is tokenised, and it was the one card in the app that was not
 (2026-08-05).** All three of its sizes came from outside `data/type.ts`: the
@@ -700,11 +700,19 @@ found three separate causes rather than one:
   `index.html` does not load (400 and 500 only), so the browser synthesised it;
   the figure carried no weight class at all and rendered in Poppins Regular 400.
   They are `font-medium` 500 and `font-semibold` 600 now, both loaded. The figure
-  also gained `tabular-nums`, so `$11.0M`, `5` and `23` align across the four cards.
+  also gained `tabular-nums`, so the figures align across the cards.
 
 Verified at 1440 and 1280: every line clears AA (**minimum 5.44:1, was 1.88:1**),
-all four cards equal at 103px, no title or sub wraps or clips, page overflow 0.
+all cards equal at 103px, no title or sub wraps or clips, page overflow 0.
 **The figure is unchanged at 24/30px**, since `display` 30 is the top of the scale.
+
+**THE STRIP IS THREE CARDS SINCE 2026-08-06, not four.** The Channels card
+(`23`, `10 Lyka in house`) came out on client direction, and its two derived
+counts came out with it because nothing else read them. The measurements above
+still hold; only the count changed. **The grid track had to change with it**:
+three cards left in `md:grid-cols-4` sit two thirds across with a dead fourth
+column, which reads as a card that failed to load rather than one that was
+removed. It is `grid-cols-1 sm:grid-cols-3` now.
 
 **Known, and NOT fixed here: `font-mono` does not resolve to DM Mono anywhere in
 this app.** Tailwind ships `.font-mono` as a default utility and its generated CSS
@@ -754,11 +762,45 @@ range.** A gantt bar is a data mark, so every rung has to clear 3:1 against whit
 on its own. The obvious approach of lightening the base by a fixed HLS step fails
 that: it lands the light green at **1.77:1** and the light red at **2.84:1**. The
 rungs are solved for target contrast with hue and saturation held instead, giving
-green 8.66 / 5.06 / 3.44 and red 8.03 / 4.61 / 3.14. The two families are
+green 8.66 / 5.06 / **3.07** and red 8.03 / 4.61 / **3.07**. The two families are
 luminance matched rung for rung, so **heavy green and heavy red are only 1.08:1
 apart and hue is doing all the owner work**, which is what lets a reader take in
-both dimensions at once. All three greens are existing tokens (`tealDark`,
-`accentInk`, `SEGMENT_COLORS.Ready.lighter`); only red needed new values.
+both dimensions at once.
+
+#### The light rung is ON the floor, and "lighter" is spent (2026-08-06)
+
+Asked to make the light shade lighter, both light rungs were solved down to
+**3.07:1**, which is as light as anything on this grid can legally be. Green
+moved usefully (`#0E9C82` 3.44:1 to `#0FA68B` 3.07:1, widening the medium to
+light step from 1.47:1 to **1.65:1**). **Red barely moved** (`#F16266` 3.14:1 to
+`#F1666A` 3.07:1, a step of 1.47:1 to 1.50:1), because red was already sitting on
+the floor before anyone asked, and red is most of what a viewer sees.
+
+**The reason there is no headroom is a tautology worth writing down: "looks
+lighter" IS "closer to white", so a rung cannot look lighter than 3:1 against
+white while still clearing 3:1 against white.** Any further lightening is a
+decision to breach the floor, not a tuning exercise. This is the ceiling on the
+"widen the spread" advice the open item box below gives, so read the two together.
+
+**Three levers are already spent**, and the token comment in `brand.ts` lists
+them so nobody rediscovers them: lightening `light` again fails `__integrity`;
+darkening `medium` moves THE BRAND COLOUR, since `medium` is `accentInk` /
+`speedRed` and equals `base`, which draws the legend swatch and the owner pill,
+so it would take SPEED red off SPEED red; and desaturating instead of lightening
+does nothing, because contrast is luminance. If the tail still does not read as
+tailing off, the options are to accept it, to breach the floor deliberately
+(2.50:1 is `#11B99A` and `#F48386`, a clearly visible lift), or to stop encoding
+the third level with lightness at all.
+
+One thing improved on the way: both light rungs landed on the same target, so
+they are luminance matched at **1.00:1**, tighter than the 1.08:1 and 1.10:1 of
+the rungs above, and hue carries even more of the owner work than before.
+
+**One property was lost and it is recorded rather than glossed:** the greens are
+no longer all existing tokens. Heavy and medium are still `tealDark` and
+`accentInk`, but `#0FA68B` replaces what was `SEGMENT_COLORS.Ready.lighter`.
+**That token is unchanged and still owns its wheel wedge**; this is a fourth
+green, deliberately.
 
 **A flight stays ONE bar.** `GanttTrack` renders a contiguous run as a single
 rounded, shadowed container and fills it with per-month segments that butt
@@ -776,6 +818,65 @@ nobody can tell apart encode nothing.
 The legend now teaches two dimensions without becoming six unlabelled swatches:
 each owner is one graded ramp, and "darker to lighter: heavy, medium, light
 presence" is said **once** underneath rather than repeated per owner.
+
+### The rationale table: A POPULATED FIELD WITH NO LABEL IS A MISSING FIELD (2026-08-06)
+
+Client feedback was that **Role of Channel was missing from all of the
+rationales**, and the interesting part is that it was not. `detail.role` carries
+the workbook's own "Role of the Channel" column (D) on **all 21** funded rows,
+verified cell for cell against the three visible Media Description sheets. It
+rendered as an **unlabelled paragraph** between the `{channel} rationale`
+heading and the table.
+
+**Unlabelled, it read as a preamble to the channel rather than as one of the five
+rationale fields**, so against a table that visibly listed four labels it was
+missing in the only sense that matters. It is a labelled table row now, second,
+and the paragraph is gone. Nothing was written, moved between files, or sourced
+anywhere new: this was a labelling defect start to finish.
+
+**No data assertion could have caught it**, which is the reusable point. Every
+join was intact and every string was present and correct. `__integrity` check 5e
+now covers the OTHER direction, which is real and was uncovered: a genuinely
+empty `role` would drop its row and the pop-up would render four and look
+finished. Only rendering catches the first failure; only an assertion catches the
+second, so both are needed.
+
+Two further changes came with it, both client direction:
+
+- **"Activation" is "Implementation".** Same field (`comesToLife`, the workbook's
+  "How It Comes to Life"), new label.
+- **The order is the CLIENT'S, not the sheet's.** Strategy, Role of Channel,
+  Implementation, Assets, Key metrics. The workbook runs Consumer Journey,
+  Assets, Role of the Channel, How It Comes to Life, so Assets moves down two
+  places. Do not "restore" the sheet order thinking it is the source of truth for
+  presentation: it is the source of truth for COPY only. The field to column to
+  label to position mapping is now a table in the `ChannelDetailCopy` doc comment
+  in `mediaPlanData.ts`, because **not one of the five field names matches either
+  its column heading or its rendered label.**
+
+**The label column went 110px to 150px, and the number is measured rather than
+chosen.** `IMPLEMENTATION` is a single unbreakable token, so unlike
+`KEY METRICS` it cannot wrap out of an undersized cell, it can only overflow it.
+At 11px bold uppercase with 0.025em tracking it needs 102.8px in Arial Bold and
+118.3px in the widest bold sans on this machine; DM Sans is CDN loaded so there
+is no local file to measure, and both of those are wider than DM Sans Bold, which
+brackets it. 150px leaves 126px after `px-3` and clears even the upper bound. The
+old 110px left 86px and would have clipped it with no warning from anything.
+**Adding the longest label in a set to a fixed width column is a measurement, not
+a rename.**
+
+**Cinema's missing Strategy is CLOSED, and how it closed is the argument for
+flagging rather than filling.** Its "The Consumer Journey" cell is blank on the
+SHOW IT sheet, so the row rendered four fields and opened on Role of Channel.
+That was left visible and reported rather than written around, and on 2026-08-06
+**the client supplied the line** ("MAKE THRIVING UNMISSABLE: Bring Poo, Pep and
+Polish to life with the scale, attention and emotional impact of the big
+screen."). Had it been invented to make the table look square, the deck would now
+carry agency copy in a field the client reads as theirs.
+
+**So all 21 funded rows carry all five fields, and check 5e's `KNOWN_BLANK` is
+empty.** Keep it empty: add an entry only for a gap the client has confirmed
+stays open, never to quieten output.
 
 Creative layout is per-row via flags on `MediaRow`:
 - **default** = a horizontal row of `CreativeCard`s; `imageWeights` set relative widths (the pattern here: a 16:9 mockup at ~2.6 beside partner logos at 1). `captions` label each card.
@@ -809,7 +910,35 @@ that audit needs: the oOh! logo exists twice in the workbook as near identical
 files (568x262 and 570x262, different bytes) and both map to one `ooh.png`; and the
 visible `LYKA LOGO` tab's three files are brand assets, not channel creative.
 
-Verified after the fix: **41 wired images** (16 JPEG mockups and posters, 25 PNG
+**A logo has since come off DELIBERATELY, which is the mirror image of this bug
+and needs the same manifest note.** Paramount+ was removed from BVOD & SVOD on
+client direction 2026-08-06 (its card was crossed out on a review screenshot), so
+the Screens tab now offers six BVOD logos where the row wires **five**. The next
+audit will therefore flag a missing logo correctly and reach the wrong
+conclusion, so both the row and the header manifest say so explicitly. The file
+stays in `public/images/`, unreferenced, so reversing it is one entry per array
+rather than a re-extraction. **Two footnotes worth keeping:** the row's
+Implementation copy still names Paramount+ and is flagged to the client rather
+than quietly edited, because dropping a platform from copy is a different
+decision from dropping its logo; and **captions join images BY INDEX**, so
+removing index 2 from one array and not the other shifts every later label onto
+the wrong logo while every card still looks deliberate. `__integrity` check
+5d-ii asserts those lengths now.
+
+**SCA came off the BBL row the same way, and it taught a layout rule.** Its card
+was crossed out on a review screenshot, which also settled the open question from
+the title change: SCA is off that ROW, title and creative, but **not off the
+plan** (`sca.png` is still wired to Always On Radio, and the MMM Sports row still
+reads "across Seven and SCA", SCA being represented there by Triple M). **Pulling
+one of two cards out of `extraImages` leaves the survivor stretched across the
+whole gallery**, because those cards are `flexGrow: 1, flexBasis: 0`, so Seven
+would have been one logo floating in roughly 900px of empty mat under a full row,
+reading as a broken layout rather than as one partner. Seven moved up into
+`images` at weight 1 instead, which lands the row on Linear TV's exact shape and
+the documented house pattern: a 16:9 mockup at 2.6 beside partner logos at 1.
+**So when a second row drops to one card, merge it up rather than leaving it.**
+
+Verified after the fix: **42 wired images** (18 JPEG mockups and posters, 24 PNG
 logos), none missing from `public/`, and the six BVOD cards render at exactly
 276px each with **zero bottom spread** despite two captions wrapping to two lines,
 because `CreativeCard`'s `items-stretch` plus its flex caption footer absorbs the
@@ -848,7 +977,7 @@ Originals were NOT kept beside the stripped files. A backup folder inside
 `public/` ships to `dist/`, and the workbook one folder up is the source of truth,
 so re-extraction is a few lines against `xl/media/`.
 
-**Source of truth:** `Interactive Media Plan Briefing Template for Lyka.xlsx`, one folder above the app. Only **visible** content was used, per the same client direction the Hamilton build followed: sheet `Budget Distribution $ Lyka SPEE` for the numbers and legend, the three visible `Media Description` sheets (SHOW IT, CHECK IT, PROVE IT) for the pop-up copy, and the visible channel tabs for the embedded creative (the tabs' TEXT is stale Hamilton template; only their images are Lyka). Excluded as hidden: the `$ Lyka` budget sheet (the superseded first pass, and the only place the in-house channels carry dollars, which is why green rows are flighting only), the TRY IT and SHARE IT description sheets, and the Australian Open Integration row. The **41** extracted images live in `public/images/` as kebab-case names, 16 JPEG and 25 PNG, 5.7MB with the two chrome logos; the 2-3MB photographic PNG mockups were re-encoded to ≤1920w JPEG q85. All Hamilton media plan creative and `public/media-plan/` were deleted with the rebuild.
+**Source of truth:** `Interactive Media Plan Briefing Template for Lyka.xlsx`, one folder above the app. Only **visible** content was used, per the same client direction the Hamilton build followed: sheet `Budget Distribution $ Lyka SPEE` for the numbers and legend, the three visible `Media Description` sheets (SHOW IT, CHECK IT, PROVE IT) for the pop-up copy, and the visible channel tabs for the embedded creative (the tabs' TEXT is stale Hamilton template; only their images are Lyka). Excluded as hidden: the `$ Lyka` budget sheet (the superseded first pass, and the only place the in-house channels carry dollars, which is why green rows are flighting only), the TRY IT and SHARE IT description sheets, and the Australian Open Integration row. The **41** extracted images live in `public/images/` as kebab-case names, 16 JPEG and 25 PNG, 5.7MB (40 of them WIRED since Paramount+ came off on 2026-08-06; the file stays on disk). **Three wired images did NOT come from the workbook**, all supplied by the client as loose files on 2026-08-06: `nova-earworm.jpg` (from `boy.png`) on Nova Ear Worm, `social-creators.jpg` (from `picture.png`) on Paid & Organic Social, and `we-mean-well.jpg` (from `use-this-picture.png`) on Podcaster Performance. A re-audit against the workbook will find no source for either, which the header manifest records so they are not "restored" as dropped assets with the two chrome logos; the 2-3MB photographic PNG mockups were re-encoded to ≤1920w JPEG q85. All Hamilton media plan creative and `public/media-plan/` were deleted with the rebuild.
 
 ## Brand and typography
 
@@ -1080,7 +1209,7 @@ No tests, no lint. **`npm run typecheck` runs both configs** and must be used ra
 1. **[data/__integrity.ts](data/__integrity.ts)** runs on every dev page load. Open the console. A clean run logs exactly one line and nothing else:
 
    ```
-   [data integrity] ok. 5 personas, 5 segments, 5 journeys, 3+5 variants, 10 findings, 23 media plan rows, 54 assets queued for check, shares, budgets and published tables balance.
+   [data integrity] ok. 5 personas, 5 segments, 5 journeys, 3+5 variants, 10 findings, 23 media plan rows, 55 assets queued for check, shares, budgets and published tables balance.
    ```
 
    **The counts in that line are derived, so they move.** `3+5` was `3+4` before the gap matrix and `4+4` before the Index view was cut; `54` was `15` before the media plan creative joined the asset check. Treat a change in them as expected after adding or removing either; treat any OTHER output as a real problem.
@@ -1199,29 +1328,51 @@ To take the public URL down entirely instead, set `"workers_dev": false` in [wra
 
 ## Source control
 
-> ### OPEN ITEM: PASS 16 IS UNCOMMITTED
+> ### Everything through pass 16 is committed and pushed (2026-08-06)
 >
-> **Passes 14 and 15 landed on 2026-08-05** as three commits, `81fb0d7..cfe4377`:
-> the media plan rebuild, then the `mintMuted` contrast fix, then the docs. Split
-> by SCOPE rather than by pass, because `brand.ts`, `__integrity.ts`,
-> `ChannelDetail.tsx` and `InteractiveMediaPlan.tsx` each carry changes from both
-> and a strict per-pass split would have needed hunk surgery.
+> `origin/lyka-main` is at **`f320b2c`** and the working tree is clean. Four
+> commits landed for the media plan work:
 >
-> **Pass 16, the three level bar shading, is verified but NOT committed:** six
-> modified files, `data/brand.ts`, `data/mediaPlanData.ts`, `data/__integrity.ts`,
-> `components/mediaplan/MacroBlockPlan.tsx`, `components/mediaplan/ChannelDetail.tsx`
-> and this file. `npm run typecheck` and `npm run build` both clean; the weight
-> arrays were round-tripped against the workbook, all 23 rows matching.
+> | | |
+> |---|---|
+> | `74c1f84` | the media plan rebuilt from the briefing workbook (73 files) |
+> | `dd8291e` | `mintMuted` is fill only: the four ink uses outside the media plan |
+> | `cfe4377` | docs for both of the above |
+> | `f320b2c` | the workbook's three level presence shading on the bars |
 >
-> **Gate before pushing:** `npm run typecheck` (both configs) and `npm run dev`
-> with the console open, confirming the single `[data integrity] ok` line.
+> The first three were split by **scope, not by pass**, because `brand.ts`,
+> `__integrity.ts`, `ChannelDetail.tsx` and `InteractiveMediaPlan.tsx` each carry
+> changes from passes 14 and 15, so a strict per-pass split needed hunk surgery
+> and risked an intermediate commit that did not build.
 >
-> **THEN READ THE BRANCH WARNING BELOW BEFORE TYPING A PUSH COMMAND.** Plain
-> `git push` is safe and is the only form to use. `git push --all` or
-> `--mirror` would put Hamilton Island's 26 commits into a Lyka named repo.
+> **Before any future push, read the branch warning below.** Plain `git push` is
+> the only safe form: `--all` or `--mirror` would put Hamilton Island's 26 commits
+> into a Lyka named repo. The gate is `npm run typecheck` (both configs) plus
+> `npm run dev` with the console open, confirming the single `[data integrity] ok`
+> line. Pushing **builds and deploys nothing**: no GitHub auto deploy, and the app
+> is not deployed anywhere. See "Deploy".
+
+> ### THE ONE OPEN ITEM ON THE MEDIA PLAN: nobody has looked at the shading
 >
-> Pushing **builds and deploys nothing**: there is no GitHub auto deploy and the
-> app is not deployed anywhere. See "Deploy".
+> The three level bar shading (pass 16) was verified **logically, not visually.**
+> The Playwright MCP server dropped before it could be opened in a browser, so
+> what is actually confirmed is: the 23 weight arrays round-trip against the
+> workbook cell for cell, all 133 segments resolve to a real shade, every contrast
+> number was recomputed by hand, and typecheck and build are clean.
+>
+> **What is NOT confirmed is whether the gradient across a flight reads well at
+> size.** That is a judgement only rendering answers, and the places to look are
+> the seven always-on rows and Always On Radio, where a single Jan to Sep bar
+> grades heavy, heavy, medium six times, then light.
+>
+> **UPDATE 2026-08-06: the client looked, and asked for the light shade to be
+> lighter. That advice has now been taken as far as it goes.** Both light rungs
+> are solved to 3.07:1, hard against the floor `__integrity` asserts. Green
+> gained a real step (medium to light 1.47:1 to 1.65:1); red gained almost
+> nothing, because it started at 3.14:1. **So "widen the spread" is no longer an
+> available fix**: see "The light rung is ON the floor" in the media plan
+> section for why, and for the three levers that are spent. Going further is a
+> decision to breach the floor, and it needs to be taken explicitly.
 
 **Repo: `The-Speed-Agency/speed-x-lyka-accelerator`, private.** Created 2026-08-04.
 https://github.com/The-Speed-Agency/speed-x-lyka-accelerator
