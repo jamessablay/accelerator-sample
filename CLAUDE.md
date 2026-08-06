@@ -1342,7 +1342,7 @@ To take the public URL down entirely instead, set `"workers_dev": false` in [wra
 
 > ### Everything through pass 17 is committed and pushed (2026-08-06)
 >
-> `origin/lyka-main` is at **`5769db2`** and the working tree is clean. Seven
+> `origin/lyka-main` is at **`4bba5cf`** and the working tree is clean. Eight
 > commits, four from the build and three from the client review round:
 >
 > | | |
@@ -1354,6 +1354,7 @@ To take the public URL down entirely instead, set `"workers_dev": false` in [wra
 > | `d4598ff` | pass 17 content and creative: renames, copy, three new images |
 > | `cf19072` | pass 17 presentation: five rationale rows, 3 KPI cards, light rung |
 > | `5769db2` | pass 17 docs |
+> | `4bba5cf` | pass 17 docs follow up: the push itself, and the second source |
 >
 > The build three were split by **scope, not by pass**, because `brand.ts`,
 > `__integrity.ts`, `ChannelDetail.tsx` and `InteractiveMediaPlan.tsx` each carry
