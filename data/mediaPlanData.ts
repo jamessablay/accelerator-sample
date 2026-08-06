@@ -11,7 +11,17 @@
 // description sheets (their stages keep their visible budget rows but carry no
 // description copy), and the hidden "Australian Open Integration" row.
 //
+// ONE EXCEPTION TO THAT RULE EXISTS AND IS A KNOWN PROBLEM: `FLIGHTING_PCT` was
+// taken from the hidden sheet, and it contradicts the visible plan. Read the
+// block comment on it before trusting or re-deriving the dashed overlay.
+//
 // The plan year runs October -> September. Values are AUD.
+//
+// TOTAL RE-VERIFIED 2026-08-06, three ways: the 23 rows' `budget` fields sum to
+// $11,000,000; their 12 monthly cells sum to $11,000,000; and all 276 of those
+// cells match the visible sheet one for one. Stage totals agree with the sheet's
+// own stage rows (4,255,000 / 5,650,000 / 1,095,000 / 0 / 0) and the grand total
+// agrees with its GRAND CAMPAIGN TOTAL cell. Every in-house row is still $0.
 //
 // OWNERSHIP is the structural difference from the Hamilton plan. Every row is
 // either SPEED managed (owner: 'speed', red bars, monthly dollars summing to
@@ -49,18 +59,37 @@
 //
 //   PR & Morning Shows      -> PR & Morning Shows (mockup, Nine, Seven)
 //   Screens tab   G1 LINEAR -> Linear TV (mockup, Seven, Nine)
-//                 G9 BVOD   -> BVOD & SVOD, row 1: SIX logos
+//                 G9 BVOD   -> BVOD & SVOD, row 1: six on the tab, FIVE wired
+//                              (Paramount+ removed on client direction
+//                              2026-08-06; see the note on that row)
 //                 G12 YouTube -> YouTube (mockup, YouTube logo)
 //   SVOD & LG Samsung Tv    -> BVOD & SVOD row 2 (4 SVOD logos) + Samsung & LG (mockup)
 //   Cinema                  -> Cinema (auditorium, Val Morgan, 3 posters)
 //   Trilogy Outdoor         -> Outdoor Stature (mockup + JCDecaux, oOh!, QMS)
-//   Radio Partnership       -> Radio Partnership (studio, Nova)
+//   Radio Partnership       -> Radio Segment (studio, Nova)   [tab name != row name]
 //   Podcast tab             -> Acast Podcasts (Acast) + Podcaster Performance (Toni and Ryan)
 //   Intergration [sic]      -> BBL (live moment, KFC BBL) + MMM Sports (booth, Triple M)
+//                              BBL also REUSES seven.png from the Screens tab.
+//                              It reused sca.png too until 2026-08-06, when the
+//                              client removed that card; sca.png is still wired
+//                              to Always On Radio, so nothing is orphaned.
 //   Radio                   -> Always On Radio (ARN, SCA, Nova)
 //   Local Messaging Outdoor -> Local OOH (shelter + JCDecaux, oOh!, QMS)
 //   REA                     -> realestate.com.au (logo + Thriving Index mockup)
 //   Uber Pet                -> Uber Pet (logo + in car mockup)
+//
+// NOT FROM THE WORKBOOK, so the audit above will never find a source for these.
+// Expected, not dropped assets. All three came from the client on 2026-08-06, in
+// "Changes to the intereactive media plan.pptx" (Downloads) with loose PNG exports
+// beside it in the project folder. **PREFER THE DECK EMBED OVER THE LOOSE EXPORT
+// unless it is smaller**, because two of the three exports had lost resolution:
+//   nova-earworm.jpg    <- deck slide 10 embed, header cropped   1306x629 (export was 1039x501)
+//   we-mean-well.jpg    <- deck slide 12 embed, full frame       1672x941 (export was a 1163x603 crop)
+//   social-creators.jpg <- picture.png, THE LOOSE EXPORT         1333x584 (embed was only 1284x563)
+//
+// Also note two files now UNREFERENCED but still on disk, both removed on client
+// direction rather than by mistake: paramount.png (BVOD & SVOD) and
+// toni-and-ryan.jpg (Podcaster Performance). Do not re-wire either.
 //
 // Deliberately unused: the visible LYKA LOGO tab's three files are the Lyka
 // wordmark and a "Fed Puppers" badge, which are brand assets rather than channel
@@ -80,9 +109,39 @@ export const MEDIA_TOTAL = 11_000_000;
 export const TOTAL_BUDGET = 11_000_000;
 
 /**
- * The workbook's FLIGHTING row: the planned monthly weight of the budget, as
- * percentages summing to 100. Drawn as the dashed overlay on the stacked
- * monthly budget chart (dollar values are pct / 100 * MEDIA_TOTAL).
+ * The workbook's FLIGHTING row: a monthly weighting, as percentages summing to
+ * 100. Drawn as the dashed overlay on the stacked monthly budget chart (dollar
+ * values are pct / 100 * MEDIA_TOTAL).
+ *
+ * ---------------------------------------------------------------------------
+ * UNRESOLVED, FOUND 2026-08-06 WHILE VERIFYING THE $11.0M TOTAL. Do not treat
+ * this array as validated source. Two problems, both established by search:
+ *
+ * 1. IT IS THE ONLY THING IN THIS FILE TAKEN FROM A HIDDEN SHEET. These twelve
+ *    values occur exactly once in the workbook: `Budget Distribution $ Lyka`
+ *    row 59, which is the HIDDEN, superseded first pass sheet whose content is
+ *    excluded everywhere else per client direction (it is the same sheet whose
+ *    in-house dollars were deliberately left out). There is no FLIGHTING row on
+ *    the visible sheet; rows 43 to 57 there hold only the owner legend.
+ *
+ * 2. IT DESCRIBES NEITHER PLAN. Against the visible plan it is out by a factor
+ *    of 2.2 in the peak month: January is 13.9% here and 30.0% in the rows
+ *    ($1,529,000 against the real $3,295,000). It does not match its own hidden
+ *    sheet either, whose January is 30.1% of $11.62M. So it is not a stale
+ *    profile of the first pass, it is an independent weighting, most likely an
+ *    untouched assumption left over from the briefing template.
+ *
+ * The consequence is on screen and it is not subtle: the Budget header pop-up
+ * draws a dashed line captioned "Planned flighting weight" that sits less than
+ * half the height of its own January column, so the plan reads as badly off its
+ * own flighting when the plan is in fact correct and the line is not.
+ *
+ * The two honest fixes are to DELETE the overlay, or to DERIVE it from the rows
+ * (in which case it is the bars restated and adds nothing). Awaiting a call;
+ * flagged to the user 2026-08-06. `__integrity` check 5c still asserts the
+ * array sums to 100, which is necessary and, on its own, misleading: summing to
+ * 100 was never the question.
+ * ---------------------------------------------------------------------------
  */
 export const FLIGHTING_PCT = [7.66, 8.51, 7.2, 13.9, 10.2, 8.0, 8.0, 6.0, 8.5, 8.0, 8.5, 5.53] as const;
 
@@ -92,6 +151,23 @@ export const FLIGHTING_PCT = [7.66, 8.51, 7.2, 13.9, 10.2, 8.0, 8.0, 6.0, 8.5, 8
 // `export type` is required: tsconfig has isolatedModules.
 export type { LayerKey, OwnerKey, Weight };
 
+/**
+ * The pop-up rationale. FIELD NAMES DO NOT MATCH EITHER THE WORKBOOK COLUMN OR
+ * THE RENDERED LABEL, so the mapping is written down here. All five come from a
+ * visible "Media Description" sheet.
+ *
+ * | field         | workbook column        | label in ChannelDetail | order |
+ * |---------------|------------------------|------------------------|-------|
+ * | strategyLink  | B The Consumer Journey | Strategy               | 1     |
+ * | role          | D Role of the Channel  | Role of Channel        | 2     |
+ * | comesToLife   | E How It Comes to Life | Implementation         | 3     |
+ * | assets        | C The Assets           | Assets                 | 4     |
+ * | metrics       | F How We Measure It    | Key metrics            | 5     |
+ *
+ * The rendered ORDER is the client's and is deliberately not the sheet's. It is
+ * set in one place, `tableRows` in ChannelDetail.tsx; changing it here does
+ * nothing, since object key order is not read.
+ */
 export interface ChannelDetailCopy {
   assets?: string;
   role?: string;
@@ -201,13 +277,18 @@ const showIt: PlanLayer = {
       detail: {
         assets: 'Morning show cutdowns; expert clips; host content; social videos; Poo, Pep and Polish checklist.',
         role: 'Amplify the conversation, make it shareable and take the issue directly to dog lovers.',
-        strategyLink: 'CREATE RECOGNITION: Help dog lovers see the issue in their own pets and start looking for the signs of thriving.',
+        // "dogs", not the workbook's "pets", on client direction 2026-08-06.
+        strategyLink: 'CREATE RECOGNITION: Help dog lovers see the issue in their own dogs and start looking for the signs of thriving.',
         comesToLife: 'Flood social with the strongest morning show moments, supported by paid amplification against Lyka’s audience.',
         metrics: 'Reach; video views; completion rate; engagement; shares; saves; comments; branded search; site visits.',
       },
     },
     {
-      channel: 'Radio Partnership',
+      // "Radio Segment" on client direction 2026-08-06, renamed from the
+      // workbook's "Radio Partnership". The workbook TAB is still called Radio
+      // Partnership, so the creative manifest in this file's header maps that
+      // tab name to this row name; do not sync them back together.
+      channel: 'Radio Segment',
       owner: 'speed',
       assets: 'Segment',
       monthly: [50000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -304,6 +385,13 @@ const showIt: PlanLayer = {
       weight: [null, null, 'medium', 'heavy', 'heavy', null, null, null, null, null, null, null],
       detail: {
         assets: 'Three 30 second masterbrand films: Poo, Pep and Polish. Placed as one spot per film but rotated across the season.',
+        // SUPPLIED BY THE CLIENT 2026-08-06, and it closes the one real content
+        // gap in the plan. The workbook's "The Consumer Journey" cell for Cinema
+        // is EMPTY, which is why this row rendered four rationale rows and
+        // opened on Role of Channel. It came from the client rather than being
+        // written here, so all 21 funded rows now carry all five fields and
+        // `KNOWN_BLANK` in data/__integrity.ts is empty again.
+        strategyLink: 'MAKE THRIVING UNMISSABLE: Bring Poo, Pep and Polish to life with the scale, attention and emotional impact of the big screen.',
         role: 'Add premium, high attention reach to the screen strategy during Lyka’s peak season, building stature and fame for the three step thriving check.',
         comesToLife: 'From Boxing Day, the trilogy rotates across must see releases, including Marvel’s Avengers, Dune 3 and Jumanji. Activity is concentrated across Lyka’s priority postcodes, giving the message grand scale impact throughout the peak cinema season.',
         metrics: 'Admissions and estimated audience reach; priority postcode coverage.',
@@ -330,16 +418,35 @@ const showIt: PlanLayer = {
         assets: 'The complete Poo, Pep and Polish video trilogy.',
         role: 'Deliver high attention, sequential storytelling across Lyka’s most influential screen channels.',
         strategyLink: 'SHOW WHAT THRIVING LOOKS LIKE: Help owners understand all three signs and the difference between being fine and truly thriving.',
-        comesToLife: 'Serve the films in sequence, moving from Poo to Pep to Polish and building the complete thriving story over time. Utilising the high attention channels across all of BVOD (7plus, 9Now, Paramount+, SBS) and SVOD (Binge, Netflix, Amazon Prime, Disney+).',
+        // "the trilogy of films", not "the films", on client direction
+        // 2026-08-06. NOTE: this string still names Paramount+ while the
+        // gallery below no longer shows its logo. Flagged, not silently
+        // reconciled: the client crossed out the CARD, and dropping a platform
+        // from client copy is a different decision from dropping its logo.
+        comesToLife: 'Serve the trilogy of films in sequence, moving from Poo to Pep to Polish and building the complete thriving story over time. Utilising the high attention channels across all of BVOD (7plus, 9Now, Paramount+, SBS) and SVOD (Binge, Netflix, Amazon Prime, Disney+).',
         metrics: 'Completed views; sequential exposure; trilogy completion; cost per completed view; brand lift.',
       },
-      // SIX BVOD logos, not four. The Screens tab labels its visuals in column
-      // G, and the "BVOD" label at G9 covers rows 9 to 10, which hold 7plus,
-      // 9Now, Paramount+, SBS, 10play AND Kayo. The Activation copy above names
-      // only four of them, but that column is the strategy note and the tab is
-      // headed "Visuals to be included", so the tab governs the gallery.
-      images: ['/images/7plus.png', '/images/9now.png', '/images/paramount.png', '/images/sbs-on-demand.png', '/images/10play.png', '/images/kayo.png'],
-      captions: ['BVOD: 7plus', 'BVOD: 9Now', 'BVOD: Paramount+', 'BVOD: SBS On Demand', 'BVOD: 10play', 'BVOD: Kayo'],
+      // FIVE BVOD logos. The Screens tab labels its visuals in column G, and the
+      // "BVOD" label at G9 covers rows 9 to 10, which hold SIX: 7plus, 9Now,
+      // Paramount+, SBS, 10play AND Kayo. The `comesToLife` copy above (rendered
+      // as "Implementation") names only four of them, but that column is the
+      // strategy note and the tab is headed "Visuals to be included", so the tab
+      // governs the gallery.
+      //
+      // PARAMOUNT+ IS DELIBERATELY OMITTED, on client direction 2026-08-06: its
+      // card was crossed out on a review screenshot. **This note is the whole
+      // point of the manifest.** The tab has six and this row wires five, so the
+      // next audit WILL flag a missing logo, and the documented lesson is that a
+      // dropped logo is silent and gets restored as a bug. It is not a bug here.
+      // Do not re-add `/images/paramount.png` without a client instruction.
+      // (The file is still in public/images/, now unreferenced, so reversing
+      // this is one entry in each array rather than a re-extraction.)
+      //
+      // IMAGES AND CAPTIONS ARE PAIRED BY INDEX. Removing one and not the other
+      // shifts every later caption onto the wrong logo, and every card still
+      // looks perfectly deliberate. Both arrays lost index 2 together.
+      images: ['/images/7plus.png', '/images/9now.png', '/images/sbs-on-demand.png', '/images/10play.png', '/images/kayo.png'],
+      captions: ['BVOD: 7plus', 'BVOD: 9Now', 'BVOD: SBS On Demand', 'BVOD: 10play', 'BVOD: Kayo'],
       extraImages: ['/images/binge.png', '/images/netflix.png', '/images/prime-video.png', '/images/disney-plus.png'],
       extraCaptions: ['SVOD: Binge', 'SVOD: Netflix', 'SVOD: Prime Video', 'SVOD: Disney+'],
     },
@@ -394,7 +501,16 @@ const checkIt: PlanLayer = {
   blurb: 'Turn Poo, Pep and Polish into a check owners perform: culturally relevant performances concentrated in Lyka’s peak buying season to increase ESOV.',
   rows: [
     {
-      channel: 'BBL Cricket Integration Seven & SCA',
+      // "& SCA" dropped from the title on client direction 2026-08-06, and the
+      // SCA LOGO followed on the same direction, so SCA is off THIS ROW
+      // entirely, title and creative.
+      //
+      // It is not off the plan. `sca.png` is still wired to Always On Radio, and
+      // the MMM Sports Commentary row's copy still reads "across Seven and SCA".
+      // The consistent reading is that SCA is represented by its consumer facing
+      // brand, Triple M, rather than by the holding company logo, which is why
+      // the MMM row keeps both the name and the Triple M mark. Left as is.
+      channel: 'BBL Cricket Integration Seven',
       owner: 'speed',
       assets: 'Sponsorship',
       monthly: [0, 0, 1000000, 2000000, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -407,11 +523,20 @@ const checkIt: PlanLayer = {
         comesToLife: 'A bespoke spot emulates a cricket match before a dog intercepts the game and shows off their Pep and Polish. This is a high performance dog, just like the cricketers. The integration is supported by the full trilogy spot plan.',
         metrics: 'Incremental reach; frequency; sponsorship awareness; integration engagement; completed BVOD views; brand recall; three step check recall; branded search; site visits.',
       },
-      images: ['/images/bbl-live.jpg', '/images/bbl.png'],
-      imageWeights: [2.6, 1],
-      captions: ['The Lyka dog stops play', 'KFC BBL'],
-      extraImages: ['/images/seven.png', '/images/sca.png'],
-      extraCaptions: ['Seven', 'SCA'],
+      // SEVEN MOVED UP INTO THE MAIN ROW WHEN SCA CAME OUT, and that is a
+      // consequence of the removal rather than a separate design change.
+      // `extraImages` lays its cards out with `flexGrow: 1, flexBasis: 0`, so a
+      // LONE card stretches to the full width of the gallery: Seven would have
+      // been one logo floating in about 900px of empty mat, under a full row,
+      // which reads as a broken layout rather than as one partner.
+      //
+      // Merged, this row is now exactly Linear TV's shape and the documented
+      // house pattern for this deck: a 16:9 mockup at 2.6 beside partner logos
+      // at 1. To put SCA back, restore it to both arrays below and move Seven
+      // back out to `extraImages` / `extraCaptions`.
+      images: ['/images/bbl-live.jpg', '/images/bbl.png', '/images/seven.png'],
+      imageWeights: [2.6, 1, 1],
+      captions: ['The Lyka dog stops play', 'KFC BBL', 'Seven'],
     },
     {
       channel: 'MMM Sports Commentary Integration',
@@ -423,7 +548,10 @@ const checkIt: PlanLayer = {
       detail: {
         assets: 'Bespoke MMM integrated segment; James Brayshaw and Brad Haddin commentary; Seven TV integration linkage; social and audio cutdowns.',
         role: 'Create theatre of the mind and connect the radio and television ideas into one distinctive sporting moment across Seven and SCA.',
-        strategyLink: 'BRING THE CHECK INTO THE LIVE GAME: Use the drama and familiarity of sports commentary to make Lyka’s high performance dog impossible to ignore.',
+        // "LIVE COMMENTARY", not the workbook's "LIVE GAME", on client direction
+        // 2026-08-06. The word "game" is left alone in `comesToLife` below,
+        // where the dog "enters the game" and the substitution would not read.
+        strategyLink: 'BRING THE CHECK INTO THE LIVE COMMENTARY: Use the drama and familiarity of sports commentary to make Lyka’s high performance dog impossible to ignore.',
         comesToLife: 'The MMM sports telecast is interrupted when the Lyka dog enters the game. James Brayshaw and Brad Haddin expertly relay what is unfolding on the pitch, timed to link with the bespoke Lyka TV spot airing on Seven. The MMM team would add it into their socials.',
         metrics: 'Segment reach; social views; engagement.',
       },
@@ -432,21 +560,76 @@ const checkIt: PlanLayer = {
       captions: ['Brayshaw and Haddin call the interruption', 'Triple M'],
     },
     {
-      channel: 'MMM Ear Worm (Rosala Boy) with Lou & Jach Show Sponsorship',
+      // Renamed on client direction 2026-08-06, and this one is a STATION
+      // CHANGE, not a title tidy: MMM out, Nova with Wippa in, "Lou & Jach Show
+      // Sponsorship" off, and "Rosala" corrected to "Rosella". The workbook has
+      // this row as "MMM Launch with Lu & Jarch" and Lu & Jarch have moved to
+      // the Podcaster Performance row below, so the client is revising the
+      // briefing, not correcting the port.
+      //
+      // THE KNOCK ON COPY IS NOW RESOLVED, and the sequence is the point. The
+      // rename left `comesToLife` naming MMM and Lou & Jach and the gallery
+      // showing Triple M, all contradicting the new title. That was FLAGGED
+      // rather than rewritten, and the client then supplied replacement
+      // Activation copy outright, which is a better outcome than a guess.
+      // Only ONE thing is still inherited: the Paid & Organic Social row that
+      // amplifies this one still lists "MMM cutdowns" in its assets. Flagged.
+      channel: 'Nova Ear Worm (Rosella Boy) with Wippa',
       owner: 'speed',
       assets: 'Segment | Socials',
       monthly: [200000, 150000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 350000,
       weight: ['heavy', 'heavy', null, null, null, null, null, null, null, null, null, null],
       detail: {
-        assets: 'Original Poo, Pep and Polish song composed by Rosala Boy and his dad; in-show launch; presenter discussion; station content highlights; social cutdowns.',
+        // "Rosella", not the workbook's "Rosala": the client corrected the
+        // spelling with the rename above, and leaving it here would put both
+        // spellings in one pop-up.
+        assets: 'Original Poo, Pep and Polish song composed by Rosella Boy and his dad; in-show launch; presenter discussion; station content highlights; social cutdowns.',
         role: 'Create a culturally relevant performance that makes the check famous, memorable and easy to repeat.',
         strategyLink: 'MAKE THE CHECK ENTERTAINING: Turn Poo, Pep and Polish into an earworm owners remember and repeat.',
-        comesToLife: 'Lou & Jach launch the song live within their MMM show. It is then replayed as a content highlight throughout the day and extended across MMM’s social channels.',
+        // REPLACED WHOLESALE by client copy 2026-08-06, which resolves the MMM
+        // reference this row was flagged for. Supplied verbatim apart from one
+        // fix: the source ran "live in Nova It is then replayed" as a single
+        // sentence, so the missing full stop was added. "in Nova" is the
+        // client's own preposition and is left as written.
+        comesToLife: 'Wippa launches the song live in Nova. It is then replayed as a content highlight throughout the day and extended across the Nova social channels.',
         metrics: 'Radio reach; frequency; content plays; listener response; social video views; engagement; song recall; three step check recall; branded search uplift.',
       },
-      images: ['/images/triple-m.png'],
-      captions: ['Triple M'],
+      // TRIPLE M OUT, NOVA IN, client direction 2026-08-06. `triple-m.png` is
+      // still wired to MMM Sports Commentary, correctly, so nothing is orphaned.
+      //
+      // `nova-earworm.jpg` IS NOT FROM THE BRIEFING WORKBOOK, which is worth
+      // recording because every other image on this page is. All 52 embedded
+      // workbook images were enumerated tab by tab while looking for it, and the
+      // only Nova studio frame in there is the two adult presenters shot that
+      // already ships as `nova-studio.jpg` (no boy, counter reads 247,831). This
+      // one came from the client separately, as `boy.png` in the project folder.
+      // **So a re-audit against the workbook will not find its source. That is
+      // expected, not a dropped asset.**
+      //
+      // RE-CUT 2026-08-06 FROM THE CHANGE DECK, at 1306x629 rather than the
+      // 1039x501 loose export, 1.26x linear. The client's `Changes to the
+      // intereactive media plan.pptx` embeds this photo at higher resolution than
+      // the PNG they exported beside it, and these cards ENLARGE in the lightbox,
+      // so the pixels are worth having.
+      //
+      // The embed is a whole SLIDE, with a black "CHECK IT" header over the top,
+      // and cropping that off by heuristic FAILED: the header is black with WHITE
+      // text, so a "row is mostly black" scan stopped inside the headline and left
+      // half a line of type across the top of the card. The crop row was instead
+      // MEASURED, by searching for the top that best matches `boy.png` (the
+      // client's own correctly framed export) and taking the minimum: row 111,
+      // diff 0.73/255, aspect 2.076 against their 2.074. Both start on the same
+      // black band, so the framing is theirs, not invented.
+      //
+      // Weighted 2.6 to 1 against the Nova logo, which is Radio Segment's exact
+      // shape and the documented house pattern. Deliberately the same as its
+      // sibling Nova row rather than tuned to this file's wider 2.07:1 aspect:
+      // the two Nova rows reading alike is worth more than a snugger fit, and
+      // the card is a click into the lightbox for anyone reading the detail.
+      images: ['/images/nova-earworm.jpg', '/images/nova.png'],
+      imageWeights: [2.6, 1],
+      captions: ['Wippa and Rosella Boy launch the song', 'Nova'],
     },
     {
       channel: 'Paid & Organic Social',
@@ -457,43 +640,127 @@ const checkIt: PlanLayer = {
       weight: ['heavy', 'heavy', null, null, null, null, null, null, null, null, null, null],
       activeMonths: [true, true, false, false, false, false, false, false, false, false, false, false],
       detail: {
-        assets: 'Rosala Boy hero song content; MMM cutdowns; creator versions; audience responses; paid amplification assets.',
+        // MMM -> NOVA ON THIS ROW, client direction 2026-08-06, and BOTH
+        // instances went. The annotation arrow pointed at `comesToLife`, but
+        // `assets` carried the same station reference two lines above it, and
+        // changing one would have left a single pop-up crediting two different
+        // stations for the same song. This row amplifies the Ear Worm, which is
+        // now Nova, so neither reference could stay. "Rosella" was corrected
+        // here in the same pass, for the same reason.
+        assets: 'Rosella Boy hero song content; Nova cutdowns; creator versions; audience responses; paid amplification assets.',
         role: 'Build viral momentum, social participation and behavioural reinforcement in the environment where the song first gains traction.',
         strategyLink: 'TURN RECALL INTO PARTICIPATION: Encourage owners and creators to perform, reinterpret and share the Poo, Pep and Polish check.',
-        comesToLife: 'Boost the original song and MMM content. As creators and audiences post their own versions, shift amplification behind the strongest responses to sustain and expand the song cycle.',
+        comesToLife: 'Boost the original song and Nova content. As creators and audiences post their own versions, shift amplification behind the strongest responses to sustain and expand the song cycle.',
         metrics: 'Reach; video views; completion rate; creator participation; user generated content volume; shares; saves; engagement; earned reach; site visits.',
       },
+      // FIRST CREATIVE ON THIS ROW. Supplied by the client as `picture.png` in
+      // the project folder, 2026-08-06: five phone frames of creators posting
+      // their own versions of the song, which is exactly what the Activation
+      // copy above describes. NOT FROM THE WORKBOOK, like `nova-earworm.jpg`,
+      // so the header manifest records it and a re-audit will not find a source.
+      // Converted 1333x584 RGBA PNG (1478KB) to JPEG q85 (150KB, 90% smaller);
+      // alpha checked first and fully opaque on every pixel.
+      //
+      // `stackedImages` FOR A SINGLE IMAGE, deliberately, and it is a sizing
+      // decision rather than the two-image logo-lockup pattern it was built for.
+      // At 2.28:1 this is the widest creative in the plan, and the default
+      // gallery would letterbox it to 452x198 inside an 896px card, leaving
+      // about 210px of empty mat each side: the documented "whitespace inside a
+      // card reads as a mistake" problem. The stacked branch uses a narrower
+      // `max-w-2xl` frame and a taller 380px mat, so it renders 640x281 with
+      // roughly 16px of side mat. 41% wider, and the five phone screens are
+      // worth the extra pixels. It costs the caption, since that branch passes
+      // no label, which is acceptable here: the frames are self evidently social
+      // and the Activation line sits directly above them.
+      images: ['/images/social-creators.jpg'],
+      stackedImages: true,
     },
     {
-      channel: 'Podcaster Performance Toni and Ryan',
+      // Renamed on client direction 2026-08-06: Toni and Ryan off, Lu & Jarch
+      // and their "We Mean Well" podcast on. Reads as the other half of the Ear
+      // Worm change above, moving Lu & Jarch off radio and onto the podcast row.
+      //
+      // THE ROW IS FULLY LU & JARCH AS OF THE SAME DAY. The rename left the
+      // copy naming Toni and Ryan as lead talent and a PHOTOGRAPH of them in the
+      // gallery, which was flagged rather than patched because a photo cannot be
+      // relabelled: new talent needs a new image, not new alt text. The client
+      // then supplied one. Both copy references and both gallery images are
+      // replaced below, so nothing on this row names the old talent.
+      channel: 'Podcaster Performance Lu & Jarch "We Mean Well"',
       owner: 'speed',
       assets: 'Segment | Socials',
       monthly: [0, 100000, 0, 0, 100000, 0, 0, 0, 0, 0, 0, 0],
       budget: 200000,
       weight: [null, 'heavy', null, null, 'heavy', null, null, null, null, null, null, null],
       detail: {
-        assets: 'Bespoke song recreations and social videos from selected podcasters, led by Toni and Ryan; podcast mentions; social cutdowns.',
+        // "Lu & Jarch", not "Toni and Ryan", in BOTH fields, client direction
+        // 2026-08-06. Two annotation arrows, one per field, and both were needed:
+        // the old talent was named twice on one pop-up.
+        assets: 'Bespoke song recreations and social videos from selected podcasters, led by Lu & Jarch; podcast mentions; social cutdowns.',
         role: 'Extend the song cycle through trusted talent with strong audio and social influence, bringing new interpretations and audiences into the idea.',
         strategyLink: 'MAKE THE CHECK FEEL PERSONAL: Use familiar podcast voices to embed the song and the three signs within highly engaged communities.',
-        comesToLife: 'Key podcasters recreate the Poo, Pep and Polish song in their own style and publish it across their social channels, with Toni and Ryan recommended as lead talent.',
+        comesToLife: 'Key podcasters recreate the Poo, Pep and Polish song in their own style and publish it across their social channels, with Lu & Jarch recommended as lead talent.',
         metrics: 'Completed listens; podcast reach; social reach; video views; engagement; shares; creator response; three step check recall; branded search.',
       },
-      images: ['/images/toni-and-ryan.jpg', '/images/acast.png'],
-      imageWeights: [1, 1.6],
-      captions: ['Toni and Ryan', 'Acast'],
+      // BOTH OLD CARDS CROSSED OUT on the review screenshot and replaced by one
+      // client supplied image: the "We Mean Well" studio with Lu & Jarch, a corgi
+      // and a Lyka bowl, plus a phone frame of the same moment as a social post.
+      // NOT FROM THE WORKBOOK; recorded in the header manifest with the other two.
+      //
+      // RE-CUT 2026-08-06 FROM THE CHANGE DECK at the FULL FRAME, 1672x941
+      // against the loose export's 1163x603: 1.50x linear, and less cropped. The
+      // loose `use-this-picture.png` turned out to be a tighter 1.93:1 crop of
+      // this same 16:9 photo, so the deck's own embed is better on both counts.
+      // No slide chrome on this one, and no alpha, so it converts directly.
+      //
+      // The first pass shipped from the loose PNG, and getting that right needed a
+      // step worth keeping: it carried a 51px FULLY TRANSPARENT strip across the
+      // top plus a 1px feathered edge (alpha 14 on the first row, 174 down the
+      // first column). Flattening straight to JPEG would have baked a 51px white
+      // band above a dark studio photo and a pale hairline down its left side.
+      // **Check WHERE a PNG's transparency is before deciding how to flatten it:
+      // a fully transparent band is a crop, not a matte.**
+      //
+      // `stackedImages` for a single wide image, same sizing reason as Paid &
+      // Organic Social: at 1.78:1 the default gallery would letterbox it to
+      // 352x198 in an 896px card, where stacked renders it 618x348. 76% bigger,
+      // which four faces, a dog and a phone screen earn. `acast.png` is untouched
+      // and still wired to Acast Podcasts. `toni-and-ryan.jpg` is now
+      // UNREFERENCED but left on disk, as `paramount.png` was; both are photos of
+      // talent no longer on the plan, so remove them together in a cleanup pass.
+      images: ['/images/we-mean-well.jpg'],
+      stackedImages: true,
     },
     {
-      channel: 'Always On Radio | 30 Second Spots',
+      // Formats widened on client direction 2026-08-06: "30 Second Spots" out,
+      // "30secs, Live Reads, Segments" in. No trailing full stop: this is a
+      // label, and it is also the pop-up's <h2> and the Media column cell.
+      channel: 'Always On Radio | 30secs, Live Reads, Segments',
       owner: 'speed',
       assets: '2 stations',
       monthly: [0, 150000, 0, 200000, 300000, 200000, 200000, 200000, 200000, 200000, 200000, 150000],
       budget: 2000000,
       weight: [null, 'heavy', null, 'heavy', 'heavy', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium', 'light'],
       detail: {
-        assets: '30 second radio spots reinforcing the 3Ps check; seven day BMAD spot plan; rotating reminders and masterbrand messaging.',
-        role: 'Remain a constant in Lyka’s most important channel, using daily repetition to reinforce the check and build behavioural memory.',
+        // THREE FIELDS REWRITTEN BY THE CLIENT 2026-08-06, all widening this row
+        // from a spots buy to a personality and topicality play. Supplied as
+        // marked up copy: `assets` struck "seven day BMAD spot plan; rotating
+        // reminders and masterbrand messaging" and added the DJ reads clause,
+        // `role` gained the "biggest must win channel" clause, and `comesToLife`
+        // gained three sentences.
+        //
+        // House style applied on the way in, per the workspace rules: their
+        // "30-second" is "30 second" here and "on air", "must win" and "short
+        // term" were already unhyphenated in their copy.
+        //
+        // ONE WORD CHANGED AND IT IS FLAGGED: their text read "The later allows
+        // short term insights...", which does not parse. "The latter" is the only
+        // sensible reading, since it refers back to the on air segments, so that
+        // is what ships. One word to revert if the intent was different.
+        assets: '30 second radio spots reinforcing the 3Ps check; Live topical DJ reads, on air segments throughout the year.',
+        role: 'Remain a constant in Lyka’s most important channel and build personality and topicality in our biggest must win channel, using daily repetition to reinforce the check and build behavioural memory.',
         strategyLink: 'MAKE THE 3Ps A DAILY HABIT: Keep Poo, Pep and Polish front of mind as a simple check owners perform regularly.',
-        comesToLife: 'Run 30 second spots across breakfast, morning, afternoon and drive, seven days a week. Each exposure reminds dog owners to check Poo, Pep and Polish and consider whether their dog is truly thriving.',
+        comesToLife: 'Run 30 second spots across breakfast, morning, afternoon and drive, seven days a week. Each exposure reminds dog owners to check Poo, Pep and Polish and consider whether their dog is truly thriving. Drive personality and topicality through Live reads and on air segments throughout the year to keep this topic in popular culture. The latter allows short term insights to change in and out throughout the year. Would seek to have 2 station buy for reach.',
         metrics: 'BMAD reach; weekly reach; frequency; effective frequency; completed spots; three step check recall; brand awareness; branded search; site response uplift.',
       },
       images: ['/images/arn.png', '/images/sca.png', '/images/nova.png'],
