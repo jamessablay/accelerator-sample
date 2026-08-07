@@ -58,7 +58,9 @@
 // assigns a logo to a row.
 //
 //   PR & Morning Shows      -> PR & Morning Shows (mockup, Nine, Seven)
-//   Screens tab   G1 LINEAR -> Linear TV (mockup, Seven, Nine)
+//   Screens tab   G1 LINEAR -> Linear TV News (mockup, Seven, Nine)
+//                              [tab name != row name: "Linear TV" until
+//                              2026-08-07, renamed on client direction]
 //                 G9 BVOD   -> BVOD & SVOD, row 1: six on the tab, FIVE wired
 //                              (Paramount+ removed on client direction
 //                              2026-08-06; see the note on that row)
@@ -384,7 +386,10 @@ const showIt: PlanLayer = {
       captions: ['LG home screen takeover'],
     },
     {
-      channel: 'Linear TV',
+      // "Linear TV" until 2026-08-07, renamed on client direction ("can we
+      // actually say Linear TV News"). The workbook sheet and its Screens tab
+      // label still read LINEAR TV; see the manifest above.
+      channel: 'Linear TV News',
       owner: 'speed',
       assets: 'News',
       monthly: [100000, 100000, 0, 100000, 100000, 0, 0, 0, 0, 0, 0, 0],
@@ -572,7 +577,7 @@ const checkIt: PlanLayer = {
       // been one logo floating in about 900px of empty mat, under a full row,
       // which reads as a broken layout rather than as one partner.
       //
-      // Merged, this row is now exactly Linear TV's shape and the documented
+      // Merged, this row is now exactly Linear TV News's shape and the documented
       // house pattern for this deck: a 16:9 mockup at 2.6 beside partner logos
       // at 1. To put SCA back, restore it to both arrays below and move Seven
       // back out to `extraImages` / `extraCaptions`.
