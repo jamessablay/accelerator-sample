@@ -1,10 +1,31 @@
 import React, { useState, useCallback } from 'react';
-import { apexTables, ApexTableKey } from '../data/apexData';
+import { apexTables, ApexTableKey, APEX_ABOUT } from '../data/apexData';
 import ApexMethodology from '../components/apex/ApexMethodology';
 import ApexChannelTable from '../components/apex/ApexChannelTable';
+import ApexGrowthQuadrant from '../components/apex/ApexGrowthQuadrant';
+
+// REAL LYKA SINCE 2026-08-07. Two Roy Morgan Single Source audiences
+// (Conflicted Troubleshooters, Mindful Researchers), exported from the APEX by
+// SPEED Tool as the two decks in the project folder. See data/apexData.ts for
+// provenance and the derivation.
+//
+// Structure mirrors the tool's report shell: top level VIEW tabs (About | True
+// Net Worth Index | Growth Quadrant), then a persona tab strip inside the two
+// data views. The two data views are the decks' slide 4 and slide 5.
+
+type ApexView = 'ABOUT' | 'SCORECARD' | 'QUADRANT';
+
+const VIEW_TABS: { key: ApexView; label: string; sub: string }[] = [
+  { key: 'ABOUT', label: 'About', sub: 'The method' },
+  { key: 'SCORECARD', label: 'True Net Worth Index', sub: 'Reach x Attention x Premium' },
+  { key: 'QUADRANT', label: 'Growth Quadrant', sub: 'Where to invest' },
+];
 
 const ApexBySpeed: React.FC = () => {
-  const [activeTable, setActiveTable] = useState<ApexTableKey>('HNWT_DOMESTIC');
+  const [view, setView] = useState<ApexView>('ABOUT');
+  // The audience selection survives a view switch on purpose: comparing the
+  // same persona's table and quadrant is the natural reading path.
+  const [activeTable, setActiveTable] = useState<ApexTableKey>('CONFLICTED_TROUBLESHOOTERS');
 
   const handleSelect = useCallback((key: ApexTableKey) => {
     setActiveTable(key);
@@ -14,86 +35,118 @@ const ApexBySpeed: React.FC = () => {
 
   return (
     <div className="animate-fadeIn pb-16 md:pb-24">
-      {/* Header: APEX logo + tagline */}
+      {/* Header: APEX logo + the export decks' own tagline */}
       <header className="flex flex-col gap-3">
         <img
           src="/images/apex-by-speed-logo.png"
           alt="APEX by SPEED"
           className="block h-auto w-[220px] md:w-[300px]"
         />
-        {/* Deliberately NOT "Lyka's media channel scorecard". The methodology is
-            SPEED's and carries over, but the two audience tables below are still
-            a Hamilton Island HNWT traveller Roy Morgan pull. Claiming them as
-            Lyka's would present affluent traveller media consumption as dog
-            owner media consumption, inside a panel that cites Roy Morgan Single
-            Source by name. Restore the client claim only once the tables hold a
-            real Lyka pull. */}
         <p className="text-base md:text-xl max-w-4xl" style={{ color: 'var(--lyka-muted)' }}>
-          The SPEED media channel scorecard. Three independent data sources combined into one True Net Worth Indicator.
+          True Net Worth Index | Media Channel Effectiveness. Three independent data sources combined
+          into one score per channel, for two Lyka audiences.
         </p>
       </header>
 
-      {/* Methodology */}
-      <ApexMethodology />
-
-      {/* Section heading for tables */}
-      <div className="mt-12 md:mt-14">
-        <h2 className="text-3xl md:text-4xl font-display" style={{ color: 'var(--lyka-teal-deep)' }}>
-          Channel Scorecard
-        </h2>
-        <p className="mt-2 text-sm md:text-base max-w-3xl" style={{ color: 'var(--lyka-muted)' }}>
-          {table.subtitle}. Hover any row to see its True Net Worth bar extend to scale. Hover the score pills and stars for the underlying logic.
-        </p>
-
-        {/* Audience-provenance notice. Load bearing, not decoration. */}
-        <div
-          className="mt-5 flex items-start gap-3 rounded-xl border-l-[3px] px-4 py-3 max-w-3xl"
-          style={{ backgroundColor: 'var(--lyka-cream)', borderColor: 'var(--lyka-tangerine)' }}
-        >
-          <div>
-            <p
-              className="font-mono text-[10px] font-medium uppercase tracking-[0.22em]"
-              style={{ color: '#8C3D24' }}
-            >
-              Placeholder audience
-            </p>
-            <p className="mt-1.5 text-[13px] leading-relaxed" style={{ color: 'var(--lyka-ink)' }}>
-              The channel constants below are SPEED&apos;s and carry over unchanged. The two audience
-              definitions and their index figures are a prior travel audience, retained only to keep the
-              page functional. They are not Lyka data. Both tables need one Roy Morgan Single Source pull
-              against agreed Lyka audience definitions: 13 channels, heavy reach percentage and index.
-              Every other column recomputes from those.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Domestic | International tab strip */}
-      <div className="my-6 flex flex-wrap gap-2 border-b pb-3 pt-2" style={{ borderColor: 'var(--lyka-mint)' }}>
-        {(Object.keys(apexTables) as ApexTableKey[]).map((key) => {
-          const t = apexTables[key];
-          const isSelected = activeTable === key;
+      {/* View tabs, modelled on the tool's report shell */}
+      <div className="mt-8 flex flex-wrap gap-1.5 border-b pb-3" style={{ borderColor: 'var(--lyka-mint)' }}>
+        {VIEW_TABS.map((t) => {
+          const active = view === t.key;
           return (
             <button
-              key={key}
+              key={t.key}
               type="button"
-              onClick={() => handleSelect(key)}
-              className={`px-5 py-2.5 text-sm md:text-base font-semibold rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 whitespace-nowrap ${
-                isSelected ? 'text-white' : 'hover:bg-[#F0F2E9]'
-              }`}
-              style={isSelected ? { backgroundColor: 'var(--lyka-teal-deep)' } : { color: 'var(--lyka-ink)' }}
+              onClick={() => setView(t.key)}
+              className="px-3 md:px-4 py-2.5 rounded-md text-left transition-colors duration-200 focus:outline-none focus-visible:ring-2"
+              style={{
+                backgroundColor: active ? 'var(--lyka-teal-deep)' : 'transparent',
+                color: active ? '#fff' : 'var(--lyka-ink)',
+              }}
             >
-              <span>{t.label}</span>
-              <span className={`ml-2 text-xs ${isSelected ? 'text-white/80' : ''}`} style={isSelected ? undefined : { color: 'var(--lyka-muted)' }}>
-                {t.populationLabel}
+              <span className="text-sm font-semibold">{t.label}</span>
+              <span className={`ml-2 text-xs hidden md:inline ${active ? 'text-white/70' : ''}`} style={active ? undefined : { color: 'var(--lyka-muted)' }}>
+                {t.sub}
               </span>
             </button>
           );
         })}
       </div>
 
-      {/* Active table */}
-      <ApexChannelTable key={activeTable} table={table} />
+      {view === 'ABOUT' && (
+        <div className="mt-6">
+          {/* Positioning card, from the tool's About tab. Client supplied copy. */}
+          <div className="rounded-2xl bg-white shadow-sm border p-6 md:p-8" style={{ borderColor: 'var(--lyka-mint)' }}>
+            {/* Two columns so the copy uses the card's full width without a 150+
+                character line. Stacks below lg, where one column is the right
+                measure. */}
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-x-10 gap-y-4 items-start">
+              <div>
+                <h2
+                  className="font-mono text-[11px] font-medium uppercase tracking-[0.08em]"
+                  style={{ color: 'var(--lyka-accent-ink)' }}
+                >
+                  {APEX_ABOUT.eyebrow}
+                </h2>
+                <p className="mt-2 text-2xl md:text-3xl font-display leading-tight" style={{ color: 'var(--lyka-teal-deep)' }}>
+                  {APEX_ABOUT.headline}
+                </p>
+                <p className="mt-4 text-base md:text-lg font-semibold" style={{ color: 'var(--lyka-ink)' }}>
+                  {APEX_ABOUT.lead}
+                </p>
+              </div>
+              <p className="leading-relaxed lg:mt-1" style={{ color: 'var(--lyka-muted)' }}>
+                {APEX_ABOUT.body}
+              </p>
+            </div>
+          </div>
+
+          {/* Formula bar + the three source cards */}
+          <ApexMethodology />
+        </div>
+      )}
+
+      {(view === 'SCORECARD' || view === 'QUADRANT') && (
+        <>
+          {/* Persona tab strip, shared by both data views */}
+          <div className="mt-6 mb-6 flex flex-wrap gap-2 border-b pb-3" style={{ borderColor: 'var(--lyka-mint)' }}>
+            {(Object.keys(apexTables) as ApexTableKey[]).map((key) => {
+              const t = apexTables[key];
+              const isSelected = activeTable === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => handleSelect(key)}
+                  className={`px-5 py-2.5 text-sm md:text-base font-semibold rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 whitespace-nowrap ${
+                    isSelected ? 'text-white' : 'hover:bg-[#F0F2E9]'
+                  }`}
+                  style={isSelected ? { backgroundColor: 'var(--lyka-accent-ink)' } : { color: 'var(--lyka-ink)' }}
+                >
+                  <span>{t.label}</span>
+                  <span className={`ml-2 text-xs ${isSelected ? 'text-white/80' : ''}`} style={isSelected ? undefined : { color: 'var(--lyka-muted)' }}>
+                    {t.populationLabel}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {view === 'SCORECARD' && (
+            <>
+              <h2 className="text-3xl md:text-4xl font-display" style={{ color: 'var(--lyka-teal-deep)' }}>
+                Channel Scorecard
+              </h2>
+              <p className="mt-2 mb-4 text-sm md:text-base max-w-3xl" style={{ color: 'var(--lyka-muted)' }}>
+                {table.subtitle}, indexed to channel mean = 100. Hover any row to see its True Net Worth bar
+                extend to scale. Hover the score pills and stars for the underlying logic.
+              </p>
+              <ApexChannelTable key={activeTable} table={table} />
+            </>
+          )}
+
+          {view === 'QUADRANT' && <ApexGrowthQuadrant table={table} />}
+        </>
+      )}
     </div>
   );
 };

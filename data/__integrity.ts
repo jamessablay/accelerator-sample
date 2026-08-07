@@ -25,6 +25,8 @@
 // -----------------------------------------------------------------------------
 
 import { categoryData } from './categoryData';
+import { apexTables, TIER_COLOURS, QUAD_STYLES, assignQuadrant, apexMethodologySources } from './apexData';
+import { lighten } from './brand';
 import { personaCategories } from './personasData';
 import { PERSONA_VIDEOS, personaVideo } from './personaMedia';
 import { PLAN_LAYERS, MEDIA_TOTAL, FLIGHTING_PCT, MONTHS } from './mediaPlanData';
@@ -797,11 +799,111 @@ export function runIntegrityChecks(): void {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // 15. APEX. Real Lyka since 2026-08-07.
+  //
+  // The tnwIndex, ttdStars and quadrant columns are DERIVED at module load in
+  // apexData.ts from the raw Roy Morgan inputs and the channel constants. The
+  // table below is an INDEPENDENT transcription of the published True Net Worth
+  // Index values on slide 4 of the two export decks in the project folder
+  // (`APEX_lyka_conflicted-troubleshooters.pptx`, `APEX_lyka_mindful-researchers
+  // (1).pptx`). Two transcriptions from two sources agreeing is what catches a
+  // slip in either: a mistyped rmIndex moves EVERY tnwIndex in its table (the
+  // rebase is over the rows present), so this cannot fail quietly.
+  //
+  // If a channel constant is ever revised (the way Cinema's KNF went 61.4 to
+  // 110.0), the derivation changes and this table must be re-transcribed from a
+  // RE-EXPORTED deck, never edited to match the code.
+  // ---------------------------------------------------------------------------
+  const EXPECTED_TNWI: Record<string, Record<string, number>> = {
+    CONFLICTED_TROUBLESHOOTERS: {
+      'BVOD (catch up TV)': 202, 'SVOD (streaming)': 148, 'Cinema': 144, 'Podcasts': 132,
+      'Radio': 132, 'Linear TV (FTA)': 105, 'Pay TV': 94, 'Music streaming': 78,
+      'Digital news': 77, 'Outdoor (Out & About)': 77, 'Digital magazines': 64,
+      'Online video / YouTube': 55, 'Social media': 49, 'Online display': 44,
+    },
+    MINDFUL_RESEARCHERS: {
+      'BVOD (catch up TV)': 205, 'SVOD (streaming)': 145, 'Cinema': 143, 'Radio': 126,
+      'Podcasts': 125, 'Linear TV (FTA)': 93, 'Pay TV': 93, 'Music streaming': 83,
+      'Digital magazines': 79, 'Outdoor (Out & About)': 78, 'Digital news': 76,
+      'Online video / YouTube': 56, 'Online display': 51, 'Social media': 48,
+    },
+  };
+  const apexRowCount = Object.values(apexTables).reduce((n, t) => n + t.rows.length, 0);
+  for (const table of Object.values(apexTables)) {
+    const expected = EXPECTED_TNWI[table.key];
+    if (!expected) {
+      fail(`apex table "${table.key}" has no EXPECTED_TNWI transcription. Add it from a reviewed deck export.`);
+      continue;
+    }
+    if (table.rows.length !== Object.keys(expected).length) {
+      fail(`apex table "${table.key}" has ${table.rows.length} rows but the deck published ${Object.keys(expected).length}.`);
+    }
+    for (const row of table.rows) {
+      const exp = expected[row.channel];
+      if (exp === undefined) {
+        fail(`apex "${table.key}" has channel "${row.channel}" which is not on the deck's slide 4.`);
+        continue;
+      }
+      if (row.tnwIndex !== exp) {
+        fail(`apex "${table.key}" ${row.channel}: derived True Net Worth Index ${row.tnwIndex} but the deck publishes ${exp}. A raw input or a channel constant has drifted.`);
+      }
+      if (!(row.addressableReach > 0 && row.addressableReach <= 100)) {
+        fail(`apex "${table.key}" ${row.channel}: addressableReach ${row.addressableReach} is not a percentage. The quadrant cannot place it.`);
+      }
+      if (row.quadrant !== assignQuadrant(row.addressableReach, row.tnwIndex)) {
+        fail(`apex "${table.key}" ${row.channel}: quadrant "${row.quadrant}" disagrees with the thresholds.`);
+      }
+    }
+    //   Sorted descending: the table renders top down and the deck's slide 4
+    //   order is the ranking itself.
+    for (let i = 1; i < table.rows.length; i++) {
+      if (table.rows[i].tnwIndex > table.rows[i - 1].tnwIndex) {
+        fail(`apex "${table.key}" rows are not sorted by True Net Worth Index descending at "${table.rows[i].channel}".`);
+      }
+    }
+  }
+  //   Ink pairs. The tier pills carry white text (the DIGITAL tier is new at
+  //   #2C5F73); the quadrant corner labels print QUAD_STYLES.ink on tint, and
+  //   the dot labels print LYKA.ink on whichever tint they land on.
+  for (const [key, c] of Object.entries(TIER_COLOURS)) {
+    const ratio = contrast(c.fg, c.bg);
+    if (ratio < TEXT_FLOOR) {
+      fail(`TIER_COLOURS["${key}"]: fg ${c.fg} on bg ${c.bg} is ${ratio.toFixed(2)}:1, below AA (${TEXT_FLOOR}:1).`);
+    }
+  }
+  for (const [key, s] of Object.entries(QUAD_STYLES)) {
+    const inkRatio = contrast(s.ink, s.tint);
+    if (inkRatio < TEXT_FLOOR) {
+      fail(`QUAD_STYLES["${key}"]: ink ${s.ink} on tint ${s.tint} is ${inkRatio.toFixed(2)}:1, below AA (${TEXT_FLOOR}:1).`);
+    }
+    const dotLabelRatio = contrast(LYKA.ink, s.tint);
+    if (dotLabelRatio < TEXT_FLOOR) {
+      fail(`QUAD_STYLES["${key}"]: LYKA.ink on tint ${s.tint} is ${dotLabelRatio.toFixed(2)}:1, below AA (${TEXT_FLOOR}:1). The quadrant's dot labels land on this tint.`);
+    }
+  }
+  //   The methodology formula bar prints each pill's label in a LIGHTENED
+  //   source accent on the dark bar, because the raw accents cannot carry text
+  //   there (#1d8a6b is 2.85:1 on tealDeepest). This pins that fix: the
+  //   lightened accent must clear AA on the bar for all three sources.
+  const rgbToHex = (rgb: string): string => {
+    const m = rgb.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    if (!m) return rgb;
+    return `#${[m[1], m[2], m[3]].map((c) => Number(c).toString(16).padStart(2, '0')).join('')}`;
+  };
+  for (const src of apexMethodologySources) {
+    const barText = rgbToHex(lighten(src.accent, 0.35));
+    const ratio = contrast(barText, LYKA.tealDeepest);
+    if (ratio < TEXT_FLOOR) {
+      fail(`apex methodology "${src.key}": lighten(${src.accent}, 0.35) = ${barText} is ${ratio.toFixed(2)}:1 on the formula bar, below AA (${TEXT_FLOOR}:1). The pill label is unreadable unfocused.`);
+    }
+  }
+
   if (problems === 0) {
     console.info(
       `${TAG} ok. ${personas.length} personas, ${categoryKeys.size} segments, ${journeyMetrics.length} journeys, ` +
         `${PERSONA_VARIANTS.length}+${JOURNEY_VARIANTS.length} variants, ${TEN_THINGS_POINTS.length} findings, ` +
-        `${planRows.length} media plan rows, ` +
+        `${planRows.length} media plan rows, ${apexRowCount} apex rows, ` +
         `${assets.size + tenThingsAssets.size + mediaPlanAssets.size} assets queued for check, ` +
         `shares, budgets and published tables balance.`,
     );

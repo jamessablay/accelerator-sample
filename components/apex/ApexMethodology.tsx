@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LYKA } from '../../data/brand';
+import { LYKA, lighten } from '../../data/brand';
 import { apexMethodologySources, ApexSourceKey } from '../../data/apexData';
 
 const ApexMethodology: React.FC = () => {
@@ -15,40 +15,27 @@ const ApexMethodology: React.FC = () => {
         className="rounded-2xl px-4 md:px-8 py-5 md:py-6 shadow-[0_12px_28px_-12px_rgba(0,86,72,0.22)]"
         style={{ backgroundColor: LYKA.tealDeepest }}
       >
+        {/* The formula matches the tool and the export decks' slide 6:
+            RM INDEX x KNF SCORE x TTD/PAC PREMIUM = TRUE NET WORTH INDEX.
+            The old intermediate "TABLE 1" pill was the Method B step, whose
+            table (slide 3) this page does not carry. */}
         <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-3 text-white">
-          <FormulaPill
-            label="RM INDEX"
-            sub="Who over-indexes"
-            colour={apexMethodologySources[0].accent}
-            isFocused={isFocused('RM')}
-            isDimmed={activeSource !== null && !isFocused('RM')}
-            onEnter={() => setActiveSource('RM')}
-            onLeave={() => setActiveSource(null)}
-          />
-          <FormulaOp symbol="×" />
-          <FormulaPill
-            label="KNF SCORE"
-            sub="Attention quality"
-            colour={apexMethodologySources[1].accent}
-            isFocused={isFocused('KNF')}
-            isDimmed={activeSource !== null && !isFocused('KNF')}
-            onEnter={() => setActiveSource('KNF')}
-            onLeave={() => setActiveSource(null)}
-          />
+          {apexMethodologySources.map((src, i) => (
+            <React.Fragment key={src.key}>
+              {i > 0 && <FormulaOp symbol="×" />}
+              <FormulaPill
+                label={src.pillLabel}
+                sub={src.pillSubLabel}
+                colour={src.accent}
+                isFocused={isFocused(src.key)}
+                isDimmed={activeSource !== null && !isFocused(src.key)}
+                onEnter={() => setActiveSource(src.key)}
+                onLeave={() => setActiveSource(null)}
+              />
+            </React.Fragment>
+          ))}
           <FormulaOp symbol="=" />
-          <FormulaStaticPill label="TABLE 1" sub="Baseline reach × attention" />
-          <FormulaOp symbol="×" />
-          <FormulaPill
-            label="TTD PREMIUM"
-            sub="Environment value"
-            colour={apexMethodologySources[2].accent}
-            isFocused={isFocused('TTD')}
-            isDimmed={activeSource !== null && !isFocused('TTD')}
-            onEnter={() => setActiveSource('TTD')}
-            onLeave={() => setActiveSource(null)}
-          />
-          <FormulaOp symbol="=" />
-          <FormulaStaticPill label="TRUE NET WORTH INDICATOR" sub="Full premium index" emphasised />
+          <FormulaStaticPill label="TRUE NET WORTH INDEX" sub="The full premium index" emphasised />
         </div>
       </div>
 
@@ -122,27 +109,37 @@ interface FormulaPillProps {
   onLeave: () => void;
 }
 
-const FormulaPill: React.FC<FormulaPillProps> = ({ label, sub, colour, isFocused, isDimmed, onEnter, onLeave }) => (
-  <button
-    type="button"
-    onMouseEnter={onEnter}
-    onMouseLeave={onLeave}
-    onFocus={onEnter}
-    onBlur={onLeave}
-    className={`group relative px-4 md:px-5 py-2 md:py-2.5 rounded-lg text-left transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${
-      isFocused ? 'scale-105 shadow-[0_12px_28px_-12px_rgba(0,86,72,0.22)]' : ''
-    } ${isDimmed ? 'opacity-50' : 'opacity-100'}`}
-    style={{
-      backgroundColor: isFocused ? colour : 'rgba(255,255,255,0.05)',
-      border: `1px solid ${isFocused ? colour : 'rgba(255,255,255,0.15)'}`,
-    }}
-  >
-    <div className="text-sm md:text-base font-bold tracking-wider" style={{ color: isFocused ? '#ffffff' : colour }}>
-      {label}
-    </div>
-    <div className="text-[10px] md:text-xs text-white/70 mt-0.5">{sub}</div>
-  </button>
-);
+const FormulaPill: React.FC<FormulaPillProps> = ({ label, sub, colour, isFocused, isDimmed, onEnter, onLeave }: FormulaPillProps) => {
+  // The raw source accents cannot carry text on the dark bar: #1d8a6b is
+  // 2.85:1 on tealDeepest, under even the 3:1 non-text floor, and filling the
+  // pill with the accent puts white on #10B193 at 2.2:1. So the label prints
+  // in a LIGHTENED accent (all three clear AA on the bar), and focus brightens
+  // it to white over a translucent lift instead of filling with the accent.
+  // This was invisible while the page sat behind the placeholder; it opened
+  // on 2026-08-07 and was measured then.
+  const barText = lighten(colour, 0.35);
+  return (
+    <button
+      type="button"
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+      onFocus={onEnter}
+      onBlur={onLeave}
+      className={`group relative px-4 md:px-5 py-2 md:py-2.5 rounded-lg text-left transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 ${
+        isFocused ? 'scale-105 shadow-[0_12px_28px_-12px_rgba(0,86,72,0.22)]' : ''
+      } ${isDimmed ? 'opacity-50' : 'opacity-100'}`}
+      style={{
+        backgroundColor: isFocused ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.05)',
+        border: `1px solid ${isFocused ? barText : 'rgba(255,255,255,0.15)'}`,
+      }}
+    >
+      <div className="text-sm md:text-base font-bold tracking-wider" style={{ color: isFocused ? '#ffffff' : barText }}>
+        {label}
+      </div>
+      <div className="text-[10px] md:text-xs text-white/70 mt-0.5">{sub}</div>
+    </button>
+  );
+};
 
 const FormulaStaticPill: React.FC<{ label: string; sub: string; emphasised?: boolean }> = ({ label, sub, emphasised }) => (
   <div

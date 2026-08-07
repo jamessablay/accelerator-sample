@@ -8,34 +8,13 @@ import InteractiveMediaPlan from './pages/InteractiveMediaPlan';
 import BusinessDashboard from './pages/BusinessDashboard';
 import ApexBySpeed from './pages/ApexBySpeed';
 import TenThings from './pages/TenThings';
-import { ApexPending } from './pages/PendingSections';
 import { Page } from './types';
 
-// -----------------------------------------------------------------------------
-// ONE SECTION IS HELD BACK, and this is the only switch that does it.
-//
-// APEX by SPEED still carries HAMILTON ISLAND content: an affluent traveller
-// Roy Morgan pull. The page is complete and stays wired below; what a viewer
-// opens is a designed "awaiting Lyka data" placeholder instead. See
-// pages/PendingSections.tsx. (The Interactive Media Plan got its Lyka brief
-// on 2026-08-05 and now opens for everyone.)
-//
-// `?show=all` restores the real page, for internal review only. It is read
-// ONCE at module scope because it never changes within a session, and it is
-// deliberately not surfaced anywhere in the UI.
-//
-// TO SHIP THE REAL PAGE: delete this const and the ternary in renderPage().
-// Nothing else has to change.
-// -----------------------------------------------------------------------------
-const SHOW_ALL = (() => {
-  if (typeof window === 'undefined') return false;
-  try {
-    return new URLSearchParams(window.location.search).get('show') === 'all';
-  } catch {
-    // Malformed search string. Default to the client safe view.
-    return false;
-  }
-})();
+// All six sections are live. APEX by SPEED was the last one held back (behind a
+// `SHOW_ALL` / `?show=all` switch here) and opened on 2026-08-07 when its Lyka
+// Roy Morgan pull landed. The hold-back pattern, if ever needed again, is in
+// git history: pages/PendingSections.tsx + components/shared/PendingSection.tsx
+// plus one ternary in renderPage().
 
 const App: React.FC = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
@@ -83,7 +62,7 @@ const App: React.FC = () => {
       case Page.INTERACTIVE_MEDIA_PLAN:
         return <InteractiveMediaPlan />;
       case Page.APEX_BY_SPEED:
-        return SHOW_ALL ? <ApexBySpeed /> : <ApexPending />;
+        return <ApexBySpeed />;
       default:
         return <Personas />;
     }
