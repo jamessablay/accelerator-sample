@@ -32,7 +32,12 @@ interface CategoryDetailProps {
  *
  * KEYS MUST EQUAL `categoryData[k].title` BYTE FOR BYTE, parenthetical share
  * included, or the image silently does not render. That is why the ugly
- * `(49%)` is in the key. data/__integrity.ts asserts the join both ways.
+ * `(27%)` is in the key. data/__integrity.ts asserts the join both ways.
+ *
+ * ⚠ SO A SHARE THAT MOVES BREAKS AN EMBLEM. Both keys below were re-cut on
+ * 2026-08-07 when Disciplined Outsourcers moved to Curious and took 22 points of
+ * market with them: `(49%)` became `(27%)` and `(25%)` became `(47%)`. The art
+ * itself is per STAGE and did not change. Nothing on screen would have said so.
  *
  * **The centre disc has no emblem, deliberately.** Four were supplied, one per
  * stage; "Australian Dog Owners" is the whole market rather than a stage, and
@@ -40,8 +45,8 @@ interface CategoryDetailProps {
  * something false, or generating art nobody briefed.
  */
 export const SEGMENT_IMAGES: Record<string, string> = {
-  'Unaware / Unconvinced (49%)': '/snapshot_emblems/unaware.png',
-  'Curious (25%)': '/snapshot_emblems/curious.png',
+  'Unaware / Unconvinced (27%)': '/snapshot_emblems/unaware.png',
+  'Curious (47%)': '/snapshot_emblems/curious.png',
   'Considering (15%)': '/snapshot_emblems/considering.png',
   'Ready (11%)': '/snapshot_emblems/ready.png',
 };

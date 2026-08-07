@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import Modal from '../../shared/Modal';
 import JourneyScoreGraph from '../JourneyScoreGraph';
-import { LYKA, getSegmentColor } from '../../../data/brand';
+import { LYKA, FOCUS, getSegmentColor } from '../../../data/brand';
+import { isFocusCell, MEDIA_FOCUS_NOTE } from '../../../data/mediaFocus';
 import {
   splitBullets,
   parseScoreData,
@@ -70,6 +71,27 @@ const FrictionStrip: React.FC<JourneyVizProps> = ({ active }) => {
 
   const anchorFor = (stage: JourneyStageDetail, key: CellSpec['key']) => splitBullets(stage[key])[0] ?? '';
 
+  const focusStages = stages
+    .map((s) => s.title)
+    .filter((title) => isFocusCell(active.type, title));
+  const isFocus = (stage: JourneyStageDetail) => focusStages.includes(stage.title);
+
+  /**
+   * Background for a clickable cell.
+   *
+   * ⚠ HOVER HAS TO BE INLINE HERE, not the `hover:bg-[#F9F6F1]` utility these
+   * cells use elsewhere. An inline `background-color` OUTRANKS any stylesheet
+   * rule, so a washed cell keeping the utility would show its resting green and
+   * never respond to the pointer, while every unwashed cell around it did. That
+   * is the exact trap the ladder's persona chips hit: hover looks like it works
+   * because half of it still does. This component already tracks `hoverIndex`
+   * for the score strip, so the state was free.
+   */
+  const cellBg = (stage: JourneyStageDetail, i: number): string | undefined => {
+    if (isFocus(stage)) return hoverIndex === i ? FOCUS.washHover : FOCUS.wash;
+    return hoverIndex === i ? LYKA.ivory : undefined;
+  };
+
   return (
     <div className="animate-fadeIn h-full flex flex-col min-h-0 overflow-y-auto custom-scrollbar">
       <div
@@ -81,11 +103,21 @@ const FrictionStrip: React.FC<JourneyVizProps> = ({ active }) => {
           {stages.map((s, i) => (
             <div
               key={s.title}
-              className="px-3 py-2 border-l first:border-l-0"
-              style={{ borderColor: LYKA.mint }}
+              className="relative px-3 py-2 border-l first:border-l-0"
+              style={{
+                borderColor: LYKA.mint,
+                backgroundColor: isFocus(s) ? FOCUS.wash : undefined,
+              }}
               onMouseEnter={() => setHoverIndex(i)}
               onMouseLeave={() => setHoverIndex(-1)}
             >
+              {isFocus(s) && (
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-0 top-0 h-[3px]"
+                  style={{ backgroundColor: FOCUS.edge }}
+                />
+              )}
               <div className="flex items-center gap-1.5 min-w-0">
                 <span
                   className="flex-shrink-0 h-5 w-5 rounded-full flex items-center justify-center text-white"
@@ -122,8 +154,8 @@ const FrictionStrip: React.FC<JourneyVizProps> = ({ active }) => {
             return (
               <button
                 key={s.title}
-                className="px-3 py-2.5 text-left border-l first:border-l-0 hover:bg-[#F9F6F1] transition-colors"
-                style={{ borderColor: LYKA.mint }}
+                className="px-3 py-2.5 text-left border-l first:border-l-0 transition-colors"
+                style={{ borderColor: LYKA.mint, backgroundColor: cellBg(s, i) }}
                 onMouseEnter={() => setHoverIndex(i)}
                 onMouseLeave={() => setHoverIndex(-1)}
                 onClick={() => setOpen({ stage: s, field: 'doingThinking', label: 'Doing and thinking' })}
@@ -159,8 +191,8 @@ const FrictionStrip: React.FC<JourneyVizProps> = ({ active }) => {
               return (
                 <button
                   key={s.title}
-                  className="px-3 py-2.5 text-left border-l first:border-l-0 hover:bg-[#F9F6F1] transition-colors"
-                  style={{ borderColor: LYKA.mint }}
+                  className="px-3 py-2.5 text-left border-l first:border-l-0 transition-colors"
+                  style={{ borderColor: LYKA.mint, backgroundColor: cellBg(s, i) }}
                   onMouseEnter={() => setHoverIndex(i)}
                   onMouseLeave={() => setHoverIndex(-1)}
                   onClick={() => setOpen({ stage: s, field: cell.key, label: cell.label })}
@@ -219,6 +251,7 @@ const FrictionStrip: React.FC<JourneyVizProps> = ({ active }) => {
             columnWidth={300}
             showStageLabels={false}
             activeStageIndex={hoverIndex >= 0 ? hoverIndex : null}
+            focusStages={focusStages}
           />
         </div>
       </div>
@@ -227,6 +260,7 @@ const FrictionStrip: React.FC<JourneyVizProps> = ({ active }) => {
         Marks and the number show how many items the source lists for that cell. The line
         beneath is the first, which the source deck orders by priority. Select any cell for the
         full text. Quotes are the study&apos;s own first-person voice.
+        {focusStages.length > 0 ? ` ${MEDIA_FOCUS_NOTE}` : ''}
       </p>
 
       <Modal

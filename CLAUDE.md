@@ -30,15 +30,59 @@ This file gives Claude Code the architecture, data model and known quirks for th
 >
 > | Stage | Persona | Market | Lyka customers | Fit |
 > |---|---|---|---|---|
-> | Unaware / Unconvinced | Disciplined Outsourcers | 22% | 6% | Medium |
 > | Unaware / Unconvinced | Secure Sleepwalkers | 27% | 3% | Low |
 > | Curious | Conflicted Troubleshooters | 25% | 9% | High Growth Potential |
+> | Curious | Disciplined Outsourcers | 22% | 6% | Medium |
 > | Considering | Mindful Researchers | 15% | 55% | Very High |
 > | Ready | Devoted Caterers | 11% | 27% | Very High |
 >
-> Both columns sum to 100%. **The inversion between them is the deck's argument**: 82% of Lyka's customers come from the two smallest, warmest stages, which are only 26% of the market. Every panel leads with both figures for that reason.
+> Stage totals: Unaware 27% / 3%, **Curious 47% / 15%**, Considering 15% / 55%, Ready 11% / 27%. Both columns sum to 100%. **The inversion between them is the deck's argument**: 82% of Lyka's customers come from the two smallest, warmest stages, which are only 26% of the market. Every panel leads with both figures for that reason.
 >
-> `data/personasData.ts` was **generated** from the parsed source document, not retyped, so the prose cannot drift from the research. The generator is in the session scratchpad; if the source is revised, regenerate rather than hand-edit.
+> ### ⚠ ONE PLACEMENT IS THE CLIENT'S, NOT THE RESEARCH'S (2026-08-07)
+>
+> **Disciplined Outsourcers sit in Curious because Lyka asked for them there.** The
+> source document places them in Unaware / Unconvinced. The move is exactly two
+> fields on id 401 in `data/personasData.ts`, `category` and `stageLabel`, and
+> **every other string on that record is still the research's own, verbatim**.
+>
+> Two of those strings now read against the new stage and were deliberately left
+> alone, per the client's own instruction to keep the research copy intact:
+> `movement` still says "Unconvinced → Considering or Ready", and `barriers[0]` is
+> still "No immediate evidence that their current routine is failing". Both are
+> copy the client reads as theirs. **Flag them, do not smooth them.**
+>
+> **REGENERATING `personasData.ts` SILENTLY REVERTS THE MOVE**, which is the trap
+> worth knowing: 401 goes back to Unaware, the shares go back to 49/25, and
+> integrity check 7b then fails against `categoryData` until that is reconciled
+> too. Re-apply the two fields after any regeneration.
+>
+> Everything else re-derived on its own, because `stageMetrics` sums from the
+> personas. What did NOT, and had to be edited by hand, is the list worth checking
+> against if a persona ever moves again:
+>
+> | What | Why it does not follow |
+> |---|---|
+> | `categoryData` titles and shares | `(49%)` / `(25%)` are hand written; check 7b asserts them against the sums |
+> | `SEGMENT_IMAGES` keys | Keyed on the title **byte for byte**, share included, so both emblems silently vanished |
+> | The two stage narratives, and the centre disc's | Named the wrong personas and the wrong origin for the Outsourcers jump |
+> | `MindsetFlow` `SKIP_EDGES` | The dashed route left node 0; it leaves node 1 now, and BOTH routes now leave the same node |
+> | `TensionMap`'s finding | Said "the two **Unaware** personas". Now derived, see below |
+> | `TAB_ORDER` | Documented as running up the ladder |
+> | `ReadinessLadder` customer bar | Unaware's band went 9% to 3% and all three of its labels clipped |
+>
+> `data/personasData.ts` was **generated** from the parsed source document, not retyped, so the prose cannot drift from the research. The generator is in the session scratchpad; if the source is revised, regenerate rather than hand-edit, then re-apply the two fields above.
+>
+> #### The reusable lesson: a finding can go stale without its data changing
+>
+> `TensionMap` stated, in hardcoded prose, that "the two **Unaware** personas are
+> the only ones where reason runs ahead of feeling at the start". Not one of the
+> 50 scores moved on 2026-08-07, so the finding stayed TRUE and its wording became
+> FALSE, because it named the ladder rather than the scores it was measuring.
+>
+> It is `findOpeningLeadSplit` in `journeyModel.ts` now, alongside
+> `findUniversalStageShift` and `findLevelCells`. **The rule this generalises to:
+> derive a finding from the axis it is actually about.** A sentence about scores
+> that names a stage is coupled to a second dataset nobody thinks of as an input.
 >
 > ### The journeys
 >
@@ -92,6 +136,70 @@ in `PersonaDetail.tsx`.
 `JourneyDetailTable` are wrapped by adapters rather than modified, because editing
 what you are A/B testing against invalidates the test. Do not "tidy" them while
 the comparison is live.
+
+**`JourneyDetailTable` took one change on 2026-08-07 and the shape of it is the
+precedent.** The client asked for the media focus wash, which the baseline has to
+carry like every other view. It gained a single `focusStages` prop that is
+**optional and defaults to empty**, so called without it the table renders exactly
+what it rendered before, and the comparison is still against the same thing. The
+DECISION lives in `TableAdapter`, which resolves which stages this journey marks;
+the table only checks membership and imports nothing from `mediaFocus`. **A
+client requirement goes into a baseline as an additive defaulted prop, never as an
+edit to its default behaviour.**
+
+### The media focus emphasis (2026-08-07), and why one view does it differently
+
+Lyka asked for **Contemplation and Preparation to be highlighted on
+Troubleshooters, Mindful Researchers and Devoted Caterers**, "so they're easier
+to locate as I present them ... they are the key stages we are addressing through
+media". It is declared once in [data/mediaFocus.ts](data/mediaFocus.ts) and
+consumed by **all five views**, with `FOCUS` in `brand.ts` as a fifth colour band.
+
+**The three journeys are as much the point as the two stages.** Two journeys are
+deliberately unmarked, and that contrast is the finding: these are the ones media
+addresses, and those are not. Marking all five would leave only decoration, which
+is why `__integrity` check 7c *warns* if the list ever grows to cover everything.
+
+**Matched by stage TITLE, never by column index**, the same rule the gap matrix's
+axis follows. And the failure this guards is unusual enough to name: **a broken
+join here produces the ABSENCE of something.** No error, no fallback colour, no
+broken layout, just a deck that renders without the emphasis and looks entirely
+finished. Nobody notices a highlight that is not there, so check 7c asserts both
+halves of the join. Note check 3c would not catch the realistic trigger, since
+renaming a stage consistently across all five journeys keeps the shared axis
+valid.
+
+**The gap matrix marks its cells with a dashed outline, not the wash, for two
+independent reasons.** Its fills are a diverging ramp where the fill IS the
+datum, so a green overlay would not add emphasis, it would change six of the 25
+readings. And separately, `FOCUS.edge` is **byte for byte `GAP_NEGATIVE_HUE`**
+(both `#0A7D68`, arrived at independently in their own files), so an outline in
+it would wrap a cell in the ramp's own "reason ahead" colour, possibly a cell at
+the opposite end of that ramp. The cells take a dashed outline in `GAP_INK`,
+which prints the number in all 25 anyway and so introduces no hue at all. Only
+the column HEADERS, which carry no value, take the wash. `__integrity` warns if
+those two hexes ever diverge, because half that reasoning would stop applying.
+
+`MEDIA_FOCUS_NOTE` names the colour green, so the gap matrix deliberately does
+not import it and writes its own sentence. **A shared string describing an
+encoding is only shareable between views that share the encoding.**
+
+Two contrast facts, both asserted in check 6d:
+
+- The wash carries real body copy in the Table and the Strip, inked in
+  `LYKA.muted`, which is already the palest legal ink in the palette (check 6c).
+  There is no headroom on the ink side: if the wash is ever deepened, the wash is
+  what has to move.
+- **`FOCUS.washHover` is LIGHTER than `wash`, not darker**, which is the opposite
+  of every unwashed cell in the Strip. Darkening one step lands at 4.48:1, under
+  AA, so a well meant "make the hover more obvious" edit would make a cell
+  fractionally illegal exactly while a reader points at it.
+
+One trap the Strip hit and the ladder's persona chips hit before it: **an inline
+`background-color` outranks a stylesheet rule**, so a washed cell keeping its
+`hover:bg-[#F9F6F1]` utility shows its resting green and never responds to the
+pointer, while every cell around it does. Those cells drive hover from the
+`hoverIndex` state the component already tracked.
 
 ### Three constraints in the new views that are load bearing
 
@@ -298,7 +406,8 @@ All data lives in flat TypeScript files under `data/`. There is no database, no 
 | [data/journeyDetailsData.ts](data/journeyDetailsData.ts) | **Real Lyka.** 5 personas × 1 `MACRO_JOURNEY` × 5 Transtheoretical stages. Generated from the source deck by a cell-level table parse. Per-stage: `doingThinking`, `painPoints`, `influences`, `momentsToWin`, `emotionalScore`, `rationalScore`, `duration`, `definition`, and `coreQuestion` on Action only. Bullet fields are semicolon delimited; scores carry an en dash. **Not pure data:** imports React and five icon components. |
 | [data/tenThingsData.ts](data/tenThingsData.ts) | **Real Lyka.** The ten findings: copy, published numbers tables, and the `chart` join key. No React. |
 | [data/tenThingsSeries.ts](data/tenThingsSeries.ts) | **Real Lyka.** Every number a Ten Things chart plots. Separate from the copy on purpose; see below. |
-| [data/brand.ts](data/brand.ts) | **The single source of truth for colour.** The `LYKA` palette, `SEGMENT_COLORS` + `getSegmentColor()`, `LayerKey` + `LAYER_COLORS`, `TEN_THINGS`, the **gap ramp** (`gapWash()`, `GAP_SCALE_MAX`, the capped wash bounds and `GAP_RAMP`), and the `CHART_*` chrome constants. No React, no DOM types, literal hex only. See "Brand and typography". |
+| [data/mediaFocus.ts](data/mediaFocus.ts) | **A client declaration, not a derivation.** Which Consumer Journey cells carry the media focus emphasis: two stage titles, three journeys, the label and the note. Consumed by all five journey views so the emphasis cannot drift between them. Matched by stage TITLE; both halves of the join asserted. No React. |
+| [data/brand.ts](data/brand.ts) | **The single source of truth for colour.** The `LYKA` palette, `SEGMENT_COLORS` + `getSegmentColor()`, `LayerKey` + `LAYER_COLORS`, `TEN_THINGS`, the **gap ramp** (`gapWash()`, `GAP_SCALE_MAX`, the capped wash bounds and `GAP_RAMP`), **`FOCUS`** (the media focus wash, its deliberately-lighter hover, rule and tag), and the `CHART_*` chrome constants. No React, no DOM types, literal hex only. See "Brand and typography". |
 | [data/__integrity.ts](data/__integrity.ts) | Dev-only assertions on the data joins `tsc` cannot see. Imported from `index.tsx` behind `import.meta.env.DEV`, so it is tree shaken out of production. |
 | [data/apexData.ts](data/apexData.ts) | **Still Hamilton.** The APEX methodology (SPEED generic, carries over) plus two audience tables whose `heavyPct` / `rmIndex` are an affluent-traveller Roy Morgan pull. See the warning in the header. |
 | [data/mediaPlanData.ts](data/mediaPlanData.ts) | **Real Lyka since 2026-08-05.** The Oct→Sep plan: `MONTHS` (Oct→Sep), `PLAN_LAYERS` (SHOW IT / CHECK IT / PROVE IT / TRY IT / SHARE IT, each with a `blurb`), `MEDIA_TOTAL = TOTAL_BUDGET = 11,000,000` (SPEED managed; no production line), `FLIGHTING_PCT` (the dashed overlay). Each `MediaRow` has **`owner: 'speed' \| 'lyka'`** (drives bar colour, the In house cells and the pop-up), `monthly` (12 values; all zeros on lyka rows), `budget` (0 on lyka rows), **`activeMonths`** (in-house flighting), optional `detail` (role/strategyLink/comesToLife/metrics), `images`, `captions`, `imageWeights`, `extraImages` + `extraCaptions`, and layout flags `provisional`, `pairedImages`, `stackedImages`, `stackedFirstSmall`. Sourced from the Lyka briefing workbook's **visible** `Budget Distribution $ Lyka SPEE` sheet + the three visible `Media Description` sheets; hidden content excluded per client direction (the `$ Lyka` sheet with the in-house dollars, the TRY IT / SHARE IT description sheets, the Australian Open row). **The workbook's own monthly grand-total row omits PROVE IT**, so monthly totals are derived from rows: January is $3,295,000, not the sheet's 3,200,000. **Since the 2026-08-06 review round it ALSO carries client copy and three creatives from `Changes to the intereactive media plan.pptx`, so it is no longer a pure transcription of the workbook and must not be "restored" to it.** Read the file header before editing. |
@@ -340,15 +449,17 @@ interface Persona {
 
 ```
 Australian Dog Owners  (centre disc)
-├── Unaware / Unconvinced (49%)   Disciplined Outsourcers (22%) | Secure Sleepwalkers (27%)
-├── Curious (25%)                 Conflicted Troubleshooters
+├── Unaware / Unconvinced (27%)   Secure Sleepwalkers (27%)
+├── Curious (47%)                 Conflicted Troubleshooters (25%) | Disciplined Outsourcers (22%)
 ├── Considering (15%)             Mindful Researchers
 └── Ready (11%)                   Devoted Caterers
 ```
 
-Percentages are share of the dog-owner market. Each persona also carries its share of Lyka's current customer base (6 / 3 / 9 / 55 / 27), and the inversion between the two columns is the deck's central argument.
+Percentages are share of the dog-owner market. Each persona also carries its share of Lyka's current customer base (3 / 9 / 6 / 55 / 27), and the inversion between the two columns is the deck's central argument.
 
-Unaware is the only stage with two personas, so its quadrant splits into two 45 degree wedges while the other three personas each get a full 90 degrees.
+**Curious is the only stage with two personas**, so its quadrant splits into two 45 degree wedges while the other three personas each get a full 90 degrees. That was Unaware until 2026-08-07; see the ⚠ note at the top of this file.
+
+**The wheel needed no title changes for that swap, and it is worth knowing why**, because the instinct is to shorten them. `title` is documented as abbreviated to fit the arc, and "Conflicted Troubleshooters" moving from a 90 degree wedge to a 45 degree one looks like it must overflow. It does not: measured in the browser, its longest line fills **48.5% of its arc**, which is no worse than "Considering" at 49.8% and it has always been fine. `maxCharsForSweep`'s floor of 10 is conservative, and the persona ring's radius is large enough that a 15 character word fits a 45 degree wedge comfortably. **Measure the rendered `getComputedTextLength()` against `getTotalLength()` on the label path before abbreviating anything.**
 
 Source: the enriched audience personas document and the four Roy Morgan Single Source profile exports, both in `.../New Business/Lyka/Roy Morgan/`.
 

@@ -85,11 +85,27 @@ export const journeyMeta: Record<JourneyType, JourneyMeta> = {
  * Tab order, up the readiness ladder. Deliberately the reverse of the source
  * deck's persona numbering, so it matches STAGE_ORDER in data/audienceModel.ts
  * and the sunburst's clockwise reading order.
+ *
+ * REORDERED 2026-08-07, following Disciplined Outsourcers to Curious. They led
+ * this strip while they were the first Unaware persona; Sleepwalkers now leads
+ * it alone and Outsourcers sits third, behind Troubleshooters, because within a
+ * stage the order is largest market share first (25% then 22%) and that is what
+ * `stageMetrics` sorts the chips by everywhere else.
+ *
+ * ⚠ TWO THINGS DEPEND ON THIS ARRAY beyond the strip, and neither is obvious:
+ *
+ *   - JOURNEY_STAGE_NAMES, the shared x axis of every cross-journey view, is
+ *     sourced from TAB_ORDER[0] ALONE. Reordering re-sources it. Integrity check
+ *     3c is what makes that safe.
+ *   - The gap matrix reads rows in this order, and its canary is one cell: TOP
+ *     LEFT MUST READ -40. Both Sleepwalkers and Outsourcers open at -40, so this
+ *     particular swap keeps it, which is exactly why it is worth stating: the
+ *     canary passing does not by itself prove the order is right.
  */
 export const TAB_ORDER: JourneyType[] = [
-  JourneyType.DISCIPLINED_OUTSOURCERS,
   JourneyType.SECURE_SLEEPWALKERS,
   JourneyType.CONFLICTED_TROUBLESHOOTERS,
+  JourneyType.DISCIPLINED_OUTSOURCERS,
   JourneyType.MINDFUL_RESEARCHERS,
   JourneyType.DEVOTED_CATERERS,
 ];

@@ -115,7 +115,7 @@ export const STAGE_ORDER = ['Unaware', 'Curious', 'Considering', 'Ready'] as con
 
 export const CENTRE_KEY = 'Australian Dog Owners';
 
-/** Strips the parenthetical share off a categoryData title: "Curious (25%)" -> "Curious". */
+/** Strips the parenthetical share off a categoryData title: "Curious (47%)" -> "Curious". */
 const stripShare = (title: string): string => title.replace(/\s*\([^)]*\)\s*$/, '').trim();
 
 const allPersonas: Persona[] = personaCategories.flatMap((c) => c.personas);

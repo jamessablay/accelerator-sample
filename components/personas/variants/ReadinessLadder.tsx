@@ -17,7 +17,7 @@ import type { PersonaVizProps } from './types';
 // Not decoration. Tint reads as unrealised, solid reads as realised, so the
 // encoding carries the same meaning as the geometry. It is also what forces the
 // `tint` / `tintInk` pair added to SegmentColorSet: at this size a dark fill
-// across 49% of the width dominates everything else on the page.
+// across 47% of the width dominates everything else on the page.
 //
 // LAYOUT IS HTML, NOT SVG. Percentage widths, real text truncation and hover
 // states are all free in flexbox, and every one of them is fiddly in SVG. Only
@@ -41,6 +41,30 @@ const offsets = (values: number[]): { start: number; end: number }[] => {
 
 /** Gutter between bands, in px. */
 const GAP = 3;
+
+/**
+ * Customer-share floor, in percent, for a band that can carry its stage name.
+ *
+ * ADDED 2026-08-07. The market bar has had a threshold like this since it was
+ * built; the customer bar never needed one because its smallest band was 9%. The
+ * Outsourcers move took Unaware's customer share to 3%, which is about 31px of
+ * band at 1280, and all three lines clipped at once: the figure lost its percent
+ * sign, the stage name rendered as "U..." and the index as "0...".
+ *
+ * 6 rather than something tighter, because the test is not whether the FIGURE
+ * fits. It is whether the NAME does, and "Considering" is the longest at roughly
+ * 76px at `label`. A 6% band is about 62px at 1280, which still truncates the
+ * word but leaves it recognisable; below that the name is noise.
+ *
+ * ⚠ WHY NOT A MIN WIDTH. The obvious fix is a `min-width` on the band, and it is
+ * wrong here: the ribbon SVG uses `viewBox="0 0 100 100"` with
+ * `preserveAspectRatio="none"`, so its x coordinates ARE the share percentages
+ * and line up with these flex widths by construction. Any band wider than its
+ * share silently detaches every ribbon from the band it points at, and the two
+ * would disagree by a few pixels in a way that looks like a rendering artefact
+ * rather than a lie. Degrade the LABEL, never the geometry.
+ */
+const CUSTOMER_NAME_FITS = 6;
 
 /**
  * Band width, gutters accounted for.
@@ -371,12 +395,18 @@ const ReadinessLadder: React.FC<PersonaVizProps> = (props) => {
         {stages.map((stage) => {
           const c = getSegmentColor(stage.key);
           const isDim = dimmedKey(stage.key);
+          // See CUSTOMER_NAME_FITS. Below it the band holds the figure and
+          // nothing else; the name and index stay on the hover title.
+          const nameFits = stage.customerPct >= CUSTOMER_NAME_FITS;
           return (
             <div
               key={stage.key}
-              // px-2, not px-3. The two 9% bands give about 56px of content at
-              // 1280 and "Unaware" needs roughly 50px at `label`.
-              className="relative rounded-lg overflow-hidden cursor-pointer flex flex-col justify-center px-2 transition-opacity duration-300"
+              // px-2 at full width, px-1 once the band is too narrow to name.
+              // At 3% the band is about 31px, and 16px of horizontal padding is
+              // half of it.
+              className={`relative rounded-lg overflow-hidden cursor-pointer flex flex-col justify-center transition-opacity duration-300 ${
+                nameFits ? 'px-2' : 'px-1'
+              }`}
               style={{
                 width: bandWidth(stage.customerPct, stages.length),
                 backgroundColor: c.base,
@@ -393,23 +423,29 @@ const ReadinessLadder: React.FC<PersonaVizProps> = (props) => {
               title={`${stage.label} | ${stage.customerPct}% of Lyka customers | ${stage.conversionIndex.toFixed(2)}x conversion index`}
             >
               <div
-                className="font-display text-figure 2xl:text-[32px] font-bold leading-none"
+                className={`font-display font-bold leading-none ${
+                  nameFits ? 'text-figure 2xl:text-[32px]' : 'text-body 2xl:text-lead'
+                }`}
                 style={{ color: c.ink }}
               >
                 {stage.customerPct}%
               </div>
-              <div
-                className="text-label 2xl:text-body font-semibold leading-tight truncate mt-1"
-                style={{ color: c.ink, opacity: 0.95 }}
-              >
-                {stage.key}
-              </div>
-              <div
-                className="font-mono text-meta 2xl:text-label leading-tight truncate"
-                style={{ color: c.ink, opacity: 0.85 }}
-              >
-                {stage.conversionIndex.toFixed(2)}x
-              </div>
+              {nameFits && (
+                <>
+                  <div
+                    className="text-label 2xl:text-body font-semibold leading-tight truncate mt-1"
+                    style={{ color: c.ink, opacity: 0.95 }}
+                  >
+                    {stage.key}
+                  </div>
+                  <div
+                    className="font-mono text-meta 2xl:text-label leading-tight truncate"
+                    style={{ color: c.ink, opacity: 0.85 }}
+                  >
+                    {stage.conversionIndex.toFixed(2)}x
+                  </div>
+                </>
+              )}
             </div>
           );
         })}

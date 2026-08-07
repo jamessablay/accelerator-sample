@@ -1,11 +1,13 @@
 import React from 'react';
 import JourneyScoreGraph from '../JourneyScoreGraph';
 import GapBar from '../GapBar';
-import { LYKA, getSegmentColor } from '../../../data/brand';
+import { LYKA, FOCUS, getSegmentColor } from '../../../data/brand';
+import { isFocusCell, MEDIA_FOCUS_LABEL, MEDIA_FOCUS_NOTE } from '../../../data/mediaFocus';
 import {
   SHARED_SCORE_DOMAIN,
   LEAD_MODE_THRESHOLDS,
   JOURNEY_STAGE_NAMES,
+  findOpeningLeadSplit,
 } from '../../../data/journeyModel';
 import { TRACKING } from '../../../data/type';
 import type { JourneyMetrics } from '../../../data/journeyModel';
@@ -18,11 +20,19 @@ import type { JourneyVizProps } from './types';
 // rescales per journey. So the five curves have never been comparable, and one
 // finding sitting in the data has never been visible:
 //
-//   The two Unaware personas are the ONLY ones where rational runs 40 points
+//   Sleepwalkers and Outsourcers are the ONLY ones where rational runs 40 points
 //   ahead of emotional at Precontemplation. They can argue themselves into their
 //   current food. Everyone else is emotion first.
 //
 // That is the belief gap, quantified from the study's own scores.
+//
+// ⚠ THAT SENTENCE IS DERIVED AT RUNTIME, and it is worth knowing why it had to
+// become so. It was hardcoded, and it named the STAGE ("the two Unaware
+// personas") rather than the personas. On 2026-08-07 Disciplined Outsourcers
+// moved to Curious on client direction and not one of the 50 scores changed, so
+// the finding stayed true and its wording became false, silently. It now comes
+// from findOpeningLeadSplit, so it reports whoever actually opens rational led
+// and disappears entirely if nobody does.
 //
 // ⚠ `gap` AND `leadMode` ARE DERIVED, not study ratings. The footnote says so on
 // screen. Do not drop it: labelled next to five research-sourced curves, an
@@ -51,6 +61,11 @@ const JourneyCard: React.FC<{
 }> = ({ journey, isActive, onSelect }) => {
   const colour = getSegmentColor(journey.segmentKey);
   const mode = LEAD_MODE_STYLE[journey.leadMode] ?? LEAD_MODE_STYLE.Balanced;
+  // Per card, so the two unmarked journeys stay unmarked. That contrast IS the
+  // finding the client asked for; marking all five would delete it.
+  const focusStages = journey.stages
+    .map((s) => s.title)
+    .filter((title) => isFocusCell(journey.type, title));
   return (
     <button
       onClick={onSelect}
@@ -106,17 +121,28 @@ const JourneyCard: React.FC<{
         compact
         columnWidth={75}
         showStageLabels={false}
+        focusStages={focusStages}
       />
     </button>
   );
 };
+
+/** "A", "A and B", "A, B and C". Oxford comma deliberately absent, house style. */
+const joinNames = (names: string[]): string =>
+  names.length <= 1
+    ? names[0] ?? ''
+    : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 
 const TensionMap: React.FC<JourneyVizProps> = ({
   journeys,
   active,
   onSelectJourney,
   onRequestVariant,
-}) => (
+}) => {
+  // Derived from the scores, never from the ladder. See the ⚠ note in the header.
+  const opening = findOpeningLeadSplit(journeys);
+
+  return (
   <div className="animate-fadeIn h-full flex flex-col min-h-0 overflow-y-auto custom-scrollbar">
     <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 mb-2">
       <span
@@ -133,6 +159,13 @@ const TensionMap: React.FC<JourneyVizProps> = ({
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-4 h-0.5" style={{ background: LYKA.accentInk }} />
           Rational
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span
+            className="inline-block w-4 h-2.5 rounded-sm border"
+            style={{ background: FOCUS.wash, borderColor: FOCUS.edge }}
+          />
+          {MEDIA_FOCUS_LABEL}
         </span>
       </span>
     </div>
@@ -165,12 +198,26 @@ const TensionMap: React.FC<JourneyVizProps> = ({
         className="rounded-2xl border px-4 py-3 flex flex-col justify-center"
         style={{ borderColor: LYKA.mint, backgroundColor: LYKA.ivory }}
       >
-        <p className="text-body leading-snug" style={{ color: LYKA.ink }}>
-          <strong>The two Unaware personas are the only ones where reason runs ahead of
-          feeling at the start</strong>, both by 40 points. They can argue themselves into the
-          food they already buy, which is why removing friction does nothing for them and only a
-          credible reason to doubt will move them. Every other persona opens emotion first.
-        </p>
+        {opening ? (
+          <p className="text-body leading-snug" style={{ color: LYKA.ink }}>
+            <strong>
+              {joinNames(opening.labels)}{' '}
+              {opening.labels.length === 1 ? 'is the only one' : 'are the only ones'} where reason
+              runs ahead of feeling at the start
+            </strong>
+            {opening.sharedMagnitude !== null
+              ? `, ${opening.labels.length === 2 ? 'both' : 'each'} by ${opening.sharedMagnitude} points`
+              : ` (${opening.gaps.join(', ')})`}
+            . They can argue themselves into the food they already buy, which is why removing
+            friction does nothing for them and only a credible reason to doubt will move them.
+            {opening.restOpenOpposite ? ' Every other persona opens emotion first.' : ''}
+          </p>
+        ) : (
+          <p className="text-body leading-snug" style={{ color: LYKA.ink }}>
+            No journey opens with reason clearly ahead of feeling, so the belief gap does not
+            separate these five at Precontemplation.
+          </p>
+        )}
         <p className="mt-2 text-meta leading-snug" style={{ color: LYKA.muted }}>
           The 50 emotional and rational scores are the study&apos;s own 0 to 100 ratings. Gap,
           opening gap and lead mode are derived by SPEED: gap is emotional minus rational, and
@@ -186,9 +233,10 @@ const TensionMap: React.FC<JourneyVizProps> = ({
         stages. So it is a sentence, not a fake axis. */}
     <p className="mt-2 text-meta flex-shrink-0" style={{ color: LYKA.muted }}>
       Each curve runs left to right through {JOURNEY_STAGE_NAMES.join(', ')}. Select any journey
-      to open it in full.
+      to open it in full. {MEDIA_FOCUS_NOTE}
     </p>
   </div>
-);
+  );
+};
 
 export default TensionMap;

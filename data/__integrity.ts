@@ -28,7 +28,8 @@ import { categoryData } from './categoryData';
 import { personaCategories } from './personasData';
 import { PERSONA_VIDEOS, personaVideo } from './personaMedia';
 import { PLAN_LAYERS, MEDIA_TOTAL, FLIGHTING_PCT, MONTHS } from './mediaPlanData';
-import { SEGMENT_COLORS, LAYER_COLORS, OWNER_COLORS, TEN_THINGS, TEN_THINGS_STROKE_TOKENS, LYKA, GAP_RAMP } from './brand';
+import { SEGMENT_COLORS, LAYER_COLORS, OWNER_COLORS, TEN_THINGS, TEN_THINGS_STROKE_TOKENS, LYKA, GAP_RAMP, FOCUS, GAP_NEGATIVE_HUE } from './brand';
+import { MEDIA_FOCUS_STAGES, MEDIA_FOCUS_JOURNEYS } from './mediaFocus';
 import { SEGMENT_IMAGES } from '../components/personas/CategoryDetail';
 import { TEN_THINGS_POINTS } from './tenThingsData';
 import {
@@ -522,6 +523,57 @@ export function runIntegrityChecks(): void {
     }
   }
 
+  // 6d. THE MEDIA FOCUS WASH IS A FILL AND INK PAIR TOO.
+  //
+  //     The wash lands UNDER real body copy in four views: whole table cells in
+  //     the Table and the Strip, and behind the curves in the Spine and Compare.
+  //     `LYKA.muted` is the ink on most of it and is already the palest legal
+  //     ink in the palette (check 6c), so there is no headroom on that side: if
+  //     the wash is ever deepened, the fix has to be the wash.
+  //
+  //     `washHover` is checked as well, and it is the one people get wrong. The
+  //     instinct on a clickable cell is to DARKEN on hover, which is what every
+  //     unwashed cell in the Strip does. On this wash that lands at 4.48:1,
+  //     under AA, so `washHover` deliberately goes the other way, toward white.
+  //     A future "make the hover more obvious" edit is a one character change
+  //     that breaks it, which is exactly what this check is for.
+  const focusSurfaces: [string, string][] = [
+    ['wash', FOCUS.wash],
+    ['washHover', FOCUS.washHover],
+  ];
+  for (const [name, surface] of focusSurfaces) {
+    for (const [inkName, ink] of [
+      ['LYKA.muted', LYKA.muted],
+      ['LYKA.ink', LYKA.ink],
+      ['LYKA.tealDeepest', LYKA.tealDeepest],
+    ] as const) {
+      const ratio = contrast(ink, surface);
+      if (ratio < TEXT_FLOOR) {
+        fail(`FOCUS.${name} ${surface}: ${inkName} on it is ${ratio.toFixed(2)}:1, below AA (${TEXT_FLOOR}:1). This wash sits under real body copy in the Table and the Strip.`);
+      }
+    }
+  }
+  //     The rule and the tag. The rule is a 3px non-text mark that has to hold
+  //     on BOTH surfaces it is drawn against: the wash, on a marked column, and
+  //     white, on the Spine's stepper.
+  for (const [name, surface] of [...focusSurfaces, ['white', '#FFFFFF'] as [string, string]]) {
+    const ratio = contrast(FOCUS.edge, surface);
+    if (ratio < NON_TEXT_FLOOR) {
+      fail(`FOCUS.edge ${FOCUS.edge} is ${ratio.toFixed(2)}:1 on ${name} ${surface}, below the ${NON_TEXT_FLOOR}:1 non-text floor. The focus rule is a mark, not decoration.`);
+    }
+  }
+  const tagRatio = contrast(FOCUS.tagInk, FOCUS.tagBg);
+  if (tagRatio < TEXT_FLOOR) {
+    fail(`FOCUS.tagInk ${FOCUS.tagInk} on FOCUS.tagBg ${FOCUS.tagBg} is ${tagRatio.toFixed(2)}:1, below AA (${TEXT_FLOOR}:1).`);
+  }
+  //     And the collision the gap matrix works around. If these ever differ,
+  //     that view's comment about why it uses a dashed GAP_INK outline instead
+  //     of FOCUS.edge stops being true, and someone should re-read the other
+  //     reason it gives (the fill is the datum), which still holds.
+  if (FOCUS.edge !== GAP_NEGATIVE_HUE) {
+    warn(`FOCUS.edge ${FOCUS.edge} no longer equals GAP_NEGATIVE_HUE ${GAP_NEGATIVE_HUE}. GapMatrix.tsx documents them as identical, which is half its reason for not outlining cells in FOCUS.edge. Re-read that note.`);
+  }
+
   // 6b. THE GAP RAMP IS A FILL AND INK PAIR, at every step.
   //
   //     The matrix prints a number in all 25 cells, so each ramp step is exactly
@@ -575,6 +627,40 @@ export function runIntegrityChecks(): void {
     if (declared.customerShare !== undefined && Math.abs(pct(declared.customerShare) - s.customerPct) > 0.01) {
       fail(`stage "${s.key}": personas sum to ${s.customerPct}% of customers but categoryData declares ${declared.customerShare}.`);
     }
+  }
+
+  // 7c. THE MEDIA FOCUS JOIN, both halves.
+  //
+  //     This is the purest example of what this file is for, because its failure
+  //     mode is the absence of something. A stage title that matches nothing
+  //     marks nothing: no error, no fallback colour, no broken layout. The deck
+  //     simply renders without the emphasis the client asked for, across all
+  //     five views at once, and looks entirely finished. Nobody notices a
+  //     highlight that is not there, which is why prose in mediaFocus.ts saying
+  //     "match by title" is not enough on its own.
+  //
+  //     A rename of "Contemplation" or "Preparation" in the source deck is the
+  //     realistic trigger, and check 3c would not catch it: renaming a stage
+  //     consistently across all five journeys keeps the shared axis valid.
+  for (const title of MEDIA_FOCUS_STAGES) {
+    if (!JOURNEY_STAGE_NAMES.includes(title)) {
+      fail(`MEDIA_FOCUS_STAGES has "${title}", which is not a journey stage. The axis is [${JOURNEY_STAGE_NAMES.join(' | ')}]. That stage will be highlighted nowhere, in all five views, silently.`);
+    }
+  }
+  for (const type of MEDIA_FOCUS_JOURNEYS) {
+    if (!journeyMetrics.some((j) => j.type === type)) {
+      fail(`MEDIA_FOCUS_JOURNEYS has "${type}", which resolves to no journey. Its emphasis will never render.`);
+    }
+  }
+  //     And the count, because the emphasis is an ARGUMENT, not decoration: the
+  //     three marked journeys read against two unmarked ones. Marking all five
+  //     deletes the contrast and leaves only colour, so a well meant "make it
+  //     consistent" edit is worth a warning even though nothing breaks.
+  if (MEDIA_FOCUS_JOURNEYS.length >= journeyMetrics.length) {
+    warn(`MEDIA_FOCUS_JOURNEYS covers all ${journeyMetrics.length} journeys, so nothing is unmarked. The client's point was that these are the journeys media addresses AND the others are not.`);
+  }
+  if (MEDIA_FOCUS_STAGES.length >= JOURNEY_STAGE_NAMES.length) {
+    warn(`MEDIA_FOCUS_STAGES covers every stage, so the wash marks the whole table and distinguishes nothing.`);
   }
 
   // 8. Variant registries. A duplicate id makes the switcher unclickable for one

@@ -60,7 +60,7 @@ const CHIP_ROW_GAP = 54;
 const CAPTION_GAP = 34;
 const SUBLINE_GAP = 22;
 const CHIP_GAP = 20;
-/** Deepest stage carries two personas. */
+/** Most personas any one stage carries. Curious, since 2026-08-07. */
 const MAX_CHIP_ROWS = 2;
 const BOTTOM_PAD = 16;
 /** Fixed, type-driven block under the node row. Never scales. */
@@ -79,9 +79,16 @@ const VB_H_MAX = 700;
  * Largest node radius, growing with the box.
  *
  * CAPPED AT 125 BY THE HORIZONTAL GEOMETRY, not by taste. Stations are 290 apart
- * and the two biggest neighbours are Unaware (R_MAX) and Curious
- * (R_MAX x sqrt(25/49) = 0.71 R_MAX). They collide once 1.71 x R_MAX exceeds the
- * 290 gap less the ribbon run, so anything above about 134 touches.
+ * and the two biggest neighbours are Curious (R_MAX) and Unaware
+ * (R_MAX x sqrt(27/47) = 0.76 R_MAX). They collide once 1.76 x R_MAX exceeds the
+ * 290 gap less the ribbon run, so anything above about 130 touches.
+ *
+ * That pair USED to be Unaware (R_MAX) and Curious (0.71 R_MAX) summing to 1.71,
+ * and it moved on 2026-08-07 when Disciplined Outsourcers went to Curious: the
+ * biggest node is now Curious at 47%, not Unaware at 49%. The cap held because
+ * the sum only went 1.71 to 1.76, but RE-CHECK THIS SUM whenever a persona moves
+ * stage, because the two largest ADJACENT nodes are what sets it, not the two
+ * largest nodes.
  */
 const maxRadiusFor = (vbH: number) => Math.min(125, Math.max(74, 74 + (vbH - VB_H_MIN) * 0.28));
 
@@ -113,20 +120,52 @@ interface SkipEdge {
   personaId: number;
   /** Short label. A quoted fragment of that persona's `movement` field. */
   label: string;
+  /**
+   * Horizontal offset of the riser off the source node's centre, in user units.
+   *
+   * NEEDED SINCE 2026-08-07, because BOTH jumps now leave the same node. Two
+   * risers on the same x are collinear from the node top up to the lower lane,
+   * so they overprint: the upper edge's white casing erases the lower edge's
+   * dashes for that whole run, and what should read as two routes reads as one
+   * line that forks. Splitting them a few units apart keeps each one traceable
+   * back to its own node. The riser still starts ON the circle, because the
+   * chord offset is solved into y1 rather than assumed to be the top.
+   */
+  fromDx?: number;
 }
 
 /**
- * The two jumps the research names.
+ * The two jumps the research names. BOTH NOW LEAVE CURIOUS.
  *
+ *  - Conflicted Troubleshooters (301): "An acute health or fussiness trigger can
+ *    produce a direct Curious → Ready jump."
  *  - Disciplined Outsourcers (401): "Unconvinced → Considering or Ready after an
  *    expert or health trigger." Drawn to Considering, the first named target;
  *    the label carries "or Ready".
- *  - Conflicted Troubleshooters (301): "An acute health or fussiness trigger can
- *    produce a direct Curious → Ready jump."
+ *
+ * ⚠ THE OUTSOURCERS EDGE MOVED WITH THE PERSONA and its `movement` string did
+ * not. That string still says "Unconvinced", because it is the research's own
+ * wording and the client asked only for the placement to change. The edge is
+ * drawn from where the persona now SITS, which is the honest reading: the jump
+ * is theirs, so it leaves from wherever they are.
+ */
+/**
+ * ORDER AND LANE ARE BOTH LOAD BEARING, and only rendering shows why.
+ *
+ * LANE: the LONGER jump takes the outer lane (0, higher up the page) and the
+ * shorter one takes the inner lane. Do it the other way round and the long
+ * route's descent lands at x 710, which is in the middle of the short route's
+ * lane, so it crosses that lane's LABEL and its 8px white casing eats a hole in
+ * the middle of a sentence. With the long route outside, its descent is at x
+ * 1000, past where the short route's run ends, and the two never cross at all.
+ *
+ * ORDER: the short edge is second so that its label casing paints OVER the long
+ * edge's riser, which does pass behind that label. Later wins in SVG, so the
+ * edge whose label is at risk must be drawn last.
  */
 const SKIP_EDGES: SkipEdge[] = [
-  { fromIndex: 0, toIndex: 2, laneIndex: 0, personaId: 401, label: 'Expert or health trigger: Outsourcers jump to Considering or Ready' },
-  { fromIndex: 1, toIndex: 3, laneIndex: 1, personaId: 301, label: 'Acute health or fussiness trigger: a direct jump to Ready' },
+  { fromIndex: 1, toIndex: 3, laneIndex: 0, personaId: 301, label: 'Acute health or fussiness trigger: a direct jump to Ready', fromDx: -26 },
+  { fromIndex: 1, toIndex: 2, laneIndex: 1, personaId: 401, label: 'Expert or health trigger: Outsourcers jump to Considering or Ready', fromDx: 26 },
 ];
 
 /** Which persona's movement goal drives each sequential step. */
@@ -251,9 +290,14 @@ const MindsetFlow: React.FC<PersonaVizProps> = ({
           const from = stages[edge.fromIndex];
           const to = stages[edge.toIndex];
           const c = getSegmentColor(from.key);
-          const x1 = STATION_X[edge.fromIndex];
+          // The riser leaves the node's rim, not its bounding box. Offsetting x
+          // without solving y would start the line INSIDE the circle by
+          // r - sqrt(r^2 - dx^2), which at dx 26 on the big node is visible.
+          const dx = edge.fromDx ?? 0;
+          const rFrom = radii[edge.fromIndex];
+          const x1 = STATION_X[edge.fromIndex] + dx;
           const x2 = STATION_X[edge.toIndex];
-          const y1 = CY - radii[edge.fromIndex];
+          const y1 = CY - Math.sqrt(Math.max(0, rFrom * rFrom - dx * dx));
           const y2 = CY - radii[edge.toIndex];
           const Y = skipLaneY[edge.laneIndex];
           const r = 14;

@@ -15,11 +15,30 @@
 // the same folder (Unaware / Curious / Considering / Ready Owner .prwx), so the
 // ladder is a research artefact, not a framework laid over the data afterwards.
 //
-// STRUCTURE: Unaware carries TWO personas (Disciplined Outsourcers and Secure
-// Sleepwalkers); the other three stages carry one each. On the wheel the Unaware
-// quadrant therefore splits into two 45 degree wedges while the other three
-// personas each get a full 90 degrees. That is why the two Unaware titles are the
-// shortest: they have half the arc to label.
+// STRUCTURE: Curious carries TWO personas (Conflicted Troubleshooters and
+// Disciplined Outsourcers); the other three stages carry one each. On the wheel
+// the Curious quadrant therefore splits into two 45 degree wedges while the other
+// three personas each get a full 90 degrees. That is why the two Curious titles
+// are the shortest: they have half the arc to label.
+//
+// ⚠ ONE PLACEMENT HERE IS A CLIENT DECISION, NOT THE RESEARCH'S. On 2026-08-07
+// Lyka asked for Disciplined Outsourcers to sit in CURIOUS. The source document
+// places them in Unaware / Unconvinced, so this is the one field in this file
+// that its generator would not produce. It is `category` (plus the `stageLabel`
+// that must follow it) on id 401 and NOTHING ELSE: every string on that record is
+// still the research's own, verbatim, including two that now read against the new
+// stage and were deliberately NOT reworded, because they are copy the client
+// reads as theirs:
+//
+//   - `movement`  "Unconvinced → Considering or Ready after an expert or health
+//                 trigger." The ladder now starts that jump from Curious.
+//   - `barriers[0]` "No immediate evidence that their current routine is
+//                 failing." That is an Unaware posture as the source frames it.
+//
+// So REGENERATING THIS FILE SILENTLY REVERTS THE MOVE. It will put 401 back in
+// Unaware, the stage shares will go back to 49/25 and integrity check 7b will
+// fail against categoryData until that is reconciled too. Re-apply the two fields
+// after any regeneration.
 //
 // `avatar` and `videoUrl` are still EMPTY on every record, and the persona films
 // that landed on 2026-08-04 did NOT change that. They are joined by persona id in
@@ -228,8 +247,12 @@ const lykaPersonas: Persona[] = [
     id: 401,
     name: "Disciplined Outsourcers",
     title: "Outsourcers",
-    category: "Unaware",
-    stageLabel: "UNAWARE / UNCONVINCED",
+    // CLIENT PLACEMENT, 2026-08-07. The source document has these two fields as
+    // "Unaware" / "UNAWARE / UNCONVINCED". See the ⚠ note in the file header:
+    // these are the only two values here the generator would not produce, and a
+    // regeneration reverts them.
+    category: "Curious",
+    stageLabel: "CURIOUS",
     marketShare: "22%",
     customerShare: "6%",
     solutionFit: "Medium",

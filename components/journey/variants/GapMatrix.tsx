@@ -3,6 +3,7 @@ import Modal from '../../shared/Modal';
 import GapBar from '../GapBar';
 import {
   LYKA,
+  FOCUS,
   getSegmentColor,
   gapWash,
   GAP_INK,
@@ -10,6 +11,9 @@ import {
   GAP_POSITIVE_HUE,
   GAP_NEGATIVE_HUE,
 } from '../../../data/brand';
+// MEDIA_FOCUS_NOTE is deliberately NOT imported: it names the colour green, and
+// this view marks with a dashed outline instead. See its docblock.
+import { isFocusCell, isFocusStage, MEDIA_FOCUS_LABEL } from '../../../data/mediaFocus';
 import { TRACKING } from '../../../data/type';
 import {
   JOURNEY_STAGE_NAMES,
@@ -67,6 +71,26 @@ import type { JourneyVizProps } from './types';
 // AND THE AXIS IS INDEXED, NOT MAPPED. We walk JOURNEY_STAGE_NAMES and look the
 // stage up by title, so a renamed or reordered stage renders an explicit empty
 // cell in the RIGHT column instead of shifting its neighbours.
+//
+// -----------------------------------------------------------------------------
+// ⚠ THE MEDIA FOCUS MARK IS DELIBERATELY NOT THE WASH THE OTHER FOUR VIEWS USE.
+//
+// Two separate reasons, and both are about this view specifically.
+//
+// FIRST, THE FILL IS THE DATUM. Every cell is already coloured by `gapWash(g)`,
+// so laying a green over the marked ones does not add emphasis, it changes 6 of
+// the 25 readings. The wash appears only on the column HEADERS, which carry no
+// value.
+//
+// SECOND, `FOCUS.edge` IS BYTE FOR BYTE `GAP_NEGATIVE_HUE`. Both are #0A7D68,
+// because both were derived from the same Lyka accent ink for good reasons in
+// their own files. An outline in it would put the ramp's "reason ahead" colour
+// around a cell that might sit at the opposite end of that ramp. So the cells
+// take a DASHED outline in GAP_INK, which is the ink already printing a number
+// in all 25: it introduces no hue, and a dash reads as annotation.
+//
+// If FOCUS.edge is ever changed, this stops being a collision and the reasoning
+// above stops applying. The first reason still does.
 // -----------------------------------------------------------------------------
 
 const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
@@ -150,7 +174,8 @@ const GapMatrix: React.FC<JourneyVizProps> = ({
         Derived by SPEED, not a study rating: gap is emotional minus rational. Positive means
         feeling runs ahead of reason, negative means reason runs ahead. The 50 underlying
         emotional and rational scores are the study&apos;s own 0 to 100 ratings, and every cell
-        shows both. The scale is symmetric to plus or minus {GAP_SCALE_MAX}.
+        shows both. The scale is symmetric to plus or minus {GAP_SCALE_MAX}. Dashed cells mark
+        Contemplation and Preparation on the three journeys media is addressing.
       </p>
 
       {/* ---- The matrix ---- */}
@@ -181,9 +206,25 @@ const GapMatrix: React.FC<JourneyVizProps> = ({
             <div
               key={name}
               data-stage-header={name}
-              className="relative px-2.5 py-2 flex items-center transition-colors"
-              style={{ backgroundColor: hover?.stageIndex === c ? LYKA.mint : LYKA.cream }}
+              className="relative px-2.5 py-2 flex items-center gap-2 transition-colors"
+              style={{
+                backgroundColor: hover?.stageIndex === c
+                  ? LYKA.mint
+                  : isFocusStage(name)
+                    ? FOCUS.wash
+                    : LYKA.cream,
+              }}
             >
+              {/* The header is the ONE surface in this view that carries no
+                  datum, so the wash and the rule are safe here. See the ⚠ note
+                  in the header about why they are not safe on the cells. */}
+              {isFocusStage(name) && (
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-0 top-0 h-[3px]"
+                  style={{ backgroundColor: FOCUS.edge }}
+                />
+              )}
               <span
                 className="text-label font-bold truncate"
                 title={name}
@@ -191,6 +232,15 @@ const GapMatrix: React.FC<JourneyVizProps> = ({
               >
                 {name}
               </span>
+              {isFocusStage(name) && (
+                <span
+                  className="flex-shrink-0 rounded px-1 py-0.5 font-mono text-[9px] font-bold uppercase"
+                  style={{ backgroundColor: FOCUS.tagBg, color: FOCUS.tagInk }}
+                  title={MEDIA_FOCUS_LABEL}
+                >
+                  Focus
+                </span>
+              )}
               {/* The marker moves with the finding, because both read the same
                   derived value. It is never a hardcoded column index. */}
               {universal?.stageIndex === c && (
@@ -291,8 +341,26 @@ const GapMatrix: React.FC<JourneyVizProps> = ({
                       onSelectJourney(j.type);
                       setOpen({ journeyIndex: r, stageIndex: c });
                     }}
-                    aria-label={`${j.meta.title}, ${stageName}. Emotional ${cell.score.emotional}, rational ${cell.score.rational}, derived gap ${signed(g)}.`}
+                    aria-label={`${j.meta.title}, ${stageName}. Emotional ${cell.score.emotional}, rational ${cell.score.rational}, derived gap ${signed(g)}.${
+                      isFocusCell(j.type, stageName) ? ` ${MEDIA_FOCUS_LABEL}.` : ''
+                    }`}
                   >
+                    {/* Media focus, drawn as a DASHED OUTLINE IN THE CELL'S OWN
+                        INK. Not the wash, and not FOCUS.edge. See the ⚠ note in
+                        the file header: the fill here is the datum, and
+                        FOCUS.edge is byte for byte GAP_NEGATIVE_HUE, so an edge
+                        in it would read as the ramp's "reason ahead" end
+                        wrapping a cell that may be at the opposite end. GAP_INK
+                        already prints the number in all 25 cells, so it adds no
+                        hue at all, and dashes read as annotation rather than as
+                        data. */}
+                    {isFocusCell(j.type, stageName) && (
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-0 rounded-[2px]"
+                        style={{ border: `2px dashed ${GAP_INK}` }}
+                      />
+                    )}
                     <span
                       className="font-mono text-label roomy:text-body 2xl:text-lead font-bold"
                       style={{ color: GAP_INK }}

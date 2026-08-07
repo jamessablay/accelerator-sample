@@ -4,10 +4,20 @@ import { JourneySubCategory, JourneyStageDetail } from '../../data/journeyDetail
 import JourneyScoreGraph from './JourneyScoreGraph';
 import Modal from '../shared/Modal';
 import InfoIcon from '../icons/InfoIcon';
-import { LYKA } from '../../data/brand';
+import { LYKA, FOCUS } from '../../data/brand';
+import { MEDIA_FOCUS_LABEL, MEDIA_FOCUS_NOTE } from '../../data/mediaFocus';
 
 interface JourneyDetailTableProps {
   journey: JourneySubCategory;
+  /**
+   * Stage titles to wash as the media focus, for THIS journey. Resolved by the
+   * caller (see TableAdapter), so this component holds no opinion about which
+   * journeys or stages qualify and cannot drift from the other four views.
+   *
+   * OPTIONAL AND DEFAULTED so the baseline contract is intact: called without
+   * it, this table renders exactly what it rendered before 2026-08-07.
+   */
+  focusStages?: readonly string[];
 }
 
 interface RowConfig {
@@ -35,7 +45,7 @@ const ROW_CONFIG: RowConfig[] = [
     { title: 'Moments to win',                render: (stage) => renderStandardList(stage.momentsToWin) },
 ];
 
-const JourneyDetailTable: React.FC<JourneyDetailTableProps> = ({ journey }) => {
+const JourneyDetailTable: React.FC<JourneyDetailTableProps> = ({ journey, focusStages = [] }) => {
     const [selectedStage, setSelectedStage] = useState<JourneyStageDetail | null>(null);
 
     if (!journey || !journey.stages || journey.stages.length === 0) {
@@ -43,6 +53,10 @@ const JourneyDetailTable: React.FC<JourneyDetailTableProps> = ({ journey }) => {
     }
 
     const { stages } = journey;
+
+    // BY TITLE, not by column index. See data/mediaFocus.ts.
+    const isFocus = (stage: JourneyStageDetail) => focusStages.includes(stage.title);
+    const anyFocus = stages.some(isFocus);
 
     const handleHeaderClick = (stage: JourneyStageDetail) => {
         if (stage.definition || stage.coreQuestion) {
@@ -67,14 +81,30 @@ const JourneyDetailTable: React.FC<JourneyDetailTableProps> = ({ journey }) => {
                             >
                             {/* Empty top-left corner */}
                             </th>
-                            {stages.map((stage) => (
+                            {stages.map((stage) => {
+                                const focus = isFocus(stage);
+                                return (
                                 <th
                                     key={stage.title}
                                     scope="col"
-                                    className={`px-6 py-4 w-56 text-left text-sm font-bold uppercase tracking-wider border-b ${stage.definition ? 'cursor-pointer transition-colors hover:brightness-[0.97]' : ''}`}
-                                    style={{ color: LYKA.muted, borderColor: LYKA.mint }}
+                                    className={`relative px-6 py-4 w-56 text-left text-sm font-bold uppercase tracking-wider border-b ${stage.definition ? 'cursor-pointer transition-colors hover:brightness-[0.97]' : ''}`}
+                                    style={{
+                                        color: LYKA.muted,
+                                        borderColor: LYKA.mint,
+                                        backgroundColor: focus ? FOCUS.wash : undefined,
+                                    }}
                                     onClick={() => handleHeaderClick(stage)}
                                 >
+                                    {/* The rule sits ON TOP of the column, where the
+                                        wash begins, so the marked column reads as one
+                                        object from here down. */}
+                                    {focus && (
+                                        <span
+                                            aria-hidden="true"
+                                            className="absolute inset-x-0 top-0 h-[3px]"
+                                            style={{ backgroundColor: FOCUS.edge }}
+                                        />
+                                    )}
                                     <div className="flex items-center">
                                         <div
                                             className="flex-shrink-0 h-8 w-8 flex items-center justify-center rounded-full text-white mr-3"
@@ -90,8 +120,17 @@ const JourneyDetailTable: React.FC<JourneyDetailTableProps> = ({ journey }) => {
                                             {stage.definition && <InfoIcon className="w-5 h-5 ml-1.5" style={{ color: LYKA.muted }} />}
                                         </div>
                                     </div>
+                                    {focus && (
+                                        <span
+                                            className="mt-1.5 inline-block rounded px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider"
+                                            style={{ backgroundColor: FOCUS.tagBg, color: FOCUS.tagInk }}
+                                        >
+                                            {MEDIA_FOCUS_LABEL}
+                                        </span>
+                                    )}
                                 </th>
-                            ))}
+                                );
+                            })}
                         </tr>
                     </thead>
                     <tbody className="divide-y" style={{ borderColor: LYKA.mint }}>
@@ -105,7 +144,15 @@ const JourneyDetailTable: React.FC<JourneyDetailTableProps> = ({ journey }) => {
                                     {row.title}
                                 </th>
                                 {stages.map((stage, idx) => (
-                                    <td key={`${stage.title}-${idx}`} className="px-6 py-5 text-base align-top" style={{ color: LYKA.muted }}>
+                                    <td
+                                        key={`${stage.title}-${idx}`}
+                                        className="px-6 py-5 text-base align-top"
+                                        style={{
+                                            color: LYKA.muted,
+                                            // 4.75:1 for this ink on the wash. Asserted, check 6d.
+                                            backgroundColor: isFocus(stage) ? FOCUS.wash : undefined,
+                                        }}
+                                    >
                                         {row.render(stage)}
                                     </td>
                                 ))}
@@ -136,7 +183,14 @@ const JourneyDetailTable: React.FC<JourneyDetailTableProps> = ({ journey }) => {
                                 Duration
                             </th>
                             {stages.map(stage => (
-                                <td key={`${stage.title}-duration`} className="px-6 py-5 text-base font-medium align-top" style={{ color: LYKA.ink }}>
+                                <td
+                                    key={`${stage.title}-duration`}
+                                    className="px-6 py-5 text-base font-medium align-top"
+                                    style={{
+                                        color: LYKA.ink,
+                                        backgroundColor: isFocus(stage) ? FOCUS.wash : undefined,
+                                    }}
+                                >
                                     {stage.duration}
                                 </td>
                             ))}
@@ -145,6 +199,15 @@ const JourneyDetailTable: React.FC<JourneyDetailTableProps> = ({ journey }) => {
                 </table>
             </div>
         </div>
+
+        {/* An unexplained colour on a data table reads as an encoding, so the
+            wash says what it is. Rendered only when something is actually
+            marked, or it describes an emphasis that is not on screen. */}
+        {anyFocus && (
+            <p className="mt-2 text-meta" style={{ color: LYKA.muted }}>
+                {MEDIA_FOCUS_NOTE}
+            </p>
+        )}
 
         <Modal
             isOpen={!!selectedStage}

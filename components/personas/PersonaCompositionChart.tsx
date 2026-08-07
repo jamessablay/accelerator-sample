@@ -154,9 +154,9 @@ const wrapText = (text: string, maxCharsPerLine: number, maxLines: number = 2): 
     return lines;
 };
 
-// Split a "Segment Name (49%)" title into [...wrappedName lines, share].
+// Split a "Segment Name (27%)" title into [...wrappedName lines, share].
 //
-// Putting the share on its own line is not cosmetic: "Unaware / Unconvinced (49%)"
+// Putting the share on its own line is not cosmetic: "Unaware / Unconvinced (27%)"
 // is 27 characters and clips at both ends of a 90 degree arc on one line. It also
 // makes the four stage labels visually consistent.
 //
@@ -318,7 +318,7 @@ const PersonaCompositionChart: React.FC<Props> = ({ categories, onSelectPersona,
         const title = categoryData[key]?.title || key;
         const S_R = RADIUS_CONFIG.stage;
         // Stage titles carry their market share, e.g. "Considering (15%)". Split so
-        // the share sits on its own line: "Unaware / Unconvinced (49%)" is 27
+        // the share sits on its own line: "Unaware / Unconvinced (27%)" is 27
         // characters and overruns a 90 degree arc on one line, clipping at both
         // ends. Splitting also makes the four labels visually consistent.
         const lines = splitTitleWithCount(title, 13, 2);

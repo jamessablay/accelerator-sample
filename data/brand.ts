@@ -84,6 +84,54 @@ export const LYKA = {
 } as const;
 
 // -----------------------------------------------------------------------------
+// MEDIA FOCUS: the emphasis on the Consumer Journey stages media addresses
+// -----------------------------------------------------------------------------
+//
+// Requested by Lyka on 2026-08-07, to make two stages easy to find while
+// presenting. What it marks is declared in data/mediaFocus.ts; this is only the
+// colour. A FIFTH band, deliberately, alongside the wheel's dark SEGMENT_COLORS,
+// the media plan's light LAYER_COLORS, TEN_THINGS and the gap ramp.
+//
+// WHY ITS OWN BAND rather than reusing `LYKA.accent` or a segment tint. This
+// wash lands on top of views that already encode something in colour: the
+// journey tab strip and every card border are the PERSONA'S stage colour, and a
+// segment tint here would read as "this column belongs to that stage". The
+// emphasis is orthogonal to both, so it gets a hue nothing else in these views
+// fills with.
+//
+// ⚠ THE GAP MATRIX DOES NOT USE `wash`, AND MUST NOT. Its 25 cells are already
+// filled by a diverging ramp where the fill IS the datum, so a green overlay
+// there does not add emphasis, it corrupts a reading. It takes `edge` as an
+// outline instead. Any future view that fills its cells has the same problem.
+//
+// Contrast, all asserted in data/__integrity.ts check 6d:
+//   LYKA.muted on wash      4.75:1  the body text of every table cell
+//   LYKA.ink on wash        7.99:1
+//   LYKA.tealDeepest on wash 12.3:1  headers
+//   edge on wash            4.43:1  above the 3:1 non-text floor
+//   edge on white           5.07:1  so the rule survives on an unwashed surface
+//   tagInk on tagBg         5.07:1  AA for the tag itself
+export const FOCUS = {
+  /** Column wash. Light enough that `LYKA.muted` body copy still clears AA. */
+  wash: '#E3F2EC',
+  /**
+   * Hover on a washed, clickable cell. LIGHTER than `wash`, not darker, and that
+   * is the opposite of what the unwashed cells do (white to `LYKA.ivory`).
+   *
+   * Deliberate, and forced by the same arithmetic as the gantt shading. The ink
+   * on these cells is `LYKA.muted`, which clears AA on `wash` at 4.75:1 with
+   * very little room. One step DARKER lands at 4.48:1, under AA, so darkening on
+   * hover would make a cell fractionally illegal exactly while a reader is
+   * pointing at it. Lifting toward white can only improve it.
+   */
+  washHover: '#EDF7F3',
+  /** Rule and outline. Also the tag fill. */
+  edge: '#0A7D68',
+  tagBg: '#0A7D68',
+  tagInk: '#FFFFFF',
+} as const;
+
+// -----------------------------------------------------------------------------
 // Segment colours (the Personas sunburst + the Consumer Journey tab strip)
 // -----------------------------------------------------------------------------
 //
@@ -155,14 +203,15 @@ export const SEGMENT_COLORS: Record<string, SegmentColorSet> = {
     base: '#003D33', hover: '#00524A', lighter: '#0A6B5A', lighterHover: '#0C7D69',
     tint: '#DCE9E5', ink: '#FFFFFF', tintInk: '#003D33',
   },
-  // 49% of market but only 9% of Lyka customers. Muted on purpose: this is the
+  // 27% of market but only 3% of Lyka customers. Muted on purpose: this is the
   // audience that perceives no problem. 4.9:1 base, 3.5:1 lighter.
   Unaware: {
     base: '#5B6E64', hover: '#6B8074', lighter: '#7C8B7E', lighterHover: '#8E9C90',
     tint: '#E3E8E4', ink: '#FFFFFF', tintInk: '#37453E',
   },
-  // The tension stage. Terracotta reads as friction, which is the whole story
-  // of the Conflicted Troubleshooters. 7.5:1 base, 5.0:1 lighter.
+  // The tension stage, and since 2026-08-07 the biggest one: 47% of market
+  // against 15% of customers. Terracotta reads as friction, which is the whole
+  // story of the Conflicted Troubleshooters. 7.5:1 base, 5.0:1 lighter.
   Curious: {
     base: '#8C3D24', hover: '#A04730', lighter: '#B0553B', lighterHover: '#C4664A',
     tint: '#F3DFD7', ink: '#FFFFFF', tintInk: '#6E2F1B',

@@ -95,10 +95,15 @@ export type LeadMode = 'Emotion led' | 'Rational led' | 'Balanced';
  * Thresholds on the Precontemplation gap (emotional minus rational).
  *
  * Chosen against the real spread, which is strongly bimodal rather than
- * continuous: the two Unaware personas both sit at -40, Researchers at -15, and
- * the two warm personas at +20 and +25. Any cut inside those gaps gives the same
- * grouping, so the exact numbers are not load bearing. Revisit them if the study
- * is revised.
+ * continuous: Sleepwalkers and Outsourcers both sit at -40, Researchers at -15,
+ * and the two warm personas at +20 and +25. Any cut inside those gaps gives the
+ * same grouping, so the exact numbers are not load bearing. Revisit them if the
+ * study is revised.
+ *
+ * NAMED BY PERSONA, not by stage. This comment said "the two Unaware personas"
+ * until 2026-08-07, when Outsourcers moved to Curious and the description went
+ * stale even though not one score changed. The grouping is a fact about the
+ * scores; the ladder is a separate axis and can move under it.
  */
 export const LEAD_MODE_THRESHOLDS = { emotionLed: 15, rationalLed: -30 } as const;
 
@@ -244,6 +249,53 @@ export const findUniversalStageShift = (
     };
   }
   return null;
+};
+
+export interface OpeningLeadSplit {
+  /** Names of the journeys that open rational led, in ladder order. */
+  labels: string[];
+  /** Their opening gaps, index joined to `labels`. */
+  gaps: number[];
+  /**
+   * Shared magnitude when all of them open on the SAME gap, else null. Today all
+   * of them are exactly -40, which is what lets the copy say "both by 40 points".
+   * A revised study that splits them drops that clause rather than rounding.
+   */
+  sharedMagnitude: number | null;
+  /** True when every OTHER journey opens on the opposite side. */
+  restOpenOpposite: boolean;
+}
+
+/**
+ * Which journeys open with REASON ahead of feeling, and whether that is the
+ * minority position.
+ *
+ * DERIVED, and it did not used to be. TensionMap stated this finding as the
+ * hardcoded sentence "the two UNAWARE personas are the only ones...", which was
+ * true of the model rather than of the numbers. It stopped being true on
+ * 2026-08-07, when Disciplined Outsourcers moved to Curious and one of that pair
+ * left the stage the sentence named, while the underlying scores did not move at
+ * all. Nothing on screen would have said so.
+ *
+ * So the finding is now about the SCORES, which is what it was always measuring:
+ * these journeys open rational led, whatever stage they sit in. Returns null
+ * when there is no contrast to state, meaning none of them do or all of them do.
+ */
+export const findOpeningLeadSplit = (metrics: JourneyMetrics[]): OpeningLeadSplit | null => {
+  const rationalLed = metrics.filter((m) => m.leadMode === 'Rational led');
+  if (rationalLed.length === 0 || rationalLed.length === metrics.length) return null;
+
+  const gaps = rationalLed.map((m) => m.openingGap);
+  const magnitudes = new Set(gaps.map(Math.abs));
+
+  return {
+    labels: rationalLed.map((m) => m.meta.label),
+    gaps,
+    sharedMagnitude: magnitudes.size === 1 ? [...magnitudes][0] : null,
+    restOpenOpposite: metrics
+      .filter((m) => m.leadMode !== 'Rational led')
+      .every((m) => m.openingGap > 0),
+  };
 };
 
 export interface LevelCell {

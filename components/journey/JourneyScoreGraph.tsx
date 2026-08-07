@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { JourneyStageDetail } from '../../data/journeyDetailsData';
 import { parseScoreValue, parseScoreData } from '../../data/journeyModel';
 import { TYPE, TRACKING, svgFont } from '../../data/type';
+import { FOCUS } from '../../data/brand';
 import { useElementSize } from '../../hooks/useElementSize';
 
 // -----------------------------------------------------------------------------
@@ -47,6 +48,20 @@ interface JourneyScoreGraphProps {
   activeStageIndex?: number | null;
   /** Click a stage column. */
   onSelectStage?: (index: number) => void;
+  /**
+   * Stage TITLES to band as the media focus. Empty or absent draws nothing, so
+   * the Table baseline is unaffected.
+   *
+   * Titles, not indices, and matched against `stage.title`. Every other
+   * cross-journey join in this app learned the same lesson: an index marks the
+   * wrong column silently when a stage moves, and the result still looks
+   * deliberate.
+   *
+   * The band is painted FIRST, under the gridlines and both curves. It is
+   * context for the plot, not a series in it, so nothing that encodes data may
+   * end up behind it.
+   */
+  focusStages?: readonly string[];
 }
 
 interface PointData {
@@ -95,6 +110,7 @@ const JourneyScoreGraph: React.FC<JourneyScoreGraphProps> = ({
   showStageLabels = true,
   activeStageIndex = null,
   onSelectStage,
+  focusStages = [],
 }) => {
   const [hoveredPoint, setHoveredPoint] = useState<PointData | null>(null);
   const [hoveredStageIndex, setHoveredStageIndex] = useState<number | null>(null);
@@ -197,6 +213,21 @@ const JourneyScoreGraph: React.FC<JourneyScoreGraphProps> = ({
             <stop offset="100%" stopColor={RATIONAL_COLOR} stopOpacity="0" />
           </linearGradient>
         </defs>
+
+        {/* Media focus bands. FIRST, so gridlines, fills and both curves draw
+            over the top and nothing that encodes data is obscured. */}
+        {stages.map((stage, i) =>
+          focusStages.includes(stage.title) ? (
+            <rect
+              key={`focus-${i}`}
+              x={i * columnWidth}
+              y={paddingTop}
+              width={columnWidth}
+              height={graphHeight}
+              fill={FOCUS.wash}
+            />
+          ) : null,
+        )}
 
         {gridScores.map((s) => (
           <g key={`grid-${s}`}>

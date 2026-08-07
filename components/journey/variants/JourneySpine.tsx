@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import JourneyScoreGraph from '../JourneyScoreGraph';
-import { LYKA, getSegmentColor } from '../../../data/brand';
+import { LYKA, FOCUS, getSegmentColor } from '../../../data/brand';
+import { isFocusCell, MEDIA_FOCUS_LABEL } from '../../../data/mediaFocus';
 import { SHARED_SCORE_DOMAIN, splitBullets, parseScoreData, isTruncatedDescriptor } from '../../../data/journeyModel';
 import { TRACKING } from '../../../data/type';
 import type { JourneyVizProps } from './types';
@@ -28,6 +29,12 @@ const COLUMN_TITLES = [
 const JourneySpine: React.FC<JourneyVizProps> = ({ active }) => {
   const [stageIndex, setStageIndex] = useState(0);
   const colour = getSegmentColor(active.segmentKey);
+
+  // Resolved once, by title, and reused by the curve and the stepper so the two
+  // can never disagree about which stages are marked.
+  const focusStages = active.stages
+    .map((s) => s.title)
+    .filter((title) => isFocusCell(active.type, title));
 
   // Reset to the first stage when the persona changes, otherwise stage 4 of one
   // journey silently becomes stage 4 of another.
@@ -68,6 +75,15 @@ const JourneySpine: React.FC<JourneyVizProps> = ({ active }) => {
               <span className="inline-block w-4 h-0.5" style={{ background: LYKA.accentInk }} />
               Rational
             </span>
+            {focusStages.length > 0 && (
+              <span className="flex items-center gap-1.5">
+                <span
+                  className="inline-block w-4 h-2.5 rounded-sm border"
+                  style={{ background: FOCUS.wash, borderColor: FOCUS.edge }}
+                />
+                {MEDIA_FOCUS_LABEL}
+              </span>
+            )}
             <span className="font-mono text-meta" style={{ color: LYKA.muted }}>
               Fixed scale, comparable across all five
             </span>
@@ -80,6 +96,7 @@ const JourneySpine: React.FC<JourneyVizProps> = ({ active }) => {
             domain={SHARED_SCORE_DOMAIN}
             activeStageIndex={stageIndex}
             onSelectStage={setStageIndex}
+            focusStages={focusStages}
             compact
           />
         </div>
@@ -89,17 +106,30 @@ const JourneySpine: React.FC<JourneyVizProps> = ({ active }) => {
       <div className="grid grid-cols-5 gap-2 flex-shrink-0">
         {active.stages.map((s, i) => {
           const isActive = i === stageIndex;
+          const isFocus = focusStages.includes(s.title);
           return (
             <button
               key={s.title}
               onClick={() => setStageIndex(i)}
-              title={`${s.title} | ${s.duration}`}
-              className="rounded-xl border px-3 py-2.5 text-left transition-colors focus:outline-none focus-visible:ring-2"
+              title={`${s.title} | ${s.duration}${isFocus ? ` | ${MEDIA_FOCUS_LABEL}` : ''}`}
+              className="relative overflow-hidden rounded-xl border px-3 py-2.5 text-left transition-colors focus:outline-none focus-visible:ring-2"
               style={{
-                backgroundColor: isActive ? colour.base : '#FFFFFF',
-                borderColor: isActive ? colour.base : LYKA.mint,
+                // SELECTION STILL WINS. An active step keeps the persona colour,
+                // because the stepper's primary job is saying where you are; the
+                // focus mark degrades to the top rule below, which reads on both
+                // states. Two backgrounds competing for the same button is how a
+                // stepper stops being a stepper.
+                backgroundColor: isActive ? colour.base : isFocus ? FOCUS.wash : '#FFFFFF',
+                borderColor: isActive ? colour.base : isFocus ? FOCUS.edge : LYKA.mint,
               }}
             >
+              {isFocus && (
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-0 top-0 h-[3px]"
+                  style={{ backgroundColor: FOCUS.edge }}
+                />
+              )}
               <div className="flex items-center gap-2 min-w-0">
                 <span
                   className="flex-shrink-0 h-6 w-6 rounded-full flex items-center justify-center"
