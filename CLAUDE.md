@@ -1059,7 +1059,7 @@ one of two cards out of `extraImages` leaves the survivor stretched across the
 whole gallery**, because those cards are `flexGrow: 1, flexBasis: 0`, so Seven
 would have been one logo floating in roughly 900px of empty mat under a full row,
 reading as a broken layout rather than as one partner. Seven moved up into
-`images` at weight 1 instead, which lands the row on Linear TV's exact shape and
+`images` at weight 1 instead, which lands the row on Linear TV News's exact shape and
 the documented house pattern: a 16:9 mockup at 2.6 beside partner logos at 1.
 **So when a second row drops to one card, merge it up rather than leaving it.**
 
@@ -1157,6 +1157,28 @@ generalises.** Radio Segment stayed `[1.4, 1]` through a 1:1 to 16:9 swap becaus
 binds and a WIDER image renders LARGER: the square drew 194x194 in a card with
 room for 470, and the 16:9 frame draws 470x194. The instinct to widen the weight
 would have been backwards.
+
+### A channel rename is ONE field, and it widens the tab-name gap (2026-08-07)
+
+**Linear TV is `Linear TV News`**, on client direction ("can we actually say
+Linear TV News"). The whole edit is `channel` on that row, because the grid
+label, the pop-up heading, the `{channel} rationale` heading and the flighting
+chart title all derive from it. Verified all four in the browser rather than
+assumed, which is cheap and is the only thing that catches a heading built from
+a different string.
+
+**What it costs is another row whose name no longer matches its workbook tab.**
+The Screens tab's column G label still reads `LINEAR TV`, so this joins Radio
+Partnership → Radio Segment in the manifest's `[tab name != row name]` list.
+That list is load bearing for one specific reason: the creative audit
+reconciles images **by tab**, so a re-audit that matches tab names to row names
+would report this row as missing its source and reach the wrong conclusion.
+Same class as the deliberate-removal note pass 17 recorded, and the same fix:
+write it into the manifest so the next audit is a diff rather than a hunt.
+
+**The five renames pass 17 landed were the same shape** and none needed anything
+beyond the one field, so this is now a documented pattern rather than a one off:
+in this data model a channel's display name has exactly one home.
 
 ## The APEX page
 
@@ -1560,14 +1582,29 @@ Add recipients under Manage Cloudflare Access → the application → Policies �
 This is stricter than the Netlify gate, where a single shared password can simply be forwarded. If a forwardable shared secret is preferable for a given client, gate the Worker with a `main` script checking a password against the `ASSETS` binding instead of using Access.
 
 To take the public URL down entirely instead, set `"workers_dev": false` in [wrangler.jsonc](wrangler.jsonc) and redeploy.
-- Asset payload is ~22 MB, nearly all of it media-plan creative in `public/images/`, which is still Hamilton's. The 55 MB of persona films is gone. Limits are 25 MiB per file and 20,000 files on the Workers free plan, so there is ample headroom, but keep the per-file cap in mind if Lyka persona vignettes are ever produced.
+- Asset payload is **54.8 MB**, measured 2026-08-07, and **86% of it is the five persona films** (`personaVideos/` 46.7 MB, `images/` 6.1 MB, `icons/` and `snapshot_emblems/` 1.0 MB each). All of it is Lyka's. Limits are 25 MiB per file and 20,000 files on the Workers free plan, so there is ample headroom, but the largest saving available before any deploy is re-encoding those films, not touching the creative: they ship as delivered at roughly 13 Mbps into a slot that renders at about 285x507 CSS px. (This bullet claimed ~22 MB "still Hamilton's" until 2026-08-07; it had been stale since the pass 14 media plan rebuild and the pass 9 films.)
 - A first deploy to a brand new `workers.dev` subdomain takes a minute or two to propagate. A 404 or Cloudflare error 1042 immediately after deploy is propagation, not a broken build. Re-check before debugging.
 
 ## Source control
 
-> ### Everything through pass 18 is committed and pushed (2026-08-07)
+> ### Everything through pass 19 is committed and pushed (2026-08-07)
 >
-> `origin/lyka-main` is at **`7ad776a`**. Ten commits. Pass 18 added two:
+> `origin/lyka-main` is at **`cf7bd3c`** and the working tree is clean. Thirteen
+> commits. Pass 19 added three:
+>
+> | | |
+> |---|---|
+> | `84395ee` | APEX converted to real Lyka: the data, both views, the routing, the integrity block |
+> | `ea6767c` | APEX docs |
+> | `cf7bd3c` | Linear TV renamed to Linear TV News on client direction |
+>
+> **The conversion and its docs are split, and the rename is its own commit**
+> because it is a separate client instruction that arrived after the first two
+> were pushed. Same reasoning as pass 18's creative commit below.
+>
+> ### Pass 18 (2026-08-07)
+>
+> `origin/lyka-main` reached **`7ad776a`** at ten commits. Pass 18 added two:
 >
 > | | |
 > |---|---|
