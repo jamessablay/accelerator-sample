@@ -4,25 +4,35 @@ This file gives Claude Code the architecture, data model and known quirks for th
 
 > ## READ THIS FIRST: what is Lyka and what is not
 >
-> Converted from the **Hamilton Island** Standard Accelerator on **2026-07-31** (shell), then given the real Lyka audience model on the same day (personas and segments), and the real Lyka media plan on **2026-08-05**. One of six pages still carries Hamilton Island content.
+> Converted from the **Hamilton Island** Standard Accelerator on **2026-07-31** (shell), then given the real Lyka audience model the same day (personas and segments), the real Lyka media plan on **2026-08-05**, and the real Lyka APEX pull on **2026-08-07**. **Every page now carries Lyka content.**
 >
 > | Real Lyka | Still Hamilton Island |
 > |---|---|
-> | Brand palette, typography, client logo, page chrome, every page heading | `data/apexData.ts` (HNWT traveller Roy Morgan pull) |
+> | Brand palette, typography, client logo, page chrome, every page heading | (nothing) |
 > | All colour, centralised in [data/brand.ts](data/brand.ts) | |
 > | **[data/personasData.ts](data/personasData.ts)** 5 personas | |
 > | **[data/categoryData.ts](data/categoryData.ts)** the 4-stage readiness ladder | |
 > | **[data/journeyDetailsData.ts](data/journeyDetailsData.ts)** 5 journeys × 5 stages | |
 > | **[data/tenThingsData.ts](data/tenThingsData.ts)** + **[data/tenThingsSeries.ts](data/tenThingsSeries.ts)** 10 findings | |
 > | **[data/mediaPlanData.ts](data/mediaPlanData.ts)** the Oct→Sep plan: 5 stages, 23 channels, $11.0M | |
-> | The Personas sunburst, the Consumer Journey, Ten Things, the Interactive Media Plan, and every detail panel | |
+> | **[data/apexData.ts](data/apexData.ts)** 2 audiences × 14 channels, from the APEX tool's Lyka Roy Morgan pull (2026-08-07) | |
+> | The Personas sunburst, the Consumer Journey, Ten Things, the Interactive Media Plan, APEX, and every detail panel | |
 > | Hamilton Island Power BI embed **removed** | |
 >
-> So: **Personas, Consumer Journey, Ten Things and the Interactive Media Plan are real. APEX is not.**
+> ### APEX opened on 2026-08-07 (pass 19)
 >
-> ### Which is why APEX no longer opens (2026-08-04; the media plan was re-enabled 2026-08-05)
+> Two APEX tool export decks landed in the project folder (one per audience:
+> Conflicted Troubleshooters and Mindful Researchers) and the page was rebuilt
+> from them and opened the same day: the `SHOW_ALL` / `?show=all` gate in
+> [App.tsx](App.tsx) was deleted along with `pages/PendingSections.tsx` and
+> `components/shared/PendingSection.tsx` (both recoverable from git history if a
+> section ever needs holding back again). The page is now the tool's report
+> shell in miniature: view tabs **About | True Net Worth Index | Growth
+> Quadrant**, with a persona tab strip inside the two data views. See "The APEX
+> page" below for the architecture and the editing rules.
 >
-> The APEX page is still wired and still complete. What a viewer opens is a designed "awaiting Lyka data" placeholder from [pages/PendingSections.tsx](pages/PendingSections.tsx), so the affluent traveller Roy Morgan tables cannot be reached from the deck at all. `SHOW_ALL` in [App.tsx](App.tsx) is the only switch, and **`?show=all` in the URL restores the real page for internal review**. Turning it back on for good is deleting one ternary. Do not solve this by deleting the page. (The Interactive Media Plan sat behind the same gate until its Lyka briefing workbook landed; its placeholder export was deleted with the rebuild.)
+> The Business Dashboard still awaits a Lyka Power BI URL, but it has always
+> rendered its own designed empty state rather than another client's data.
 >
 > ### The audience model
 >
@@ -96,9 +106,13 @@ This file gives Claude Code the architecture, data model and known quirks for th
 >
 > **Two format rules the parsers depend on.** Bullet fields in `journeyDetailsData` are SEMICOLON delimited, because `renderStandardList` splits on `;`; use full stops only and the whole cell renders as one long bullet. Score strings need a DASH before the description, because `JourneyScoreGraph` matches `[-–—]` and not a colon; omit the separator entirely and it concatenates every digit in the string.
 >
-> **Do not "fix" the remaining travel content by find-and-replacing Hamilton to Lyka.** The APEX tables are affluent traveller data and need a real Roy Morgan pull, not renaming. (The media plan got its real brief on 2026-08-05 and no longer applies here.)
->
-> **Never relabel `data/apexData.ts` figures as Lyka.** The file looks generic (roughly 5% client specific) so a label-only sweep is tempting, but `heavyPct` and `rmIndex` are affluent-traveller media consumption. Presenting them as dog owner behaviour, inside a panel that cites Roy Morgan Single Source by name, is the highest severity honesty failure available here. [pages/ApexBySpeed.tsx](pages/ApexBySpeed.tsx) carries a visible "Placeholder audience" notice and a deliberately client-neutral tagline for exactly this reason. Both stay until a real Lyka pull lands.
+> **`data/apexData.ts` became real Lyka on 2026-08-07** (pass 19), from the APEX
+> tool's own Lyka presets, cross checked against the two export decks in the
+> project folder. The rule that held it back for three days, never present
+> another client's figures under Lyka labels, is now enforced the other way
+> round by `__integrity.ts` check 15: the derived True Net Worth Index values
+> must reproduce the deck's published numbers, so a drifted input cannot ship
+> quietly. See "The APEX page" below before editing it.
 
 ## Visualisation variants: READ BEFORE TOUCHING PERSONAS OR CONSUMER JOURNEY
 
@@ -345,7 +359,7 @@ A SPEED Standard Accelerator for **Lyka** (fresh, human grade dog food, direct t
 - **Personas**: a custom 3-layer SVG sunburst. Five Lyka personas across a four-stage readiness ladder. Default landing page.
 - **Consumer Journey**: 5 segment-specific six-stage journeys, each with an emotional + rational score line over time.
 - **Interactive Media Plan**: the real Lyka plan since 2026-08-05. A 5-stage macro block grid (SHOW IT to SHARE IT), 23 channels over Oct→Sep, every bar owned by SPEED (red) or Lyka in house (green) with a legend at the foot, Chart.js pop-ups. See "Interactive Media Plan page".
-- **APEX by SPEED**: the channel scorecard. **Shows a placeholder** until a Lyka Roy Morgan pull lands; the built page is behind `?show=all`.
+- **APEX by SPEED**: the channel scorecard, real Lyka since 2026-08-07. View tabs (About | True Net Worth Index | Growth Quadrant) over two Roy Morgan audiences (Conflicted Troubleshooters, Mindful Researchers), 14 channels each.
 - **Business Dashboard**: a designed empty state awaiting a Lyka Power BI report.
 - **Ten Things The Data Says**: ten findings in a one viewport 5 x 2 grid, each opening a modal with a Chart.js chart, the published numbers, an implication and a test. Real Lyka. Ported 2026-08-03 from a standalone HTML page. Last in the nav.
 
@@ -384,12 +398,12 @@ export enum Page {
 **Adding a page touches exactly eight places**, and nothing else in the app needs to know: `types.ts` (the enum), a new `components/icons/*Icon.tsx` (the sidebar renders `{item.icon}` unconditionally, so a missing icon is a blank cell), the page component, two edits in `App.tsx` (import and switch case), two in `Sidebar.tsx` (import and `navItems`), then `metadata.json`.
 
 - **Personas** is the default landing page.
-- **One of the six nav items does not open its page.** APEX by SPEED renders a placeholder unless `?show=all` is in the URL. See "Which is why APEX no longer opens" at the top of this file. The nav still lists it, deliberately: the deck should read as six sections with one pending, not as five.
+- **All six nav items open their pages.** APEX was the last one held back (a placeholder behind `?show=all`); it opened on 2026-08-07. The hold-back pattern (`SHOW_ALL` const + `PendingSection` shell) is in git history at `4bba5cf` if a future section needs it.
 - **Sidebar order differs from the enum order.** The visible nav order is set by the `navItems` array in [components/Sidebar.tsx](components/Sidebar.tsx), where **APEX by SPEED sits above Interactive Media Plan** (the two were swapped). The `Page` enum order above is just the enum definition, not the rendered order.
 - **Ten Things sits last, below Interactive Media Plan.** It shipped second, on the argument that the ten findings set up the audience model. Moved on request 2026-08-04: the deck leads with who the audience is and closes on the evidence. The rendered order is the `navItems` array, so moving it is a one line change and nothing else needs to know.
 - **Business Dashboard** is a designed empty state. It previously embedded a Power BI report belonging to **another client**, which was removed. To wire Lyka's report, set `REPORT_URL` at the top of [pages/BusinessDashboard.tsx](pages/BusinessDashboard.tsx) to a publish-to-web `app.powerbi.com/view?r=...` URL and the iframe renders in place of the empty state.
 - **Interactive Media Plan** is the Lyka Oct→Sep macro block plan. A funnel-stage grid of five stages (SHOW IT | CHECK IT | PROVE IT | TRY IT | SHARE IT) and 23 channels with monthly gantt flighting bars and Budget + % columns, fed by [data/mediaPlanData.ts](data/mediaPlanData.ts). **Bars are OWNER coloured** (green = Lyka in house, red = SPEED managed, keyed by the legend at the foot of the grid); rails and both budget charts stay stage coloured. In-house rows are flighting only: no dollars anywhere, "In house" in the Budget column. Clicking a gantt bar opens a channel pop-up (ownership strip, rationale + dark-label execution table, an **Examples** creative gallery, then a flighting chart for SPEED rows or an active-months strip for in-house rows). The gold **Budget** header opens a stacked-by-media monthly bar chart **with the workbook's planned flighting weight as a dashed overlay**, the **%** header opens a budget-allocation pie; both filter to funded rows. A bottom line states the $11.0M SPEED managed total. Uses Chart.js via `react-chartjs-2`. Components live in [components/mediaplan/](components/mediaplan/). With 23 rows the grid is taller than one viewport at 1440; the page scrolls rather than clips.
-- **APEX by SPEED** is the channel scorecard tab added after the initial build. Behind the placeholder, like the media plan above.
+- **APEX by SPEED** is the channel scorecard. Real Lyka since 2026-08-07; see "The APEX page".
 
 ## Data model
 
@@ -406,11 +420,11 @@ All data lives in flat TypeScript files under `data/`. There is no database, no 
 | [data/journeyDetailsData.ts](data/journeyDetailsData.ts) | **Real Lyka.** 5 personas × 1 `MACRO_JOURNEY` × 5 Transtheoretical stages. Generated from the source deck by a cell-level table parse. Per-stage: `doingThinking`, `painPoints`, `influences`, `momentsToWin`, `emotionalScore`, `rationalScore`, `duration`, `definition`, and `coreQuestion` on Action only. Bullet fields are semicolon delimited; scores carry an en dash. **Not pure data:** imports React and five icon components. |
 | [data/tenThingsData.ts](data/tenThingsData.ts) | **Real Lyka.** The ten findings: copy, published numbers tables, and the `chart` join key. No React. |
 | [data/tenThingsSeries.ts](data/tenThingsSeries.ts) | **Real Lyka.** Every number a Ten Things chart plots. Separate from the copy on purpose; see below. |
-| [data/mediaFocus.ts](data/mediaFocus.ts) | **A client declaration, not a derivation.** Which Consumer Journey cells carry the media focus emphasis: two stage titles, three journeys, the label and the note. Consumed by all five journey views so the emphasis cannot drift between them. Matched by stage TITLE; both halves of the join asserted. No React. |
 | [data/brand.ts](data/brand.ts) | **The single source of truth for colour.** The `LYKA` palette, `SEGMENT_COLORS` + `getSegmentColor()`, `LayerKey` + `LAYER_COLORS`, `TEN_THINGS`, the **gap ramp** (`gapWash()`, `GAP_SCALE_MAX`, the capped wash bounds and `GAP_RAMP`), **`FOCUS`** (the media focus wash, its deliberately-lighter hover, rule and tag), and the `CHART_*` chrome constants. No React, no DOM types, literal hex only. See "Brand and typography". |
 | [data/__integrity.ts](data/__integrity.ts) | Dev-only assertions on the data joins `tsc` cannot see. Imported from `index.tsx` behind `import.meta.env.DEV`, so it is tree shaken out of production. |
-| [data/apexData.ts](data/apexData.ts) | **Still Hamilton.** The APEX methodology (SPEED generic, carries over) plus two audience tables whose `heavyPct` / `rmIndex` are an affluent-traveller Roy Morgan pull. See the warning in the header. |
-| [data/mediaPlanData.ts](data/mediaPlanData.ts) | **Real Lyka since 2026-08-05.** The Oct→Sep plan: `MONTHS` (Oct→Sep), `PLAN_LAYERS` (SHOW IT / CHECK IT / PROVE IT / TRY IT / SHARE IT, each with a `blurb`), `MEDIA_TOTAL = TOTAL_BUDGET = 11,000,000` (SPEED managed; no production line), `FLIGHTING_PCT` (the dashed overlay). Each `MediaRow` has **`owner: 'speed' \| 'lyka'`** (drives bar colour, the In house cells and the pop-up), `monthly` (12 values; all zeros on lyka rows), `budget` (0 on lyka rows), **`activeMonths`** (in-house flighting), optional `detail` (role/strategyLink/comesToLife/metrics), `images`, `captions`, `imageWeights`, `extraImages` + `extraCaptions`, and layout flags `provisional`, `pairedImages`, `stackedImages`, `stackedFirstSmall`. Sourced from the Lyka briefing workbook's **visible** `Budget Distribution $ Lyka SPEE` sheet + the three visible `Media Description` sheets; hidden content excluded per client direction (the `$ Lyka` sheet with the in-house dollars, the TRY IT / SHARE IT description sheets, the Australian Open row). **The workbook's own monthly grand-total row omits PROVE IT**, so monthly totals are derived from rows: January is $3,295,000, not the sheet's 3,200,000. **Since the 2026-08-06 review round it ALSO carries client copy and three creatives from `Changes to the intereactive media plan.pptx`, so it is no longer a pure transcription of the workbook and must not be "restored" to it.** Read the file header before editing. |
+| [data/apexData.ts](data/apexData.ts) | **Real Lyka since 2026-08-07.** The channel knowledge base (14 channels: label, tier, `knf`, `ttd`, mirroring the APEX tool's `constants.ts`), two audiences' raw Roy Morgan inputs (`heavyPct`, `rmIndex`, `addressableReach`), and the methodology + About copy. **`tnwIndex`, `ttdStars` and `quadrant` are DERIVED at module load**, never typed; `__integrity.ts` check 15 asserts the derivation reproduces the export decks' published values. Also the quadrant meta + thresholds and `QUAD_STYLES`. Read the file header before editing. |
+| [data/mediaFocus.ts](data/mediaFocus.ts) | **A client declaration, not a derivation.** Which Consumer Journey cells carry the media focus emphasis: two stage titles, three journeys, the label and the note. Consumed by all five journey views so the emphasis cannot drift between them. Matched by stage TITLE; both halves of the join asserted. No React. |
+| [data/mediaPlanData.ts](data/mediaPlanData.ts) | **Real Lyka since 2026-08-05.** The Oct→Sep plan: `MONTHS` (Oct→Sep), `PLAN_LAYERS` (SHOW IT / CHECK IT / PROVE IT / TRY IT / SHARE IT, each with a `blurb`), `MEDIA_TOTAL = TOTAL_BUDGET = 11,000,000` (SPEED managed; no production line), `FLIGHTING_PCT` (the dashed overlay). Each `MediaRow` has **`owner: 'speed' \| 'lyka'`** (drives bar colour, the In house cells and the pop-up), `monthly` (12 values; all zeros on lyka rows), `budget` (0 on lyka rows), **`activeMonths`** (in-house flighting), optional `detail` (role/strategyLink/comesToLife/metrics), `images`, `captions`, `imageWeights`, `extraImages` + `extraCaptions`, and layout flags `provisional`, `pairedImages`, `stackedImages`, `stackedFirstSmall`. Sourced from the Lyka briefing workbook's **visible** `Budget Distribution $ Lyka SPEE` sheet + the three visible `Media Description` sheets; hidden content excluded per client direction (the `$ Lyka` sheet with the in-house dollars, the TRY IT / SHARE IT description sheets, the Australian Open row). **The workbook's own monthly grand-total row omits PROVE IT**, so monthly totals are derived from rows: January is $3,295,000, not the sheet's 3,200,000. **Since the 2026-08-06 review round it ALSO carries client copy and three creatives from `Changes to the intereactive media plan.pptx`, and since 2026-08-07 two more creatives from `Accelerator Feedback - For Aaron.pptx` that REPLACED workbook images in place, so it is no longer a pure transcription of the workbook and must not be "restored" to it.** Read the file header before editing. |
 
 ### Persona schema
 
@@ -1102,6 +1116,105 @@ so re-extraction is a few lines against `xl/media/`.
 
 **A re-audit against the workbook alone will produce false positives in both directions**: it will find no source for the three new images and will find two workbook logos the rows no longer wire. All five are recorded in the manifest in `mediaPlanData.ts`'s header for exactly that reason. The two unwired files are photos of talent and a platform no longer on the plan, so remove them together in a cleanup pass, which also trims them from `dist/`.
 
+### THIRD SOURCE, and the failure mode changes (2026-08-07)
+
+`Accelerator Feedback - For Aaron.pptx` replaced **two more creatives, both in
+place**, so the file count did not move and neither did a single string in
+`mediaPlanData.ts`:
+
+| | |
+|---|---|
+| `thriving-index.jpg` | realestate.com.au. Was a 1536x1024 workbook mockup; now the client's property listing laptop mock, 1499x929 cropped from a 1672x941 slide 2 embed. |
+| `nova-studio.jpg` | Radio Segment. **Was a 738x738 WORKBOOK image**, so that row no longer matches its Radio Partnership tab either. Now the 16:9 studio frame, 1672x941 from the slide 3 embed, uncropped. |
+
+**A REPLACED ASSET IS INVISIBLE TO A PATH AUDIT in a way an added or removed one
+is not.** Every guard here asks whether a declared path RESOLVES: check 5d fetches
+it and inspects the Content-Type, check 5d-ii counts it against the captions. A
+swapped file passes all of them, because the path never changed. There is nothing
+to assert against either, since "is this the right picture" is not a property code
+can hold. **So the manifest note IS the check**, which is why both are written
+into `mediaPlanData.ts`'s header rather than left to a binary diff that reads as
+`Bin 92k -> 241k`.
+
+**The loose export lost to the deck embed for the third and fourth time.** The
+client supplied `laptop.png` (971x642) and `landscape.png` (1013x570) beside the
+deck; both are the same mock at the same framing as the embed (`landscape.png`
+rescales to a mean absolute difference of **1.8/255**), just smaller, by 1.72x and
+1.65x linear. Running total across two decks: **three of four loose exports had
+lost resolution.** The rule is now general enough to state plainly: **treat the
+loose file as the INSTRUCTION and the deck embed as the ASSET**, and keep the
+loose one as the record of the framing the client chose.
+
+Neither embed needed the measured crop pass 17's did: **checked for slide chrome
+and letterboxing before cutting, rather than assumed.** The REA embed was cropped
+to its content plus a margin matched to the file it replaced, with the crop
+verified by confirming no ink touches any edge; the Nova embed is full bleed and
+shipped as is.
+
+**`imageWeights` did not need retuning for the aspect change, and the reason
+generalises.** Radio Segment stayed `[1.4, 1]` through a 1:1 to 16:9 swap because
+`CreativeCard`'s mat is a **fixed height box with `object-contain`**, so height
+binds and a WIDER image renders LARGER: the square drew 194x194 in a card with
+room for 470, and the 16:9 frame draws 470x194. The instinct to widen the weight
+would have been backwards.
+
+## The APEX page
+
+[pages/ApexBySpeed.tsx](pages/ApexBySpeed.tsx). **Real Lyka since 2026-08-07**
+(pass 19): two Roy Morgan Single Source audiences, Conflicted Troubleshooters
+(4.36M) and Mindful Researchers (1.39M), exported from the APEX by SPEED Tool
+as the two decks in the project folder. The design spec is
+`docs/superpowers/specs/2026-08-07-apex-lyka-design.md`.
+
+The page mirrors the tool's report shell: top level **view tabs** (About | True
+Net Worth Index | Growth Quadrant, About is the default), then a **persona tab
+strip** inside the two data views. The audience selection survives a view
+switch on purpose. The two data views are the export decks' slide 4 and
+slide 5; slides 2 and 3 (Addressable reach bars, Reach x Attention table) are
+deliberately not carried.
+
+- **About**: the tool's client supplied positioning copy (`APEX_ABOUT`,
+  verbatim, do not edit without a client instruction) plus
+  [ApexMethodology](components/apex/ApexMethodology.tsx). The formula bar reads
+  RM INDEX x KNF SCORE x TTD/PAC PREMIUM = TRUE NET WORTH INDEX; the old
+  intermediate "TABLE 1" pill was the Method B step, whose table this page does
+  not carry. **The pill labels print in `lighten(accent, 0.35)` on the dark
+  bar**, because the raw accents cannot carry text there (#1d8a6b is 2.85:1 on
+  tealDeepest) and filling the pill with the accent put white on #10B193 at
+  2.2:1. That was invisible for the three days the page sat behind the
+  placeholder; `__integrity` check 15 asserts the lightened value now.
+- **True Net Worth Index**: [ApexChannelTable](components/apex/ApexChannelTable.tsx),
+  columns matched to slide 4 (Channel | Tier | Heavy % | RM | KNF | TTD/PA
+  Consulting | True Net Worth + bar). The bar's fill scales inside an inset
+  that stops short of the value label, so the longest bar (202) cannot run
+  under its own number. Filled stars are `#B8571C`, not canonical Tangerine
+  (2.35:1, under the 3:1 mark floor); the printed multiplier below them is the
+  accessible carrier. Star scale: 5 = 1.30x+, 3 = neutral 1.00x, 1 = penalty.
+- **Growth Quadrant**: [ApexGrowthQuadrant](components/apex/ApexGrowthQuadrant.tsx),
+  a plain SVG ported from the tool with its label placement pass
+  ([labelPlacement.ts](components/apex/labelPlacement.ts), verbatim port, unit
+  tested upstream). X = addressable reach % (divider 40), Y = TNW Index
+  (divider 100). **Text sizes go through `svgFont()`** against the measured
+  container, and the label boxes fed to the placement pass derive from the SAME
+  compensated fonts, so the collision maths hold at every width. The corner
+  action copy wraps at 30 characters, not the tool's 38: the compensated font
+  makes a line LONGER in user units as the container narrows, and at 1280 a 38
+  character line ran into the BVOD dot.
+
+**Editing rules for [data/apexData.ts](data/apexData.ts):**
+
+- `tnwIndex`, `ttdStars` and `quadrant` are **derived at module load** from the
+  raw inputs and the channel constants. Never type them. The rebase is over the
+  rows present, so adding or removing a channel changes every `tnwIndex`.
+- `__integrity.ts` check 15 holds an independent transcription of the decks'
+  published slide 4 values and asserts the derivation reproduces all 28. If a
+  channel constant is revised (as Cinema's KNF was, 61.4 to 110.0 on
+  2026-08-06), re-export from the tool and re-transcribe; never edit the
+  expected table to match the code.
+- The other two personas (Devoted Caterers, Secure Sleepwalkers) exist as
+  presets in the tool. Adding one is an input block + an `apexTables` entry +
+  an `EXPECTED_TNWI` block, from a reviewed export only.
+
 ## Brand and typography
 
 **Palette source of truth.** Lyka's brand is correctly implemented in exactly one place in this workspace: `RFI - Lyka/lyka-rfi/styles/globals.css`. That is where this app's palette came from.
@@ -1223,7 +1336,7 @@ lyka-accelerator/
 │   ├── tenThingsData.ts          10 findings: copy, tables, chart join key. Real Lyka.
 │   ├── tenThingsSeries.ts        Every number a Ten Things chart plots. Real Lyka.
 │   ├── mediaPlanData.ts          The Oct→Sep Lyka plan: 5 stages, 23 rows, owner split. Real Lyka.
-│   └── apexData.ts               APEX methodology + 2 audience tables            [Hamilton content]
+│   └── apexData.ts               APEX: channel constants + 2 Lyka audiences. DERIVED indices. Real Lyka.
 ├── hooks/
 │   ├── useVariant.ts             Variant state: ?pv= / ?jv= then localStorage. Scaffolding.
 │   └── useElementSize.ts         ResizeObserver. Feeds svgFont(), and the flow viewBox aspect.
@@ -1233,8 +1346,8 @@ lyka-accelerator/
 │   ├── BusinessDashboard.tsx     Designed empty state. Power BI iframe REMOVED (see header).
 │   ├── TenThings.tsx             One viewport 5 x 2 finding grid + stepper modal. Real Lyka.
 │   ├── InteractiveMediaPlan.tsx  The Lyka macro block plan. OPEN since 2026-08-05.
-│   ├── ApexBySpeed.tsx           Channel scorecard. WIRED BUT NOT SHOWN (?show=all).
-│   └── PendingSections.tsx       What opens instead of APEX: ApexPending.
+│   └── ApexBySpeed.tsx           Channel scorecard. View tabs + persona strip. Real Lyka.
+│                                 (PendingSections.tsx was deleted 2026-08-07 when APEX opened.)
 ├── components/
 │   ├── Sidebar.tsx               6-item nav. Black panel (SPEED chrome), active pill #0A7D68.
 │   ├── personas/
@@ -1269,13 +1382,14 @@ lyka-accelerator/
 │   │       ├── chartBase.ts              ONE ChartJS.register + BASE_OPTIONS/BASE_PLUGINS. Read its header.
 │   │       ├── chartPlugins.ts           benchmarkRule, barValueLabels, lineValueLabels, bubbleLabels
 │   │       └── *.tsx                     9 charts. MmmConfidence is HTML, deliberately.
-│   ├── apex/                             ApexChannelTable, ApexMethodology
+│   ├── apex/                             ApexChannelTable (slide 4), ApexGrowthQuadrant (slide 5),
+│   │                                     ApexMethodology, labelPlacement.ts (ported from the tool)
 │   ├── icons/                            18 custom SVG icon components (all referenced)
 │   └── shared/
 │       ├── Modal.tsx                     All pop-ups. Escape, focus trap, scroll lock, opt-in stepper.
 │       │                                 Focus MOVE IN fixed 2026-08-04, see below.
 │       ├── Lightbox.tsx                  Click to enlarge. CAPTURE phase Escape, so it nests inside Modal.
-│       ├── PendingSection.tsx            Designed "awaiting Lyka data" shell. Follows BusinessDashboard.
+│       │                                 (PendingSection.tsx deleted 2026-08-07; recover from git if needed.)
 │       └── VariantSwitcher.tsx           Segmented control on both pages. Scaffolding.
 └── public/
     ├── images/
@@ -1451,9 +1565,29 @@ To take the public URL down entirely instead, set `"workers_dev": false` in [wra
 
 ## Source control
 
-> ### Everything through pass 17 is committed and pushed (2026-08-06)
+> ### Everything through pass 18 is committed and pushed (2026-08-07)
 >
-> `origin/lyka-main` is at **`4bba5cf`** and the working tree is clean. Eight
+> `origin/lyka-main` is at **`7ad776a`**. Ten commits. Pass 18 added two:
+>
+> | | |
+> |---|---|
+> | `1d53606` | Outsourcers to Curious, its seven downstream fixes, and the media focus emphasis |
+> | `7ad776a` | the two replaced media plan creatives |
+>
+> **Pass 18 is ONE commit for the audience round, not the two it was planned as.**
+> The intent was to split the persona move from the highlight, and it did not
+> survive contact: `brand.ts`, `TensionMap.tsx` and `__integrity.ts` each carry
+> both changes, so splitting needed hunk surgery and would have produced an
+> intermediate commit whose stale sentence is precisely what the other half fixes.
+> Same reasoning as the pass 14/15 build three below. **Check whether a split is
+> physically available before promising one.**
+>
+> The creative commit is separate because it genuinely is: different files,
+> different instruction, and it landed after the first was already pushed.
+>
+> ### Everything through pass 17 was committed and pushed (2026-08-06)
+>
+> `origin/lyka-main` was at **`4bba5cf`** and the working tree clean. Eight
 > commits, four from the build and three from the client review round:
 >
 > | | |
@@ -1484,6 +1618,30 @@ To take the public URL down entirely instead, set `"workers_dev": false` in [wra
 > `npm run dev` with the console open, confirming the single `[data integrity] ok`
 > line. Pushing **builds and deploys nothing**: no GitHub auto deploy, and the app
 > is not deployed anywhere. See "Deploy".
+
+> ### ⚠ THE "NO BROWSER TOOLING" ASSUMPTION IS OBSOLETE (2026-08-07)
+>
+> Several notes in this file, including the one directly below, were written when
+> the Playwright MCP server was unavailable and record things as verified
+> "logically, not visually". **A working browser is available again**: pass 18 ran
+> the dev server and drove it through Playwright.
+>
+> That is worth knowing before accepting any such note at face value, because in
+> pass 18 rendering was decisive three times and static reasoning would have been
+> wrong twice and wasteful once:
+>
+> - The Ladder's Unaware customer band fell to 3% and clipped all three of its
+>   labels. No assertion could see it.
+> - Two dashed routes ended up leaving the same node, and the crossing one's white
+>   casing ate a hole through the other's label.
+> - "Conflicted Troubleshooters" on a halved wedge looked certain to overflow.
+>   Measured, it fills 48.5% of its arc. **The measurement prevented a change**,
+>   which is the underrated half of having the tool.
+>
+> The useful probes, since a screenshot is not always the answer:
+> `getComputedTextLength()` against the label path's `getTotalLength()` for SVG
+> arcs, and `getComputedStyle` sweeps for verifying which cells actually carry a
+> fill. Both give numbers rather than impressions.
 
 > ### THE ONE OPEN ITEM ON THE MEDIA PLAN: nobody has looked at the shading
 >
@@ -1528,7 +1686,7 @@ https://github.com/The-Speed-Agency/speed-x-lyka-accelerator
 
 **Verified at creation:** the remote carries one branch and one commit; no `.env`, `.dev.vars`, `.netlify/state.json` or `.wrangler` is tracked or anywhere in history; and a fresh clone installs, typechecks and builds, so the repo is self contained.
 
-**The repo does contain Hamilton Island content**, and that is not an oversight: `data/apexData.ts` is still theirs (the media plan and its creative became Lyka's on 2026-08-05). The APEX page renders a placeholder rather than that data (see the top of this file). It is agency internal and the repo is private, but do not make this repo public while that is true.
+**The repo no longer carries another client's data.** `data/apexData.ts` was the last Hamilton Island content and became Lyka's on 2026-08-07 (the media plan and its creative turned on 2026-08-05). The Hamilton figures survive only in git history, which is one more reason the local `lyka-shell` and `main` branches must never be pushed.
 
 The uncommitted Cloudflare Worker gate that existed in this folder before the conversion was captured to `../worker-gate-and-tooling.patch` (141 KB) so it can be landed on the canonical Hamilton Island repo separately, without ever pushing from here.
 
@@ -1570,11 +1728,9 @@ If the study is revised, regenerate rather than hand-editing, and remember the t
 
 The Lyka briefing workbook landed and the page was rebuilt and re-enabled the same day: 5 stages, 23 rows, the green/red owner split, the dashed flighting overlay. `MediaPlanPending` was deleted from `PendingSections.tsx` and its ternary from `App.tsx`. Method notes worth keeping: only VISIBLE workbook content was used (the hidden `$ Lyka` sheet, the hidden TRY IT / SHARE IT description sheets and the hidden Australian Open row were excluded per client direction, matching the Hamilton precedent); the workbook's own monthly grand-total row omits PROVE IT, so monthly totals are derived from rows; and the channel tabs' text is stale Hamilton template while their embedded images are the Lyka creative, so text and images came from different sheets.
 
-### APEX
+### APEX: DONE (2026-08-07)
 
-Still needs an input that does not exist yet, so **since 2026-08-04 it does not open.** The nav item renders a placeholder from [pages/PendingSections.tsx](pages/PendingSections.tsx) naming the one input that unblocks it, and the built page sits behind `?show=all`. When the input lands, delete that export and its ternary in `App.tsx`: the page underneath has not been touched.
-
-- **APEX**: one Roy Morgan Single Source pull, 13 channels x 2 Lyka audience definitions, giving 26 `heavyPct` and 26 `rmIndex` values. **Everything else recomputes**: `methodB` is rebase(rmIndex x knfScore, mean 100) and `methodC` is rebase(rmIndex x knfScore x ttdMultiplier, mean 100). `knfScore`, `ttdMultiplier` and `ttdStars` are channel constants and carry over untouched. The derived columns must be recomputed, never hand edited, and must be recomputed if the row set changes at all, because the rebase is over the rows present.
+The pull arrived as two APEX tool export decks (`APEX_lyka_conflicted-troubleshooters.pptx`, `APEX_lyka_mindful-researchers (1).pptx`, in the project folder), and the page was rebuilt and opened the same day. The prediction above held with one correction: the tool's channel set had grown to **14** channels (Pay TV, Online video / YouTube and Online display joined; the two print channels left), Cinema's KNF was revised 61.4 to **110.0**, and a new **Digital** tier arrived. Everything else recomputed exactly as documented: the derivation was verified to reproduce all 56 published deck values before any code was written. See "The APEX page" below for the architecture that replaced the single-table page.
 
 ### If the segment model itself is ever revised
 
@@ -1607,6 +1763,18 @@ These come from the workspace-level CLAUDE.md and the user routinely corrects vi
 
 ## Known quirks and history
 
+- **@types/react IS NOT INSTALLED, so `React.FC<Props>` annotations are
+  decorative.** 'react' resolves as an untyped module (React 19 ships no types
+  of its own), `React.FC` is `any`, and with `noImplicitAny` off every
+  component body's props are silently `any`. Found 2026-08-07 building
+  `ApexGrowthQuadrant`: passing TYPE ARGUMENTS to anything derived from an
+  FC-annotated param trips TS2347 ("Untyped function calls may not accept type
+  arguments"), and `[...new Set(propsDerived)]` infers `unknown[]`. **The
+  workaround is to annotate the destructured parameter directly**
+  (`({ table }: Props)`), which restores real typing for the whole body; the
+  apex components do this. Installing @types/react is the real fix but would
+  retype every component in the app at once, so it is its own pass, like the
+  `font-mono` item above.
 - **External labels were tried and rolled back.** Commit `c1239e4` moved persona labels outside the old 20-persona wheel with leader lines and reverted in `0aa5722`. The current in-wedge approach with per-persona orientation overrides is the user's preference and has carried over to the 8-persona refactor.
 - **The sunburst has been rebuilt twice.** Xero's 3-ring 20-persona wheel became Hamilton's 4-layer 8-persona wheel in commit `87ce3e1` (which also removed the `sunburstFocus` zoom mode, `RADIUS_CONFIG_ZOOMED`, `getCategorySpan()`, the prefix-strip lookup and the back button). That in turn became Lyka's 3-layer 4-quadrant ladder on 2026-07-31. The geometry lessons from the third rebuild are in "Wiring in the Lyka content model"; the short version is that arc orientation and label width both have to follow the wedge, not a constant.
 - **Persona titles are abbreviations of PDF names**, not the PDF names themselves. `name` carries the canonical "The X" name; `title` is the short wheel label. If you change a `title`, also update the per-persona orientation override map if the persona's wheel angle is near 90° or 270°.
