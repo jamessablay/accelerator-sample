@@ -1589,14 +1589,28 @@ To take the public URL down entirely instead, set `"workers_dev": false` in [wra
 
 > ### Everything through pass 19 is committed and pushed (2026-08-07)
 >
-> `origin/lyka-main` is at **`cf7bd3c`** and the working tree is clean. Thirteen
-> commits. Pass 19 added three:
+> **`origin/lyka-main` carries 26 commits** and the working tree is clean. Pass
+> 19 added four:
 >
 > | | |
 > |---|---|
 > | `84395ee` | APEX converted to real Lyka: the data, both views, the routing, the integrity block |
 > | `ea6767c` | APEX docs |
 > | `cf7bd3c` | Linear TV renamed to Linear TV News on client direction |
+> | (this one) | these corrections. **A docs commit cannot state its own hash**, which is the whole reason the count below is given instead of a tip |
+>
+> **THE COUNT IS THE BRANCH TOTAL, and it is given because the tip hash cannot
+> be.** Every earlier block here quoted a tip, and each one went stale the
+> moment the docs commit recording it was pushed: `0535da8` is literally titled
+> "Docs: tip 4bba5cf", which is a commit whose entire content is a hash that its
+> own existence invalidated. **Verify with `git rev-list --count lyka-main`, not
+> by trusting a number in prose.**
+>
+> The earlier blocks' counts were also wrong in a second way: they counted their
+> own PUSH BATCH while reading as a branch total. Pass 17's "eight commits" was
+> eight commits in that batch against 18 on the branch, and pass 18's "ten" was
+> 21 on the branch. Left as written below rather than restated, because they are
+> historical and the batch is what those blocks are about.
 >
 > **The conversion and its docs are split, and the rename is its own commit**
 > because it is a separate client instruction that arrived after the first two
@@ -1604,7 +1618,7 @@ To take the public URL down entirely instead, set `"workers_dev": false` in [wra
 >
 > ### Pass 18 (2026-08-07)
 >
-> `origin/lyka-main` reached **`7ad776a`** at ten commits. Pass 18 added two:
+> `origin/lyka-main` reached **`7ad776a`**. Pass 18 added two:
 >
 > | | |
 > |---|---|
