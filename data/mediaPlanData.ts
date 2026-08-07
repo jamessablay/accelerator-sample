@@ -67,6 +67,9 @@
 //   Cinema                  -> Cinema (auditorium, Val Morgan, 3 posters)
 //   Trilogy Outdoor         -> Outdoor Stature (mockup + JCDecaux, oOh!, QMS)
 //   Radio Partnership       -> Radio Segment (studio, Nova)   [tab name != row name]
+//                              ⚠ THE STUDIO SHOT IS NO LONGER THE WORKBOOK'S
+//                              either, since 2026-08-07. Same trap as REA below:
+//                              the path did not change, so nothing flags it.
 //   Podcast tab             -> Acast Podcasts (Acast) + Podcaster Performance (Toni and Ryan)
 //   Intergration [sic]      -> BBL (live moment, KFC BBL) + MMM Sports (booth, Triple M)
 //                              BBL also REUSES seven.png from the Screens tab.
@@ -75,7 +78,10 @@
 //                              to Always On Radio, so nothing is orphaned.
 //   Radio                   -> Always On Radio (ARN, SCA, Nova)
 //   Local Messaging Outdoor -> Local OOH (shelter + JCDecaux, oOh!, QMS)
-//   REA                     -> realestate.com.au (logo + Thriving Index mockup)
+//   REA                     -> realestate.com.au (logo + Thriving Index mockup).
+//                              ⚠ THE MOCKUP IS NO LONGER THE WORKBOOK'S. See the
+//                              2026-08-07 note below; the path is unchanged, so a
+//                              filename audit will not show it.
 //   Uber Pet                -> Uber Pet (logo + in car mockup)
 //
 // NOT FROM THE WORKBOOK, so the audit above will never find a source for these.
@@ -86,6 +92,42 @@
 //   nova-earworm.jpg    <- deck slide 10 embed, header cropped   1306x629 (export was 1039x501)
 //   we-mean-well.jpg    <- deck slide 12 embed, full frame       1672x941 (export was a 1163x603 crop)
 //   social-creators.jpg <- picture.png, THE LOOSE EXPORT         1333x584 (embed was only 1284x563)
+//
+// TWO MORE CLIENT CREATIVES LANDED 2026-08-07, and they are the ones this manifest
+// would otherwise miss entirely, because both REPLACED A FILE IN PLACE:
+//   thriving-index.jpg  <- "Accelerator Feedback - For Aaron.pptx" slide 2 embed
+//                          (Downloads), 1499x929 cropped from a 1672x941 embed.
+//                          Was a 1536x1024 workbook mockup.
+//   nova-studio.jpg     <- the same deck, slide 3 embed, 1672x941 uncropped.
+//                          **Was a 738x738 WORKBOOK image**, so this row no longer
+//                          matches its Radio Partnership tab either.
+//
+// Neither path changed, so `images` still reads the same two strings and NOTHING
+// in this file or in any asset check moved. **A REPLACED ASSET IS INVISIBLE TO A
+// PATH AUDIT in a way an added or removed one is not**: check 5d only asks whether
+// a declared path resolves, and it still does. That is why both are written down
+// here rather than left to the binary diff.
+//
+// THE LOOSE EXPORTS BESIDE THE DECK WERE NOT USED, for the third and fourth time:
+//   laptop.png     971x642  against the embed's 1672x941   (1.72x linear)
+//   landscape.png 1013x570  against the embed's 1672x941   (1.65x linear)
+// Both are the same mock and the same framing as their embed (landscape.png
+// rescales to a mean absolute difference of 1.8/255), just smaller. **Treat the
+// loose file as the INSTRUCTION and the deck embed as the ASSET.** Keep both as
+// the record of the framing the client chose.
+//
+// Neither needed re-cropping: unlike the pass 17 slides, these two embeds carry no
+// slide chrome. Verified before cutting, not assumed.
+//
+// The old REA mockup was the Thriving Index as a standalone page; the new one is a
+// property LISTING page with the Thriving Index panel inside it. The old Nova shot
+// was a 1:1 crop; the new one is the 16:9 frame. Both filenames still describe
+// what is featured, which is why neither was renamed.
+//
+// `imageWeights` on Radio Segment stayed [1.4, 1] through the Nova swap. The card
+// mat is a FIXED 230px HIGH box with `object-contain`, so height binds and a wider
+// image renders LARGER, not smaller: the square drew 198x198 in that card and the
+// 16:9 frame draws 352x198. Widening the weight to suit was unnecessary.
 //
 // Also note two files now UNREFERENCED but still on disk, both removed on client
 // direction rather than by mistake: paramount.png (BVOD & SVOD) and
