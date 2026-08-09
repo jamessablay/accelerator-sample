@@ -14,7 +14,7 @@ This file gives Claude Code the architecture, data model and known quirks for th
 > | **[data/categoryData.ts](data/categoryData.ts)** the 4-stage readiness ladder | |
 > | **[data/journeyDetailsData.ts](data/journeyDetailsData.ts)** 5 journeys × 5 stages | |
 > | **[data/tenThingsData.ts](data/tenThingsData.ts)** + **[data/tenThingsSeries.ts](data/tenThingsSeries.ts)** 10 findings | |
-> | **[data/mediaPlanData.ts](data/mediaPlanData.ts)** the Oct→Sep plan: 5 stages, 23 channels, $11.0M | |
+> | **[data/mediaPlanData.ts](data/mediaPlanData.ts)** the Oct→Sep plan: 5 stages, 20 channels, $11.0M | |
 > | **[data/apexData.ts](data/apexData.ts)** 2 audiences × 14 channels, from the APEX tool's Lyka Roy Morgan pull (2026-08-07) | |
 > | The Personas sunburst, the Consumer Journey, Ten Things, the Interactive Media Plan, APEX, and every detail panel | |
 > | Hamilton Island Power BI embed **removed** | |
@@ -358,7 +358,7 @@ A SPEED Standard Accelerator for **Lyka** (fresh, human grade dog food, direct t
 
 - **Personas**: a custom 3-layer SVG sunburst. Five Lyka personas across a four-stage readiness ladder. Default landing page.
 - **Consumer Journey**: 5 segment-specific six-stage journeys, each with an emotional + rational score line over time.
-- **Interactive Media Plan**: the real Lyka plan since 2026-08-05. A 5-stage macro block grid (SHOW IT to SHARE IT), 23 channels over Oct→Sep, every bar owned by SPEED (red) or Lyka in house (green) with a legend at the foot, Chart.js pop-ups. See "Interactive Media Plan page".
+- **Interactive Media Plan**: the real Lyka plan since 2026-08-05. A 5-stage macro block grid (SHOW IT to SHARE IT), 20 channels over Oct→Sep, every bar owned by SPEED (red) or Lyka in house (green) with a legend at the foot, Chart.js pop-ups. See "Interactive Media Plan page".
 - **APEX by SPEED**: the channel scorecard, real Lyka since 2026-08-07. View tabs (About | True Net Worth Index | Growth Quadrant) over two Roy Morgan audiences (Conflicted Troubleshooters, Mindful Researchers), 14 channels each.
 - **Business Dashboard**: a designed empty state awaiting a Lyka Power BI report.
 - **Ten Things The Data Says**: ten findings in a one viewport 5 x 2 grid, each opening a modal with a Chart.js chart, the published numbers, an implication and a test. Real Lyka. Ported 2026-08-03 from a standalone HTML page. Last in the nav.
@@ -402,7 +402,7 @@ export enum Page {
 - **Sidebar order differs from the enum order.** The visible nav order is set by the `navItems` array in [components/Sidebar.tsx](components/Sidebar.tsx), where **APEX by SPEED sits above Interactive Media Plan** (the two were swapped). The `Page` enum order above is just the enum definition, not the rendered order.
 - **Ten Things sits last, below Interactive Media Plan.** It shipped second, on the argument that the ten findings set up the audience model. Moved on request 2026-08-04: the deck leads with who the audience is and closes on the evidence. The rendered order is the `navItems` array, so moving it is a one line change and nothing else needs to know.
 - **Business Dashboard** is a designed empty state. It previously embedded a Power BI report belonging to **another client**, which was removed. To wire Lyka's report, set `REPORT_URL` at the top of [pages/BusinessDashboard.tsx](pages/BusinessDashboard.tsx) to a publish-to-web `app.powerbi.com/view?r=...` URL and the iframe renders in place of the empty state.
-- **Interactive Media Plan** is the Lyka Oct→Sep macro block plan. A funnel-stage grid of five stages (SHOW IT | CHECK IT | PROVE IT | TRY IT | SHARE IT) and 23 channels with monthly gantt flighting bars and Budget + % columns, fed by [data/mediaPlanData.ts](data/mediaPlanData.ts). **Bars are OWNER coloured** (green = Lyka in house, red = SPEED managed, keyed by the legend at the foot of the grid); rails and both budget charts stay stage coloured. In-house rows are flighting only: no dollars anywhere, "In house" in the Budget column. Clicking a gantt bar opens a channel pop-up (ownership strip, rationale + dark-label execution table, an **Examples** creative gallery, then a flighting chart for SPEED rows or an active-months strip for in-house rows). The gold **Budget** header opens a stacked-by-media monthly bar chart **with the workbook's planned flighting weight as a dashed overlay**, the **%** header opens a budget-allocation pie; both filter to funded rows. A bottom line states the $11.0M SPEED managed total. Uses Chart.js via `react-chartjs-2`. Components live in [components/mediaplan/](components/mediaplan/). With 23 rows the grid is taller than one viewport at 1440; the page scrolls rather than clips.
+- **Interactive Media Plan** is the Lyka Oct→Sep macro block plan. A funnel-stage grid of five stages (SHOW IT | CHECK IT | PROVE IT | TRY IT | SHARE IT) and 20 channels with monthly gantt flighting bars and Budget + % columns, fed by [data/mediaPlanData.ts](data/mediaPlanData.ts). **Bars are OWNER coloured** (green = Lyka in house, red = SPEED managed, keyed by the legend at the foot of the grid); rails and both budget charts stay stage coloured. In-house rows are flighting only: no dollars anywhere, "In house" in the Budget column. Clicking a gantt bar opens a channel pop-up (ownership strip, rationale + dark-label execution table, an **Examples** creative gallery, then a flighting chart for SPEED rows or an active-months strip for in-house rows). The gold **Budget** header opens a stacked-by-media monthly bar chart **with the workbook's planned flighting weight as a dashed overlay**, the **%** header opens a budget-allocation pie; both filter to funded rows. A bottom line states the $11.0M SPEED managed total. Uses Chart.js via `react-chartjs-2`. Components live in [components/mediaplan/](components/mediaplan/). With 23 rows the grid is taller than one viewport at 1440; the page scrolls rather than clips.
 - **APEX by SPEED** is the channel scorecard. Real Lyka since 2026-08-07; see "The APEX page".
 
 ## Data model
@@ -873,7 +873,7 @@ with tints, which have to be composited through **HLS luminance**, not RGB, or
 they come out wrong. Four distinct reds collapse to three rungs (`#B80F15` and
 `#C00000` are the same "heavy" to the eye, 0.106 against 0.112 luminance) and
 three greens map one to one. The arrays were **generated** from the workbook and
-then round-tripped back out of the TS and compared, all 23 rows matching, because
+then round-tripped back out of the TS and compared, all 23 rows matching (20 rows since the 2026-08-10 consolidation), because
 133 hand-typed cells is exactly where a transcription slip hides.
 
 **Seven always-on rows share one signature, `H H M H H M M M M M M L`**: heavy at
@@ -999,9 +999,15 @@ Polish to life with the scale, attention and emotional impact of the big
 screen."). Had it been invented to make the table look square, the deck would now
 carry agency copy in a field the client reads as theirs.
 
-**So all 21 funded rows carry all five fields, and check 5e's `KNOWN_BLANK` is
-empty.** Keep it empty: add an entry only for a gap the client has confirmed
-stays open, never to quieten output.
+**So every row with rationale copy carries all five fields, and check 5e's
+`KNOWN_BLANK` is empty.** Keep it empty: add an entry only for a gap the client
+has confirmed stays open, never to quieten output.
+
+That was **21 rows** until 2026-08-10 and is **18** now, because one row was
+deleted and two pairs were merged. The count is worth knowing only so a smaller
+number does not read as lost copy: TRY IT and SHARE IT are still the only stages
+with no description sheet, and nothing else lost a field. Re-verified after the
+merges.
 
 Creative layout is per-row via flags on `MediaRow`:
 - **default** = a horizontal row of `CreativeCard`s; `imageWeights` set relative widths (the pattern here: a 16:9 mockup at ~2.6 beside partner logos at 1). `captions` label each card.
@@ -1064,7 +1070,8 @@ the documented house pattern: a 16:9 mockup at 2.6 beside partner logos at 1.
 **So when a second row drops to one card, merge it up rather than leaving it.**
 
 Verified after the fix: **42 wired images** (18 JPEG mockups and posters, 24 PNG
-logos), none missing from `public/`, and the six BVOD cards render at exactly
+logos), **41 since 2026-08-10**, none missing from `public/`, and the six BVOD
+cards render at exactly
 276px each with **zero bottom spread** despite two captions wrapping to two lines,
 because `CreativeCard`'s `items-stretch` plus its flex caption footer absorbs the
 difference. When counting these, strip comments first: the manifest above names
@@ -1179,6 +1186,97 @@ write it into the manifest so the next audit is a diff rather than a hunt.
 **The five renames pass 17 landed were the same shape** and none needed anything
 beyond the one field, so this is now a documented pattern rather than a one off:
 in this data model a channel's display name has exactly one home.
+
+**Confirmed again 2026-08-10**, when `Outdoor Stature` became `Outdoor Impact`:
+still one field, and it widened the tab-name gap for the third time (the Trilogy
+Outdoor tab feeds it). One thing to check that the pattern does not cover: the
+row's own `role` copy still reads "fame, **stature** and repeated visibility",
+which is the client's word in their own rationale rather than an echo of the row
+name. **Left verbatim and flagged, not swapped.** A rename is one field; a
+rationale is theirs.
+
+### Consolidating rows, and the one thing a merge cannot derive (2026-08-10)
+
+The client merged two pairs of channels and deleted a third row. Row count went
+23 to **20** (11 SPEED, 9 in house).
+
+| | |
+|---|---|
+| `Linear TV News` + `AFL Season Spot Plan` | → `Premium Linear News & Sport TV`, $2,150,000 |
+| `BBL Cricket Integration Seven` + `MMM Sports Commentary Integration` | → `BBL & Cricket Integration Seven & TripleM`, $3,100,000 |
+| `Acast Podcasts` | deleted (in house, so no dollars moved) |
+
+**Everything numeric was derivable and nothing needed reconciling**, because the
+client supplied both merged budgets and both are exactly the sum of the parts.
+Monthly cells add index by index, and in the Linear case the two flights do not
+overlap, so the combined array is a union with December still dark. **The check
+that proves a merge was clean is the STAGE TOTAL**: SHOW IT 4,255,000, CHECK IT
+5,650,000 and PROVE IT 1,095,000 all still match the workbook's own stage rows,
+and January is still $3,295,000, so no dollar was lost or double counted.
+
+**What a merge cannot derive is the copy**, and that is the reusable part. Each
+pair had a full five field rationale, and merging two lines does not produce a
+merged rationale. Both rows' copy is carried **verbatim and back to back** rather
+than blended, on the same rule that got Cinema its real Strategy line: flag the
+gap, do not fill it. The cost is visible and accepted (the trilogy is named twice
+in one `assets` cell, and `strategyLink` now carries two uppercase directives),
+and it is flagged to the client so they can send one merged rationale. `metrics`
+is the only field touched at all, and only because it is a semicolon list: terms
+appearing identically in both rows are listed once. **Nothing was reworded and
+nothing was dropped.**
+
+**No creative was lost either, but only because it was checked.** AFL's single
+image was `seven.png`, which the Linear row already wired, so the merged gallery
+is three cards rather than four with a duplicate: unique wired images went 42 to
+41, and the one that left is `acast.png`, with its row. The BBL pair is the
+opposite case, five cards across two rows, which would have squeezed two 16:9
+mockups to a third of the gallery each in a single row. They regroup into the
+house pattern this deck already uses on Outdoor Impact: mockups in `images`,
+partner logos in `extraImages`. That also retires the pass 17 note about Seven
+having to sit in the main row, since the lower row now carries three cards and
+cannot strand a lone survivor.
+
+One knock on resolved itself: SCA came off the BBL title in pass 17 while the
+MMM row's copy still read "across Seven and SCA", on the reading that SCA is
+represented by Triple M. **Triple M is now in the row name**, so the title and
+the copy agree for the first time.
+
+### `budgetLabel`: hiding a figure without moving the money (2026-08-10)
+
+The client asked to replace Radio Segment's `$50,000` with the word `Package`,
+and **the decision that actually matters is not the label, it is whether the
+money leaves the plan.** It does not: the spend is real and bought inside a
+package, so `budget` and `monthly` are untouched, MEDIA_TOTAL is still
+$11,000,000 and no other row's % moved. `MediaRow.budgetLabel` changes DISPLAY
+only.
+
+**Three places print that figure, and hiding one of them is worse than hiding
+none**, because a deck that half discloses reads as an error rather than a
+decision:
+
+1. The grid's Budget cell shows the label. **Its % cell blanks with it**, since
+   "Package" beside "0.5%" hands the figure straight back off the grand total
+   printed at the foot of the grid.
+2. The pop-up's ownership strip shows the label instead of the money **and its
+   "% of media" line**, for the same reason.
+3. The pop-up's flighting chart is the one that nearly shipped wrong. It prints
+   its values above each point, tooltips them as `Cost: $50,000` and scales its
+   y axis in thousands, so it would have restated the number a few inches under
+   the label hiding it. A labelled row now gets the **dollar free month strip**
+   that in-house rows use, made owner aware so it still matches the red bar that
+   was clicked.
+
+**KNOWN AND DELIBERATE: the two chart pop-ups still show this row's dollars.**
+The Budget header's stacked chart and the % header's pie both sum to $11.0M, and
+excluding a row whose money is still in the total would make the columns stop
+adding up. **That is the cost of keeping the money in**, and the alternative is
+not a better hiding place, it is the other decision: take the $50,000 out and let
+the total become $10,950,000.
+
+`__integrity` check 5b-iii asserts the field is only ever on a SPEED row with a
+real budget, because both ways of misplacing it are silent: on an in-house row
+the label renders nowhere (that branch is tested first), and on a $0 row it
+implies money that is not there.
 
 ## The APEX page
 
@@ -1357,7 +1455,7 @@ lyka-accelerator/
 │   ├── journeyModel.ts           DERIVED journey metrics + the score-string parsers.
 │   ├── tenThingsData.ts          10 findings: copy, tables, chart join key. Real Lyka.
 │   ├── tenThingsSeries.ts        Every number a Ten Things chart plots. Real Lyka.
-│   ├── mediaPlanData.ts          The Oct→Sep Lyka plan: 5 stages, 23 rows, owner split. Real Lyka.
+│   ├── mediaPlanData.ts          The Oct→Sep Lyka plan: 5 stages, 20 rows, owner split. Real Lyka.
 │   └── apexData.ts               APEX: channel constants + 2 Lyka audiences. DERIVED indices. Real Lyka.
 ├── hooks/
 │   ├── useVariant.ts             Variant state: ?pv= / ?jv= then localStorage. Scaffolding.
@@ -1468,7 +1566,7 @@ No tests, no lint. **`npm run typecheck` runs both configs** and must be used ra
 1. **[data/__integrity.ts](data/__integrity.ts)** runs on every dev page load. Open the console. A clean run logs exactly one line and nothing else:
 
    ```
-   [data integrity] ok. 5 personas, 5 segments, 5 journeys, 3+5 variants, 10 findings, 23 media plan rows, 55 assets queued for check, shares, budgets and published tables balance.
+   [data integrity] ok. 5 personas, 5 segments, 5 journeys, 3+5 variants, 10 findings, 20 media plan rows, 54 assets queued for check, shares, budgets and published tables balance.
    ```
 
    **The counts in that line are derived, so they move.** `3+5` was `3+4` before the gap matrix and `4+4` before the Index view was cut; `54` was `15` before the media plan creative joined the asset check. Treat a change in them as expected after adding or removing either; treat any OTHER output as a real problem.
@@ -1777,7 +1875,7 @@ If the study is revised, regenerate rather than hand-editing, and remember the t
 
 ### Interactive Media Plan: DONE (2026-08-05)
 
-The Lyka briefing workbook landed and the page was rebuilt and re-enabled the same day: 5 stages, 23 rows, the green/red owner split, the dashed flighting overlay. `MediaPlanPending` was deleted from `PendingSections.tsx` and its ternary from `App.tsx`. Method notes worth keeping: only VISIBLE workbook content was used (the hidden `$ Lyka` sheet, the hidden TRY IT / SHARE IT description sheets and the hidden Australian Open row were excluded per client direction, matching the Hamilton precedent); the workbook's own monthly grand-total row omits PROVE IT, so monthly totals are derived from rows; and the channel tabs' text is stale Hamilton template while their embedded images are the Lyka creative, so text and images came from different sheets.
+The Lyka briefing workbook landed and the page was rebuilt and re-enabled the same day: 5 stages, 23 rows (20 since the 2026-08-10 consolidation), the green/red owner split, the dashed flighting overlay. `MediaPlanPending` was deleted from `PendingSections.tsx` and its ternary from `App.tsx`. Method notes worth keeping: only VISIBLE workbook content was used (the hidden `$ Lyka` sheet, the hidden TRY IT / SHARE IT description sheets and the hidden Australian Open row were excluded per client direction, matching the Hamilton precedent); the workbook's own monthly grand-total row omits PROVE IT, so monthly totals are derived from rows; and the channel tabs' text is stale Hamilton template while their embedded images are the Lyka creative, so text and images came from different sheets.
 
 ### APEX: DONE (2026-08-07)
 
