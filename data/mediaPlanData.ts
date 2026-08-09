@@ -17,11 +17,21 @@
 //
 // The plan year runs October -> September. Values are AUD.
 //
-// TOTAL RE-VERIFIED 2026-08-06, three ways: the 23 rows' `budget` fields sum to
-// $11,000,000; their 12 monthly cells sum to $11,000,000; and all 276 of those
-// cells match the visible sheet one for one. Stage totals agree with the sheet's
-// own stage rows (4,255,000 / 5,650,000 / 1,095,000 / 0 / 0) and the grand total
-// agrees with its GRAND CAMPAIGN TOTAL cell. Every in-house row is still $0.
+// TOTAL RE-VERIFIED 2026-08-10, after the client's consolidation round: the
+// 20 rows' `budget` fields sum to $11,000,000, their monthly cells sum to
+// $11,000,000, no row's monthly cells disagree with its own budget, and the
+// stage totals still agree with the sheet's own stage rows
+// (4,255,000 / 5,650,000 / 1,095,000 / 0 / 0). Every in-house row is still $0.
+//
+// **THE STAGE TOTALS MATCHING IS THE PROOF THE MERGES WERE CLEAN.** Two pairs
+// of rows became one row each and one row was deleted, and if any of that had
+// lost or double counted a dollar, SHOW IT or CHECK IT would have moved. The
+// client supplied both merged budgets ($2,150,000 and $3,100,000) and both are
+// exactly the sum of the parts, so nothing needed reconciling.
+//
+// The row count no longer matches the workbook. It was 23 to 2026-08-09; the
+// cell for cell tie back to the visible sheet holds for the rows that survive
+// unchanged, and every departure is commented at its row.
 //
 // OWNERSHIP is the structural difference from the Hamilton plan. Every row is
 // either SPEED managed (owner: 'speed', red bars, monthly dollars summing to
@@ -57,24 +67,42 @@
 // a label in column G ("LINEAR TV" G1, "BVOD" G9, "YouTube" G12) which is what
 // assigns a logo to a row.
 //
+// ⚠ THE 2026-08-10 ROUND CONSOLIDATED ROWS, so this map is now MANY TABS TO ONE
+// ROW in two places and one tab has no row at all. That breaks the tidy
+// assumption a re-audit wants to make, which is exactly why it is written down:
+// three of the entries below will otherwise read as missing or duplicated
+// creative. Row count went 23 to 20 (11 SPEED, 9 in house); MEDIA_TOTAL did not
+// move, because both merges are the sum of their parts.
+//
 //   PR & Morning Shows      -> PR & Morning Shows (mockup, Nine, Seven)
-//   Screens tab   G1 LINEAR -> Linear TV News (mockup, Seven, Nine)
-//                              [tab name != row name: "Linear TV" until
-//                              2026-08-07, renamed on client direction]
+//   Screens tab   G1 LINEAR -> Premium Linear News & Sport TV (mockup, Seven, Nine)
+//                              [tab name != row name, and now TWO ROWS DEEP:
+//                              "Linear TV" -> "Linear TV News" (2026-08-07) ->
+//                              MERGED WITH AFL Season Spot Plan (2026-08-10)]
 //                 G9 BVOD   -> BVOD & SVOD, row 1: six on the tab, FIVE wired
 //                              (Paramount+ removed on client direction
 //                              2026-08-06; see the note on that row)
 //                 G12 YouTube -> YouTube (mockup, YouTube logo)
 //   SVOD & LG Samsung Tv    -> BVOD & SVOD row 2 (4 SVOD logos) + Samsung & LG (mockup)
 //   Cinema                  -> Cinema (auditorium, Val Morgan, 3 posters)
-//   Trilogy Outdoor         -> Outdoor Stature (mockup + JCDecaux, oOh!, QMS)
+//   Trilogy Outdoor         -> Outdoor Impact (mockup + JCDecaux, oOh!, QMS)
+//                              [tab name != row name: "Outdoor Stature" until
+//                              2026-08-10, renamed on client direction]
 //   Radio Partnership       -> Radio Segment (studio, Nova)   [tab name != row name]
 //                              ⚠ THE STUDIO SHOT IS NO LONGER THE WORKBOOK'S
 //                              either, since 2026-08-07. Same trap as REA below:
 //                              the path did not change, so nothing flags it.
-//   Podcast tab             -> Acast Podcasts (Acast) + Podcaster Performance (Toni and Ryan)
-//   Intergration [sic]      -> BBL (live moment, KFC BBL) + MMM Sports (booth, Triple M)
-//                              BBL also REUSES seven.png from the Screens tab.
+//   Podcast tab             -> Podcaster Performance (Toni and Ryan) ONLY.
+//                              ⚠ THIS TAB IS NOW HALF UNUSED. It also holds the
+//                              Acast logo, and ACAST PODCASTS WAS REMOVED FROM
+//                              THE PLAN ENTIRELY on client direction 2026-08-10.
+//                              acast.png stays in public/images/, unreferenced.
+//                              Do not re-wire it: the row is gone, not the logo.
+//   Intergration [sic]      -> BBL & Cricket Integration Seven & TripleM, which
+//                              is ONE ROW carrying what were two: the BBL live
+//                              moment + KFC BBL logo and the MMM booth + Triple M
+//                              logo (merged on client direction 2026-08-10).
+//                              It also REUSES seven.png from the Screens tab.
 //                              It reused sca.png too until 2026-08-06, when the
 //                              client removed that card; sca.png is still wired
 //                              to Always On Radio, so nothing is orphaned.
@@ -131,9 +159,10 @@
 // image renders LARGER, not smaller: the square drew 198x198 in that card and the
 // 16:9 frame draws 352x198. Widening the weight to suit was unnecessary.
 //
-// Also note two files now UNREFERENCED but still on disk, both removed on client
-// direction rather than by mistake: paramount.png (BVOD & SVOD) and
-// toni-and-ryan.jpg (Podcaster Performance). Do not re-wire either.
+// Also note three files now UNREFERENCED but still on disk, all removed on
+// client direction rather than by mistake: paramount.png (BVOD & SVOD),
+// toni-and-ryan.jpg (Podcaster Performance) and, since 2026-08-10, acast.png
+// (its whole row was deleted). Do not re-wire any of them.
 //
 // Deliberately unused: the visible LYKA LOGO tab's three files are the Lyka
 // wordmark and a "Fed Puppers" badge, which are brand assets rather than channel
@@ -247,6 +276,29 @@ export interface MediaRow {
    * comment in data/brand.ts for the evidence. Drives the gantt bar shade.
    */
   weight: (Weight | null)[];
+  /**
+   * Replaces the DISPLAYED dollar figure on a SPEED row, in the grid's Budget
+   * cell and in the pop-up's ownership strip. Added 2026-08-10 for the client's
+   * "replace $50,000 on Radio Segment to 'Package'".
+   *
+   * IT CHANGES DISPLAY ONLY. `budget` and `monthly` are untouched, so the row
+   * still contributes its money to MEDIA_TOTAL, to its stage total and to both
+   * budget charts, which is what the client chose: the spend is real and bought
+   * inside a package, it is not spend that left the plan.
+   *
+   * **The % cell blanks with it, and that is not cosmetic.** A row reading
+   * "Package" beside "0.5%" hands back the exact figure the label is there to
+   * withhold, since the reader has MEDIA_TOTAL at the foot of the grid.
+   *
+   * KNOWN AND FLAGGED: the two chart pop-ups still show this row's dollars,
+   * because it is still part of the total they sum to. Hiding it there would
+   * make the columns stop adding up to $11.0M. If the figure has to disappear
+   * everywhere, the money has to leave the plan, which is a different decision.
+   *
+   * Never set this on a `lyka` row: the in-house branch renders "In house"
+   * first and the label would be a value that renders nowhere. Asserted.
+   */
+  budgetLabel?: string;
   /** Performance still being finalised: render as a clearly-marked stub. */
   provisional?: boolean;
   detail?: ChannelDetailCopy;
@@ -337,6 +389,12 @@ const showIt: PlanLayer = {
       assets: 'Segment',
       monthly: [50000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 50000,
+      // Client direction 2026-08-10: "replace $50,000 on Radio Segment to
+      // 'Package'". DISPLAY ONLY, and deliberately so: the $50,000 stays in
+      // MEDIA_TOTAL and in the SHOW IT stage total, so the grand total is still
+      // $11,000,000 and no other row's % moved. See `budgetLabel` on MediaRow
+      // for what that does and does not hide.
+      budgetLabel: 'Package',
       weight: ['heavy', null, null, null, null, null, null, null, null, null, null, null],
       detail: {
         assets: 'Integrated host segment; live discussion; listener interaction; social content with Nova’s Wippa.',
@@ -349,24 +407,12 @@ const showIt: PlanLayer = {
       imageWeights: [1.4, 1],
       captions: ['Launch day with Nova’s Wippa', 'Nova'],
     },
-    {
-      channel: 'Acast Podcasts',
-      owner: 'lyka',
-      assets: 'Host reads',
-      monthly: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      budget: 0,
-      weight: ['heavy', 'heavy', null, null, null, null, null, null, null, null, null, null],
-      activeMonths: [true, true, false, false, false, false, false, false, false, false, false, false],
-      detail: {
-        assets: 'Bespoke host reads tailored to each podcast and its audience.',
-        role: 'Create personal relevance through trusted hosts speaking naturally in the style of their content.',
-        strategyLink: 'SAY WHAT THRIVING SHOULD LOOK LIKE: Introduce the three signs owners should look for: Poo, Pep and Polish.',
-        comesToLife: 'Across the following two weeks, each Acast host shares their own take on Fine Dog Syndrome and talks listeners through the three step check.',
-        metrics: 'Completed listens; reach; frequency.',
-      },
-      images: ['/images/acast.png'],
-      captions: ['Acast host reads'],
-    },
+    // ACAST PODCASTS WAS REMOVED HERE on client direction 2026-08-10 ("remove
+    // 'Acast Podcast' line completely from table"). It was an in-house row, so
+    // it carried no dollars and no total moved; the workbook's Podcast tab still
+    // has it, which is why the manifest above records the removal. `acast.png`
+    // is still in public/images/, now unreferenced, exactly like paramount.png
+    // and toni-and-ryan.jpg: a deliberate removal, not a dropped asset.
     {
       channel: 'Samsung & LG TV Home Screen Takeovers',
       owner: 'lyka',
@@ -386,42 +432,53 @@ const showIt: PlanLayer = {
       captions: ['LG home screen takeover'],
     },
     {
-      // "Linear TV" until 2026-08-07, renamed on client direction ("can we
-      // actually say Linear TV News"). The workbook sheet and its Screens tab
-      // label still read LINEAR TV; see the manifest above.
-      channel: 'Linear TV News',
+      // MERGED ROW, client direction 2026-08-10: "combine 'Linear TV' and 'AFL
+      // Season Spot Plan' line into 1 x Line", named by the client, budget
+      // stated by the client as $2,150,000 and flighting "to now be combined".
+      //
+      // The row it replaces was "Linear TV" until 2026-08-07 and "Linear TV
+      // News" until now. THREE workbook rows are behind this one name, so the
+      // manifest above carries it in the [tab name != row name] list; the
+      // Screens tab's column G label still reads LINEAR TV.
+      //
+      // ARITHMETIC, and it is why nothing else moved: 400,000 + 1,750,000 =
+      // 2,150,000, which is the client's own figure, so MEDIA_TOTAL, the SHOW IT
+      // stage total and every other row's % are all untouched. The monthly cells
+      // are added index by index and the two flights do not overlap (Linear ran
+      // Oct, Nov, Jan, Feb; AFL ran Mar to Sep), so the combined array is a
+      // union and December stays dark in both.
+      channel: 'Premium Linear News & Sport TV',
       owner: 'speed',
-      assets: 'News',
-      monthly: [100000, 100000, 0, 100000, 100000, 0, 0, 0, 0, 0, 0, 0],
-      budget: 400000,
-      weight: ['heavy', 'heavy', null, 'heavy', 'heavy', null, null, null, null, null, null, null],
+      assets: 'News & AFL | Seven, Nine, Foxtel',
+      monthly: [100000, 100000, 0, 100000, 100000, 250000, 250000, 250000, 250000, 250000, 250000, 250000],
+      budget: 2150000,
+      weight: ['heavy', 'heavy', null, 'heavy', 'heavy', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium'],
+      // BOTH SOURCE ROWS' COPY, VERBATIM AND BACK TO BACK. Nothing here is
+      // written, shortened or blended: the client merged two lines and did not
+      // supply merged copy, and the standing rule on this deck is to flag a gap
+      // rather than fill it, which is how Cinema got its real Strategy line.
+      // The cost is mild redundancy (the trilogy is named in both `assets`
+      // sentences) and two directives in `strategyLink`. **Flagged to the
+      // client; replace wholesale if they send a single merged rationale.**
+      // `metrics` is the one exception and only in the weakest sense: it is a
+      // semicolon list, so the three terms appearing identically in both rows
+      // are listed once instead of twice. No term was dropped or reworded.
       detail: {
-        assets: 'Three 30 second masterbrand films: Poo, Pep and Polish.',
-        role: 'Build mass awareness, stature and fame for Lyka’s three step thriving check.',
-        strategyLink: 'SHOW WHAT THRIVING LOOKS LIKE: Move owners from recognising the problem to understanding the visible signs.',
-        comesToLife: 'Launch the trilogy within the 6pm news across Seven and Nine, extending the campaign’s trusted news environment.',
-        metrics: 'Target audience reach; frequency; completed spots; campaign awareness; message take-out; brand recognition.',
+        assets: 'Three 30 second masterbrand films: Poo, Pep and Polish. Poo, Pep and Polish masterbrand trilogy spot package across Seven and Foxtel.',
+        role: 'Build mass awareness, stature and fame for Lyka’s three step thriving check. Provide continuity across a high reach, high affinity sport and keep Lyka’s three step check mentally available throughout the AFL season.',
+        strategyLink: 'SHOW WHAT THRIVING LOOKS LIKE: Move owners from recognising the problem to understanding the visible signs. KEEP THE CHECK TOP OF MIND: Sustain recognition of the trilogy beyond summer and reinforce the behaviour through repeated exposure.',
+        comesToLife: 'Launch the trilogy within the 6pm news across Seven and Nine, extending the campaign’s trusted news environment. Run the trilogy consistently within premium AFL coverage across Seven and Foxtel, maintaining momentum after the summer sporting burst.',
+        metrics: 'Target audience reach; frequency; completed spots; campaign awareness; message take-out; brand recognition; trilogy exposure; brand awareness; search and site response uplift.',
       },
+      // NO CARD WAS LOST IN THE MERGE. AFL's only image was seven.png, which
+      // Linear TV already wired at index 1, so the gallery is the same three
+      // cards rather than four with a duplicate. AFL's caption read
+      // "Seven | Foxtel"; the card is the Seven mark, so it stays "Seven" and
+      // Foxtel is named in the copy and the assets line. There is no Foxtel
+      // logo in the workbook, so none was invented.
       images: ['/images/linear-tv.jpg', '/images/seven.png', '/images/nine.png'],
       imageWeights: [2.6, 1, 1],
       captions: ['The trilogy in the 6pm news', 'Seven', 'Nine'],
-    },
-    {
-      channel: 'AFL Season Spot Plan',
-      owner: 'speed',
-      assets: 'Seven | Foxtel',
-      monthly: [0, 0, 0, 0, 0, 250000, 250000, 250000, 250000, 250000, 250000, 250000],
-      budget: 1750000,
-      weight: [null, null, null, null, null, 'medium', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium'],
-      detail: {
-        assets: 'Poo, Pep and Polish masterbrand trilogy spot package across Seven and Foxtel.',
-        role: 'Provide continuity across a high reach, high affinity sport and keep Lyka’s three step check mentally available throughout the AFL season.',
-        strategyLink: 'KEEP THE CHECK TOP OF MIND: Sustain recognition of the trilogy beyond summer and reinforce the behaviour through repeated exposure.',
-        comesToLife: 'Run the trilogy consistently within premium AFL coverage across Seven and Foxtel, maintaining momentum after the summer sporting burst.',
-        metrics: 'Target audience reach; frequency; completed spots; trilogy exposure; brand awareness; message take-out; search and site response uplift.',
-      },
-      images: ['/images/seven.png'],
-      captions: ['Seven | Foxtel'],
     },
     {
       channel: 'Cinema',
@@ -517,7 +574,16 @@ const showIt: PlanLayer = {
       captions: ['Non skippable on the big screen', 'YouTube'],
     },
     {
-      channel: 'Outdoor Stature',
+      // "Outdoor Stature" until 2026-08-10, renamed on client direction. One
+      // field, the documented shape for a channel rename here: the grid label,
+      // the pop-up heading, the "{channel} rationale" heading and the flighting
+      // chart title all derive from it.
+      //
+      // NOTE the workbook's own `role` copy below still reads "fame, stature
+      // and repeated visibility". That is the client's word in their own
+      // rationale, not a stale echo of the row name, so it is left verbatim and
+      // flagged rather than quietly swapped to "impact".
+      channel: 'Outdoor Impact',
       owner: 'speed',
       assets: 'Large format & triplet bus shelters',
       monthly: [0, 565000, 0, 700000, 500000, 0, 0, 0, 0, 0, 0, 0],
@@ -557,54 +623,62 @@ const checkIt: PlanLayer = {
       // The consistent reading is that SCA is represented by its consumer facing
       // brand, Triple M, rather than by the holding company logo, which is why
       // the MMM row keeps both the name and the Triple M mark. Left as is.
-      channel: 'BBL Cricket Integration Seven',
-      owner: 'speed',
-      assets: 'Sponsorship',
-      monthly: [0, 0, 1000000, 2000000, 0, 0, 0, 0, 0, 0, 0, 0],
-      budget: 3000000,
-      weight: [null, null, 'medium', 'heavy', null, null, null, null, null, null, null, null],
-      detail: {
-        assets: 'Seven sponsorship across Linear TV and BVOD; opening and closing billboards; squeezebacks; pull-throughs; segment sponsorship; bespoke cricket integration; masterbrand trilogy spot plan.',
-        role: 'Deliver high reach and deep engagement with Lyka’s audience during the December to January category peak, increasing share of voice when purchase interest is highest.',
-        strategyLink: 'TURN THE CHECK INTO A HIGH PERFORMANCE HABIT: Connect Poo, Pep and Polish with the visible signs of a high performing dog.',
-        comesToLife: 'A bespoke spot emulates a cricket match before a dog intercepts the game and shows off their Pep and Polish. This is a high performance dog, just like the cricketers. The integration is supported by the full trilogy spot plan.',
-        metrics: 'Incremental reach; frequency; sponsorship awareness; integration engagement; completed BVOD views; brand recall; three step check recall; branded search; site visits.',
-      },
-      // SEVEN MOVED UP INTO THE MAIN ROW WHEN SCA CAME OUT, and that is a
-      // consequence of the removal rather than a separate design change.
-      // `extraImages` lays its cards out with `flexGrow: 1, flexBasis: 0`, so a
-      // LONE card stretches to the full width of the gallery: Seven would have
-      // been one logo floating in about 900px of empty mat, under a full row,
-      // which reads as a broken layout rather than as one partner.
+      // MERGED ROW, client direction 2026-08-10: "combine BBL Cricket
+      // Integration Seven and MMM Sports Commentary Integration lines into 1",
+      // named by the client (their spelling of "TripleM" is kept as written)
+      // and budgeted by the client at $3,100,000.
       //
-      // Merged, this row is now exactly Linear TV News's shape and the documented
-      // house pattern for this deck: a 16:9 mockup at 2.6 beside partner logos
-      // at 1. To put SCA back, restore it to both arrays below and move Seven
-      // back out to `extraImages` / `extraCaptions`.
-      images: ['/images/bbl-live.jpg', '/images/bbl.png', '/images/seven.png'],
-      imageWeights: [2.6, 1, 1],
-      captions: ['The Lyka dog stops play', 'KFC BBL', 'Seven'],
-    },
-    {
-      channel: 'MMM Sports Commentary Integration',
+      // ARITHMETIC: 3,000,000 + 100,000 = 3,100,000, the client's own figure, so
+      // MEDIA_TOTAL, the CHECK IT stage total and every other row's % are
+      // untouched. Monthly cells add index by index (Dec 1,000,000 + 50,000,
+      // Jan 2,000,000 + 50,000) and both rows carried the SAME weight array, so
+      // the shading is unchanged rather than reconciled.
+      //
+      // THE SCA NOTE ABOVE NOW RESOLVES ITSELF. SCA came off this row's title
+      // and creative on 2026-08-06 while the MMM row's `role` copy still read
+      // "across Seven and SCA", on the reading that SCA is represented by its
+      // consumer facing brand. That brand is now IN THE ROW NAME, so the copy
+      // below and the title agree for the first time. `sca.png` remains wired to
+      // Always On Radio and nothing is orphaned.
+      channel: 'BBL & Cricket Integration Seven & TripleM',
       owner: 'speed',
-      assets: 'Segment',
-      monthly: [0, 0, 50000, 50000, 0, 0, 0, 0, 0, 0, 0, 0],
-      budget: 100000,
+      assets: 'Sponsorship | Segment',
+      monthly: [0, 0, 1050000, 2050000, 0, 0, 0, 0, 0, 0, 0, 0],
+      budget: 3100000,
       weight: [null, null, 'medium', 'heavy', null, null, null, null, null, null, null, null],
+      // BOTH SOURCE ROWS' COPY, VERBATIM AND BACK TO BACK, on the same reasoning
+      // as the merged Premium Linear row in SHOW IT: the client merged two lines
+      // and did not supply merged copy, and inventing a blended rationale would
+      // put agency writing in a field they read as theirs. `metrics` again lists
+      // the union, with MMM's three terms lowercased to sit mid list. **Flagged;
+      // replace wholesale if the client sends a single merged rationale.**
+      //
+      // "LIVE COMMENTARY" in `strategyLink` is the client's 2026-08-06 wording,
+      // not the workbook's "LIVE GAME". "game" is deliberately left standing in
+      // `comesToLife`, where the dog "enters the game" and the substitution
+      // would not read.
       detail: {
-        assets: 'Bespoke MMM integrated segment; James Brayshaw and Brad Haddin commentary; Seven TV integration linkage; social and audio cutdowns.',
-        role: 'Create theatre of the mind and connect the radio and television ideas into one distinctive sporting moment across Seven and SCA.',
-        // "LIVE COMMENTARY", not the workbook's "LIVE GAME", on client direction
-        // 2026-08-06. The word "game" is left alone in `comesToLife` below,
-        // where the dog "enters the game" and the substitution would not read.
-        strategyLink: 'BRING THE CHECK INTO THE LIVE COMMENTARY: Use the drama and familiarity of sports commentary to make Lyka’s high performance dog impossible to ignore.',
-        comesToLife: 'The MMM sports telecast is interrupted when the Lyka dog enters the game. James Brayshaw and Brad Haddin expertly relay what is unfolding on the pitch, timed to link with the bespoke Lyka TV spot airing on Seven. The MMM team would add it into their socials.',
-        metrics: 'Segment reach; social views; engagement.',
+        assets: 'Seven sponsorship across Linear TV and BVOD; opening and closing billboards; squeezebacks; pull-throughs; segment sponsorship; bespoke cricket integration; masterbrand trilogy spot plan. Bespoke MMM integrated segment; James Brayshaw and Brad Haddin commentary; Seven TV integration linkage; social and audio cutdowns.',
+        role: 'Deliver high reach and deep engagement with Lyka’s audience during the December to January category peak, increasing share of voice when purchase interest is highest. Create theatre of the mind and connect the radio and television ideas into one distinctive sporting moment across Seven and SCA.',
+        strategyLink: 'TURN THE CHECK INTO A HIGH PERFORMANCE HABIT: Connect Poo, Pep and Polish with the visible signs of a high performing dog. BRING THE CHECK INTO THE LIVE COMMENTARY: Use the drama and familiarity of sports commentary to make Lyka’s high performance dog impossible to ignore.',
+        comesToLife: 'A bespoke spot emulates a cricket match before a dog intercepts the game and shows off their Pep and Polish. This is a high performance dog, just like the cricketers. The integration is supported by the full trilogy spot plan. The MMM sports telecast is interrupted when the Lyka dog enters the game. James Brayshaw and Brad Haddin expertly relay what is unfolding on the pitch, timed to link with the bespoke Lyka TV spot airing on Seven. The MMM team would add it into their socials.',
+        metrics: 'Incremental reach; frequency; sponsorship awareness; integration engagement; completed BVOD views; brand recall; three step check recall; branded search; site visits; segment reach; social views; engagement.',
       },
-      images: ['/images/mmm-booth.jpg', '/images/triple-m.png'],
-      imageWeights: [2.6, 1],
-      captions: ['Brayshaw and Haddin call the interruption', 'Triple M'],
+      // ALL FIVE CARDS SURVIVE THE MERGE, regrouped into the house pattern this
+      // deck already uses on Outdoor Impact: mockups in `images`, partner logos
+      // in `extraImages`. Five cards in one row would have put two 16:9 mockups
+      // at 2.6 against three logos at 1, squeezing both mockups to about a third
+      // of the gallery. Two mockups at equal weight up top, three logos below.
+      //
+      // Seven had been moved up into `images` on 2026-08-06 when SCA's card came
+      // off, because `extraImages` cards are `flexGrow: 1, flexBasis: 0` and a
+      // LONE survivor stretches across the whole gallery. That reason is spent:
+      // the lower row now carries three.
+      images: ['/images/bbl-live.jpg', '/images/mmm-booth.jpg'],
+      imageWeights: [1, 1],
+      captions: ['The Lyka dog stops play', 'Brayshaw and Haddin call the interruption'],
+      extraImages: ['/images/bbl.png', '/images/seven.png', '/images/triple-m.png'],
+      extraCaptions: ['KFC BBL', 'Seven', 'Triple M'],
     },
     {
       // Renamed on client direction 2026-08-06, and this one is a STATION

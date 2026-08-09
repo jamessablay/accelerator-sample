@@ -120,10 +120,17 @@ const ChannelRow: React.FC<{ row: MediaRow; onSelect: () => void }> = ({ row, on
     <GanttTrack row={row} onClick={onSelect} />
 
     {/* Budget: in-house rows carry no dollars, and "In house" is also the
-        non-colour encoding of the green/red legend. */}
+        non-colour encoding of the green/red legend. A SPEED row can also
+        substitute a WORD for its figure via `budgetLabel` ("Package"), which
+        hides the number without removing the money. Both branches are a word
+        rather than a figure, so both drop `tabular-nums`. */}
     {row.owner === 'lyka' ? (
       <div className="text-right pr-3 text-xs font-medium" style={{ gridColumn: '14', color: OWNER_COLORS.lyka.base }}>
         In house
+      </div>
+    ) : row.budgetLabel ? (
+      <div className="text-right pr-3 text-xs font-medium" style={{ gridColumn: '14', color: LYKA.ink }}>
+        {row.budgetLabel}
       </div>
     ) : (
       <div className="text-right pr-3 text-sm font-semibold tabular-nums" style={{ gridColumn: '14', color: LYKA.ink }}>
@@ -131,9 +138,11 @@ const ChannelRow: React.FC<{ row: MediaRow; onSelect: () => void }> = ({ row, on
       </div>
     )}
 
-    {/* % */}
+    {/* %. Blank alongside a `budgetLabel` as well as on an in-house row:
+        "Package" beside "0.5%" gives the withheld figure straight back, since
+        the grand total is printed at the foot of the grid. */}
     <div className="text-right pr-1 text-xs tabular-nums" style={{ gridColumn: '15', color: LYKA.muted }}>
-      {row.owner === 'lyka' ? '' : pctOf(row.budget)}
+      {row.owner === 'lyka' || row.budgetLabel ? '' : pctOf(row.budget)}
     </div>
   </div>
 );

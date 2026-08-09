@@ -234,6 +234,12 @@ const ChannelDetail: React.FC<ChannelDetailProps> = ({ row, layerKey }) => {
         )}
         {inHouse ? (
           <span className="ml-auto text-sm font-semibold" style={{ color: accent.ink }}>Managed and funded by Lyka's in house team</span>
+        ) : row.budgetLabel ? (
+          /* A SPEED row substituting a word for its figure. The "% of media"
+             line goes with it, for the same reason the grid's % cell blanks:
+             the share alone reconstructs the dollars. The flighting chart
+             below is unaffected, since it plots shape rather than a total. */
+          <span className="ml-auto text-lg font-bold" style={{ color: accent.ink }}>{row.budgetLabel}</span>
         ) : (
           <>
             <span className="ml-auto text-lg font-bold" style={{ color: accent.ink }}>{money(row.budget)}</span>
@@ -355,14 +361,24 @@ const ChannelDetail: React.FC<ChannelDetailProps> = ({ row, layerKey }) => {
         </div>
       )}
 
-      {/* Flighting. In-house rows have no dollars to chart (the client chose
-          flighting only for them), so they get the month strip instead: the
-          same 12 columns as the gantt, active months filled in owner green. */}
-      {inHouse ? (
+      {/* Flighting. Two rows get the dollar-free month strip instead of the
+          spend chart: in-house rows, which have no dollars at all (the client
+          chose flighting only for them), and a `budgetLabel` row, whose dollars
+          exist but are deliberately not on display.
+          **THE SECOND CASE IS THE WHOLE POINT.** The chart prints its values
+          above each point, tooltips them as "Cost: $50,000" and scales its y
+          axis in thousands, so charting a row whose Budget cell reads "Package"
+          would hand the figure straight back, in the same pop-up, a few inches
+          below the label hiding it.
+          The strip is OWNER COLOURED, so it still matches the bar that was
+          clicked: green for in house, red for a SPEED package row. */}
+      {inHouse || row.budgetLabel ? (
         <div>
           <h3 className="text-base font-bold" style={{ color: accent.text }}>Flighting: {row.channel}</h3>
           <p className="text-sm italic text-[#5B6E64] mb-2">
-            Active months, Oct to Sep, shaded by presence. Run by Lyka in house, so no SPEED media investment is shown.
+            {inHouse
+              ? 'Active months, Oct to Sep, shaded by presence. Run by Lyka in house, so no SPEED media investment is shown.'
+              : `Active months, Oct to Sep, shaded by presence. Reported as ${row.budgetLabel.toLowerCase()}, so no monthly investment is charted.`}
           </p>
           <div className="grid grid-cols-12 gap-1.5">
             {MONTHS.map((m, i) => {
@@ -375,7 +391,7 @@ const ChannelDetail: React.FC<ChannelDetailProps> = ({ row, layerKey }) => {
                   title={w ? `${m}: ${w} presence` : `${m}: not running`}
                   style={
                     w
-                      ? { backgroundColor: OWNER_COLORS.lyka.weight[w], color: OWNER_COLORS.lyka.ink }
+                      ? { backgroundColor: OWNER_COLORS[row.owner].weight[w], color: OWNER_COLORS[row.owner].ink }
                       // An inactive month is quiet, not invisible: mintMuted was
                       // 1.75:1 on ivory. muted is 5.06:1 and still reads as off.
                       : { backgroundColor: LYKA.ivory, color: LYKA.muted }

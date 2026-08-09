@@ -313,6 +313,29 @@ export function runIntegrityChecks(): void {
     }
   }
 
+  // 5b-iii. `budgetLabel` SUBSTITUTES A WORD FOR A ROW'S DOLLARS ON SCREEN, and
+  //     both ways of misplacing it are invisible.
+  //
+  //     On a `lyka` row it renders NOWHERE: every consumer tests the in-house
+  //     branch first, so the label is a value nobody ever sees and the author
+  //     believes the row is labelled.
+  //
+  //     On a $0 row it is worse than useless: it replaces a figure that was
+  //     never there, and the row reads as having undisclosed money in it.
+  //
+  //     The point of the field is to WITHHOLD a real figure while keeping the
+  //     money in MEDIA_TOTAL, so a row carrying it must be SPEED managed and
+  //     must actually have dollars.
+  for (const row of planRows) {
+    if (!row.budgetLabel) continue;
+    if (row.owner !== 'speed') {
+      fail(`"${row.channel}" declares budgetLabel "${row.budgetLabel}" but is not SPEED managed. The in-house branch renders first, so the label never appears.`);
+    }
+    if (row.budget <= 0) {
+      fail(`"${row.channel}" declares budgetLabel "${row.budgetLabel}" but has no budget. The label exists to withhold a real figure, not to imply one.`);
+    }
+  }
+
   // 5b-ii. THE PRESENCE WEIGHTS MUST LINE UP WITH THE FLIGHTING.
   //
   //     `weight` is a second 12-slot array beside `monthly` / `activeMonths`, and
