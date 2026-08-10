@@ -11,6 +11,7 @@ import ConsumerJourneyIcon from './icons/ConsumerJourneyIcon';
 import ApexIcon from './icons/ApexIcon';
 import TenThingsIcon from './icons/TenThingsIcon';
 import NotionCoworkingIcon from './icons/NotionCoworkingIcon';
+import EcosystemIcon from './icons/EcosystemIcon';
 
 interface SidebarProps {
   isExpanded: boolean;
@@ -30,9 +31,13 @@ const navItems = [
   // findings set up the audience model. Moved on request 2026-08-04: the deck
   // now leads with who the audience is and closes on the evidence.
   { page: Page.TEN_THINGS, icon: <TenThingsIcon />, label: 'Ten Things The Data Says' },
-  // Last. The Lyka x SPEED shared-Notion-workspace proposal, a ways-of-working
-  // page rather than an audience or media page, so it closes the deck.
+  // The Lyka x SPEED shared-Notion-workspace proposal, a ways-of-working page
+  // rather than an audience or media page.
   { page: Page.NOTION_COWORKING, icon: <NotionCoworkingIcon />, label: 'Notion Coworking Setup' },
+  // Last. SPEED's operating role: plug into Lyka's existing team, data and
+  // measurement tools rather than replace them. A positioning page, so it closes
+  // the deck after the ways-of-working page.
+  { page: Page.ECOSYSTEM, icon: <EcosystemIcon />, label: 'Plugging Into The Ecosystem' },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ isExpanded, onToggle, activePage, setActivePage, isMobile }) => {

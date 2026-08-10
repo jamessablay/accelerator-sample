@@ -9,6 +9,7 @@ import BusinessDashboard from './pages/BusinessDashboard';
 import ApexBySpeed from './pages/ApexBySpeed';
 import TenThings from './pages/TenThings';
 import NotionCoworkingSetup from './pages/NotionCoworkingSetup';
+import EcosystemFit from './pages/EcosystemFit';
 import { Page } from './types';
 
 // All six sections are live. APEX by SPEED was the last one held back (behind a
@@ -66,6 +67,8 @@ const App: React.FC = () => {
         return <ApexBySpeed />;
       case Page.NOTION_COWORKING:
         return <NotionCoworkingSetup />;
+      case Page.ECOSYSTEM:
+        return <EcosystemFit />;
       default:
         return <Personas />;
     }

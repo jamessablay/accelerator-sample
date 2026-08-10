@@ -6,6 +6,7 @@ export enum Page {
   INTERACTIVE_MEDIA_PLAN = 'Interactive Media Plan',
   APEX_BY_SPEED = 'APEX by SPEED',
   NOTION_COWORKING = 'Notion Coworking Setup',
+  ECOSYSTEM = 'Plugging Into The Ecosystem',
 }
 
 /**
