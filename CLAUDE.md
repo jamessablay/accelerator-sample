@@ -354,14 +354,15 @@ is parsed. Every view reads numbers from it, so they cannot round differently.
 
 ## What this is
 
-A SPEED Standard Accelerator for **Lyka** (fresh, human grade dog food, direct to consumer subscription, lyka.com.au). Six pages:
+A SPEED Standard Accelerator for **Lyka** (fresh, human grade dog food, direct to consumer subscription, lyka.com.au). Seven pages:
 
 - **Personas**: a custom 3-layer SVG sunburst. Five Lyka personas across a four-stage readiness ladder. Default landing page.
 - **Consumer Journey**: 5 segment-specific six-stage journeys, each with an emotional + rational score line over time.
 - **Interactive Media Plan**: the real Lyka plan since 2026-08-05. A 5-stage macro block grid (SHOW IT to SHARE IT), 20 channels over Oct→Sep, every bar owned by SPEED (red) or Lyka in house (green) with a legend at the foot, Chart.js pop-ups. See "Interactive Media Plan page".
 - **APEX by SPEED**: the channel scorecard, real Lyka since 2026-08-07. View tabs (About | True Net Worth Index | Growth Quadrant) over two Roy Morgan audiences (Conflicted Troubleshooters, Mindful Researchers), 14 channels each.
 - **Business Dashboard**: a designed empty state awaiting a Lyka Power BI report.
-- **Ten Things The Data Says**: ten findings in a one viewport 5 x 2 grid, each opening a modal with a Chart.js chart, the published numbers, an implication and a test. Real Lyka. Ported 2026-08-03 from a standalone HTML page. Last in the nav.
+- **Ten Things The Data Says**: ten findings in a one viewport 5 x 2 grid, each opening a modal with a Chart.js chart, the published numbers, an implication and a test. Real Lyka. Ported 2026-08-03 from a standalone HTML page.
+- **Notion Coworking Setup**: added 2026-08-10. A scrolling presentation page proposing a shared Lyka × SPEED Notion workspace both teams and both Claudes keep current. Six sections (the problem, the shared-space hub, four content pillars, how it works, why it compounds + privacy, scattered → shared + a dark closing band). Pure DOM/CSS visuals, static + hover, one IntersectionObserver reveal. Reuses `OWNER_COLORS` (green Lyka / red SPEED) for the two-party split. Last in the nav. See "Notion Coworking Setup page".
 
 Lineage: **Xero PITCH Accelerator** → **Hamilton Island Audience Accelerator** → this. The polar geometry helpers (`polarToCartesian`, `describeSunburstArc`, `describeLabelArc`) are Xero inheritance.
 
@@ -381,7 +382,7 @@ There is **no router**. Navigation is a `Page` enum in [types.ts](types.ts) cons
 
 ## Routing model
 
-Six pages:
+Seven pages:
 
 ```ts
 // types.ts
@@ -392,15 +393,17 @@ export enum Page {
   CUSTOMER_JOURNEY = 'Consumer Journey',
   INTERACTIVE_MEDIA_PLAN = 'Interactive Media Plan',
   APEX_BY_SPEED = 'APEX by SPEED',
+  NOTION_COWORKING = 'Notion Coworking Setup',
 }
 ```
 
 **Adding a page touches exactly eight places**, and nothing else in the app needs to know: `types.ts` (the enum), a new `components/icons/*Icon.tsx` (the sidebar renders `{item.icon}` unconditionally, so a missing icon is a blank cell), the page component, two edits in `App.tsx` (import and switch case), two in `Sidebar.tsx` (import and `navItems`), then `metadata.json`.
 
 - **Personas** is the default landing page.
-- **All six nav items open their pages.** APEX was the last one held back (a placeholder behind `?show=all`); it opened on 2026-08-07. The hold-back pattern (`SHOW_ALL` const + `PendingSection` shell) is in git history at `4bba5cf` if a future section needs it.
+- **All seven nav items open their pages.** APEX was the last one held back (a placeholder behind `?show=all`); it opened on 2026-08-07. The hold-back pattern (`SHOW_ALL` const + `PendingSection` shell) is in git history at `4bba5cf` if a future section needs it. Notion Coworking Setup was added 2026-08-10 and opened directly.
 - **Sidebar order differs from the enum order.** The visible nav order is set by the `navItems` array in [components/Sidebar.tsx](components/Sidebar.tsx), where **APEX by SPEED sits above Interactive Media Plan** (the two were swapped). The `Page` enum order above is just the enum definition, not the rendered order.
-- **Ten Things sits last, below Interactive Media Plan.** It shipped second, on the argument that the ten findings set up the audience model. Moved on request 2026-08-04: the deck leads with who the audience is and closes on the evidence. The rendered order is the `navItems` array, so moving it is a one line change and nothing else needs to know.
+- **Ten Things sits second to last**, below Interactive Media Plan. It shipped second, on the argument that the ten findings set up the audience model. Moved on request 2026-08-04: the deck leads with who the audience is and closes on the evidence. The rendered order is the `navItems` array, so moving it is a one line change and nothing else needs to know.
+- **Notion Coworking Setup sits last** (added 2026-08-10). It is a ways of working proposal, not an audience or media page, so it closes the deck after the evidence.
 - **Business Dashboard** is a designed empty state. It previously embedded a Power BI report belonging to **another client**, which was removed. To wire Lyka's report, set `REPORT_URL` at the top of [pages/BusinessDashboard.tsx](pages/BusinessDashboard.tsx) to a publish-to-web `app.powerbi.com/view?r=...` URL and the iframe renders in place of the empty state.
 - **Interactive Media Plan** is the Lyka Oct→Sep macro block plan. A funnel-stage grid of five stages (SHOW IT | CHECK IT | PROVE IT | TRY IT | SHARE IT) and 20 channels with monthly gantt flighting bars and Budget + % columns, fed by [data/mediaPlanData.ts](data/mediaPlanData.ts). **Bars are OWNER coloured** (green = Lyka in house, red = SPEED managed, keyed by the legend at the foot of the grid); rails and both budget charts stay stage coloured. In-house rows are flighting only: no dollars anywhere, "In house" in the Budget column. Clicking a gantt bar opens a channel pop-up (ownership strip, rationale + dark-label execution table, an **Examples** creative gallery, then a flighting chart for SPEED rows or an active-months strip for in-house rows). The gold **Budget** header opens a stacked-by-media monthly bar chart **with the workbook's planned flighting weight as a dashed overlay**, the **%** header opens a budget-allocation pie; both filter to funded rows. A bottom line states the $11.0M SPEED managed total. Uses Chart.js via `react-chartjs-2`. Components live in [components/mediaplan/](components/mediaplan/). With 23 rows the grid is taller than one viewport at 1440; the page scrolls rather than clips.
 - **APEX by SPEED** is the channel scorecard. Real Lyka since 2026-08-07; see "The APEX page".
@@ -425,6 +428,7 @@ All data lives in flat TypeScript files under `data/`. There is no database, no 
 | [data/apexData.ts](data/apexData.ts) | **Real Lyka since 2026-08-07.** The channel knowledge base (14 channels: label, tier, `knf`, `ttd`, mirroring the APEX tool's `constants.ts`), two audiences' raw Roy Morgan inputs (`heavyPct`, `rmIndex`, `addressableReach`), and the methodology + About copy. **`tnwIndex`, `ttdStars` and `quadrant` are DERIVED at module load**, never typed; `__integrity.ts` check 15 asserts the derivation reproduces the export decks' published values. Also the quadrant meta + thresholds and `QUAD_STYLES`. Read the file header before editing. |
 | [data/mediaFocus.ts](data/mediaFocus.ts) | **A client declaration, not a derivation.** Which Consumer Journey cells carry the media focus emphasis: two stage titles, three journeys, the label and the note. Consumed by all five journey views so the emphasis cannot drift between them. Matched by stage TITLE; both halves of the join asserted. No React. |
 | [data/mediaPlanData.ts](data/mediaPlanData.ts) | **Real Lyka since 2026-08-05.** The Oct→Sep plan: `MONTHS` (Oct→Sep), `PLAN_LAYERS` (SHOW IT / CHECK IT / PROVE IT / TRY IT / SHARE IT, each with a `blurb`), `MEDIA_TOTAL = TOTAL_BUDGET = 11,000,000` (SPEED managed; no production line), `FLIGHTING_PCT` (the dashed overlay). Each `MediaRow` has **`owner: 'speed' \| 'lyka'`** (drives bar colour, the In house cells and the pop-up), `monthly` (12 values; all zeros on lyka rows), `budget` (0 on lyka rows), **`activeMonths`** (in-house flighting), optional `detail` (role/strategyLink/comesToLife/metrics), `images`, `captions`, `imageWeights`, `extraImages` + `extraCaptions`, and layout flags `provisional`, `pairedImages`, `stackedImages`, `stackedFirstSmall`. Sourced from the Lyka briefing workbook's **visible** `Budget Distribution $ Lyka SPEE` sheet + the three visible `Media Description` sheets; hidden content excluded per client direction (the `$ Lyka` sheet with the in-house dollars, the TRY IT / SHARE IT description sheets, the Australian Open row). **The workbook's own monthly grand-total row omits PROVE IT**, so monthly totals are derived from rows: January is $3,295,000, not the sheet's 3,200,000. **Since the 2026-08-06 review round it ALSO carries client copy and three creatives from `Changes to the intereactive media plan.pptx`, and since 2026-08-07 two more creatives from `Accelerator Feedback - For Aaron.pptx` that REPLACED workbook images in place, so it is no longer a pure transcription of the workbook and must not be "restored" to it.** Read the file header before editing. |
+| [data/notionCoworkingData.ts](data/notionCoworkingData.ts) | **Real Lyka, added 2026-08-10.** All copy for the Notion Coworking Setup page, house-styled once here from the 10-slide `Lyka Notion Coworking Setup.pptx`. `CoworkActor` union (`lyka`/`speed`/`both`, tsc-enforced), plus `PILLARS`, `SETUP_STEPS`, `PRACTICE_STEPS`, `COMPOUNDING`, `PRIVACY_POINTS`, `CONTRASTS`, `CLOSING_STEPS` and the section headings. **Pure TS: no React, no DOM types.** No `__integrity` additions: no silent string-key joins, no asset paths, no new colour pairs. |
 
 ### Persona schema
 
@@ -1335,6 +1339,57 @@ deliberately not carried.
   presets in the tool. Adding one is an input block + an `apexTables` entry +
   an `EXPECTED_TNWI` block, from a reviewed export only.
 
+## Notion Coworking Setup page
+
+[pages/NotionCoworkingSetup.tsx](pages/NotionCoworkingSetup.tsx). Added 2026-08-10
+from the 10-slide `Lyka Notion Coworking Setup.pptx`. A **scrolling** presentation
+page (root `animate-fadeIn` + `pb-16 md:pb-24`, like APEX), NOT a one-viewport
+frame: ten slides of narrative read top to bottom. It proposes a shared
+Lyka × SPEED Notion workspace both teams and both Claudes keep current.
+
+**This is not a slide transcription.** The deck's content is recast into six
+interactive sections, consistent with the rest of the app (LYKA palette, type
+tokens, mint hairlines, mono eyebrows, pill radii, the one easing curve):
+
+- **A. The problem** (slide 2): four scattered source chips at skewed CSS
+  rotations converge into one shared-space card. Hover straightens and lifts a
+  chip. Inline in the page.
+- **B. The shared space** ([SharedSpaceDiagram.tsx](components/notion/SharedSpaceDiagram.tsx),
+  slide 3): a DOM hub, Lyka side | Shared Space | SPEED side, sides coloured via
+  `OWNER_COLORS`. Hovering a side dims the other (the ApexMethodology focus/dim
+  pattern). Stacks vertically below `md`.
+- **C. Four places** ([PillarCards.tsx](components/notion/PillarCards.tsx), slide
+  4): four pillar cards styled like ApexMethodology's source cards. Bullets
+  always visible (no expand, no modal), hover is emphasis only.
+- **D. How it works** (slides 5 + 6): three setup steps as a numbered strip
+  (inline) + [PracticeWalkthrough.tsx](components/notion/PracticeWalkthrough.tsx),
+  four step cards each with an actor tag (Lyka / SPEED / Both). Hovering a step
+  highlights its actor consistently across the strip.
+- **E. Compounds + Private** (slides 7 + 8): [CompoundingVisual.tsx](components/notion/CompoundingVisual.tsx),
+  Month 1/3/6 growing block stacks with a one-shot IntersectionObserver reveal
+  (`prefers-reduced-motion` renders the final state immediately), beside a static
+  privacy panel (owners inside a dashed boundary, other clients outside marked no
+  access).
+- **F. Scattered → shared + close** ([BeforeAfter.tsx](components/notion/BeforeAfter.tsx),
+  slides 9 + 10): five before → after paired rows (hover emphasis), then a dark
+  closing band on `LYKA.tealDeepest` (like ApexMethodology's formula bar) so the
+  page ends deck-like.
+
+**All copy is in [data/notionCoworkingData.ts](data/notionCoworkingData.ts)**,
+house-styled there once (no em dashes, no hyphenated compound modifiers, the real
+`×`). Every string traces to a slide; never invent a claim.
+
+**`OWNER_COLORS` reuse is the one sanctioned borrow here** (green Lyka / red
+SPEED), decided with the client, and recorded in `brand.ts`'s `speedRed` and
+`OWNER_COLORS` comments. Only `base` and `ink` are used; the `weight` rungs are
+gantt-specific. Do NOT borrow the other page-owned bands (`SEGMENT_COLORS`,
+`LAYER_COLORS`, `TEN_THINGS`, the gap ramp, `FOCUS`).
+
+**All visuals are DOM/CSS, no SVG** (the gap-matrix precedent), so none of the
+`svgFont` / `useElementSize` apparatus is pulled in. Static + hover throughout;
+no Modal, no new `__integrity` checks, no new assets. The `[data integrity] ok`
+line's counts are unchanged.
+
 ## Brand and typography
 
 **Palette source of truth.** Lyka's brand is correctly implemented in exactly one place in this workspace: `RFI - Lyka/lyka-rfi/styles/globals.css`. That is where this app's palette came from.
@@ -1456,7 +1511,8 @@ lyka-accelerator/
 │   ├── tenThingsData.ts          10 findings: copy, tables, chart join key. Real Lyka.
 │   ├── tenThingsSeries.ts        Every number a Ten Things chart plots. Real Lyka.
 │   ├── mediaPlanData.ts          The Oct→Sep Lyka plan: 5 stages, 20 rows, owner split. Real Lyka.
-│   └── apexData.ts               APEX: channel constants + 2 Lyka audiences. DERIVED indices. Real Lyka.
+│   ├── apexData.ts               APEX: channel constants + 2 Lyka audiences. DERIVED indices. Real Lyka.
+│   └── notionCoworkingData.ts    Notion Coworking Setup page copy. Pure TS, house-styled. Real Lyka.
 ├── hooks/
 │   ├── useVariant.ts             Variant state: ?pv= / ?jv= then localStorage. Scaffolding.
 │   └── useElementSize.ts         ResizeObserver. Feeds svgFont(), and the flow viewBox aspect.
@@ -1466,10 +1522,11 @@ lyka-accelerator/
 │   ├── BusinessDashboard.tsx     Designed empty state. Power BI iframe REMOVED (see header).
 │   ├── TenThings.tsx             One viewport 5 x 2 finding grid + stepper modal. Real Lyka.
 │   ├── InteractiveMediaPlan.tsx  The Lyka macro block plan. OPEN since 2026-08-05.
-│   └── ApexBySpeed.tsx           Channel scorecard. View tabs + persona strip. Real Lyka.
-│                                 (PendingSections.tsx was deleted 2026-08-07 when APEX opened.)
+│   ├── ApexBySpeed.tsx           Channel scorecard. View tabs + persona strip. Real Lyka.
+│   │                             (PendingSections.tsx was deleted 2026-08-07 when APEX opened.)
+│   └── NotionCoworkingSetup.tsx  Scrolling Lyka × SPEED shared-workspace pitch. 6 sections. 2026-08-10.
 ├── components/
-│   ├── Sidebar.tsx               6-item nav. Black panel (SPEED chrome), active pill #0A7D68.
+│   ├── Sidebar.tsx               7-item nav. Black panel (SPEED chrome), active pill #0A7D68.
 │   ├── personas/
 │   │   ├── PersonaCompositionChart.tsx   561-line custom-SVG sunburst. BASELINE, untouched.
 │   │   ├── PersonaDetail.tsx             Permanent 9:16 media slot + content panel. `stacked` forces 1 col.
@@ -1504,7 +1561,9 @@ lyka-accelerator/
 │   │       └── *.tsx                     9 charts. MmmConfidence is HTML, deliberately.
 │   ├── apex/                             ApexChannelTable (slide 4), ApexGrowthQuadrant (slide 5),
 │   │                                     ApexMethodology, labelPlacement.ts (ported from the tool)
-│   ├── icons/                            18 custom SVG icon components (all referenced)
+│   ├── notion/                           SharedSpaceDiagram, PillarCards, PracticeWalkthrough,
+│   │                                     CompoundingVisual, BeforeAfter (all DOM/CSS, no SVG apparatus)
+│   ├── icons/                            19 custom SVG icon components (all referenced)
 │   └── shared/
 │       ├── Modal.tsx                     All pop-ups. Escape, focus trap, scroll lock, opt-in stepper.
 │       │                                 Focus MOVE IN fixed 2026-08-04, see below.

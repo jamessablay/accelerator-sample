@@ -73,9 +73,10 @@ export const LYKA = {
   /** Teal-tinted shadow. Lyka shadows are never black. */
   shadow: '0 18px 40px -16px rgba(0,86,72,0.22)',
   /**
-   * SPEED brand mark. Reserved for the SPEED wordmark, the APEX logo, and one
-   * sanctioned data use: OWNER_COLORS.speed on the media plan, where the colour
-   * denotes SPEED itself (the client-requested red = SPEED legend). It is still
+   * SPEED brand mark. Reserved for the SPEED wordmark, the APEX logo, and the
+   * sanctioned data uses of OWNER_COLORS.speed, where the colour denotes SPEED
+   * itself: the media plan (the client-requested red = SPEED legend) and the
+   * Notion Coworking Setup page (the two-party Lyka/SPEED split). It is still
    * not a general UI colour.
    */
   speedRed: '#E8151B',
@@ -285,6 +286,12 @@ export const LAYER_COLORS: Record<LayerKey, LayerColorSet> = {
 // exactly this encoding: GREEN bars are Lyka in house, RED bars are SPEED
 // managed. Bars encode OWNER; the rail and the two budget charts encode STAGE.
 // The two dimensions never share a surface, so the hues cannot collide.
+//
+// SECOND SANCTIONED CONSUMER (2026-08-10): the Notion Coworking Setup page reuses
+// `base` and `ink` from both owner sets as the two-party Lyka/SPEED split (the
+// shared-space hub, the practice-step actor tags, the privacy owner chips). The
+// `weight` rungs are gantt-specific and are NOT used there. Same meaning as here,
+// green = Lyka, red = SPEED, so the reuse is consistent rather than a new use.
 //
 // `lyka` is an existing system hue (LYKA.accentInk, SEGMENT_COLORS.Ready.base):
 // no new colour. `speed` is LYKA.speedRed, the one sanctioned data use of SPEED

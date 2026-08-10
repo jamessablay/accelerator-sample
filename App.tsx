@@ -8,6 +8,7 @@ import InteractiveMediaPlan from './pages/InteractiveMediaPlan';
 import BusinessDashboard from './pages/BusinessDashboard';
 import ApexBySpeed from './pages/ApexBySpeed';
 import TenThings from './pages/TenThings';
+import NotionCoworkingSetup from './pages/NotionCoworkingSetup';
 import { Page } from './types';
 
 // All six sections are live. APEX by SPEED was the last one held back (behind a
@@ -63,6 +64,8 @@ const App: React.FC = () => {
         return <InteractiveMediaPlan />;
       case Page.APEX_BY_SPEED:
         return <ApexBySpeed />;
+      case Page.NOTION_COWORKING:
+        return <NotionCoworkingSetup />;
       default:
         return <Personas />;
     }

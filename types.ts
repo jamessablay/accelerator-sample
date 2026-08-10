@@ -5,6 +5,7 @@ export enum Page {
   CUSTOMER_JOURNEY = 'Consumer Journey',
   INTERACTIVE_MEDIA_PLAN = 'Interactive Media Plan',
   APEX_BY_SPEED = 'APEX by SPEED',
+  NOTION_COWORKING = 'Notion Coworking Setup',
 }
 
 /**
