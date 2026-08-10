@@ -1,41 +1,53 @@
 import React, { useMemo } from 'react';
-import { Chart } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 import type { ChartData, ChartOptions } from 'chart.js';
 import { TEN_THINGS, CHART_SEPARATOR } from '../../../data/brand';
-import { FLAT_SHARE } from '../../../data/tenThingsSeries';
+import { FLAT_SHARE, NATIONAL_PER_100_DOG_OWNERS } from '../../../data/tenThingsSeries';
 import TenThingsChart from '../TenThingsChart';
 import { BASE_OPTIONS, BASE_PLUGINS, catAxis, valAxis } from './chartBase';
-import { barValueLabels } from './chartPlugins';
+import { barValueLabels, benchmarkRule } from './chartPlugins';
 import type { TenThingChartProps } from './types';
 
 // -----------------------------------------------------------------------------
-// Point 03. SIMPLIFIED BY ADDING, not by removing.
+// Point 03. REDRAWN per 100 dog owners, 2026-08-10.
 //
-// The source plots penetration alone. But the headline is "Lyka wins in dense,
-// AFFLUENT postcodes" and the paragraph says the effect is the postcode, not the
-// flat. A penetration-only chart cannot show that: the reader has to take the
-// caption on faith.
+// THE CHANGE OF BASE WIDENS THE GAP, which is the finding. On households the
+// flattest fifth ran 1.41x the least flat; on dog owners it is 1.64x, because
+// flat heavy areas own fewer dogs and the household measure was hiding part of
+// the effect.
 //
-// The average income decile column is ALREADY IN THE SOURCE'S OWN PUBLISHED
-// NUMBERS TABLE (6.9, 6.1, 6.1, 6.3, 7.7) and it tracks penetration almost
-// exactly. Plotting it makes the chart argue its own headline. Nothing is added
-// to the data; something stops being hidden.
+// THE INCOME LINE IS GONE, and that is a real loss the caption has to cover.
+// The household version ADDED that line, because the headline claims the driver
+// is the postcode rather than the flat and a penetration only chart cannot show
+// it. The redrawn source plots one series, so the line goes and the argument
+// moves into the caption and the numbers table, where the column still lives.
+// This is the one place the redraw makes a chart argue its own headline less
+// well, and it is recorded rather than quietly patched by re-adding a series the
+// new source does not carry.
 //
-// <Chart type="bar"> for the mixed bar plus line. See IncomeLadder's header.
+// <Bar>, NOT <Chart type="bar">: no line dataset left. See IncomeLadder's header.
+//
+// TWO LINE X LABELS. Chart.js renders an array label as one line per element, so
+// each quintile carries its own flats percentage under its name. That is the
+// source's own labelling and it is what stops "most flats" reading as a category
+// rather than as 52% of dwellings.
 // -----------------------------------------------------------------------------
 
 const penetrationLabels = barValueLabels({ orient: 'y', fmt: (v) => v.toFixed(2) });
 
-const FlatSharePenetration: React.FC<TenThingChartProps> = ({ discrepancy }) => {
+const nationalRule = benchmarkRule({
+  axis: 'y',
+  value: NATIONAL_PER_100_DOG_OWNERS,
+  label: `national ${NATIONAL_PER_100_DOG_OWNERS.toFixed(2)}`,
+});
+
+const FlatSharePenetration = ({ discrepancy }: TenThingChartProps) => {
   const data = useMemo<ChartData<'bar'>>(
     () => ({
-      labels: [...FLAT_SHARE.labels],
+      labels: FLAT_SHARE.labels.map((l, i) => [l, `${FLAT_SHARE.flatsPct[i]}% flats`]),
       datasets: [
         {
-          type: 'bar' as const,
-          label: 'Penetration per 100 households',
-          yAxisID: 'y',
-          order: 2,
+          label: 'Active per 100 dog owners',
           data: [...FLAT_SHARE.penetration],
           backgroundColor: TEN_THINGS.seriesFill,
           borderColor: CHART_SEPARATOR,
@@ -43,22 +55,6 @@ const FlatSharePenetration: React.FC<TenThingChartProps> = ({ discrepancy }) => 
           borderRadius: 4,
           borderSkipped: false,
           maxBarThickness: 68,
-        },
-        {
-          type: 'line' as const,
-          label: 'Average income decile of the postcode',
-          yAxisID: 'y1',
-          order: 1,
-          data: [...FLAT_SHARE.avgIncomeDecile],
-          borderColor: TEN_THINGS.warmInk,
-          backgroundColor: TEN_THINGS.warmInk,
-          borderWidth: 2.5,
-          tension: 0.3,
-          pointRadius: 4,
-          pointHoverRadius: 6.5,
-          pointBackgroundColor: TEN_THINGS.warmInk,
-          pointBorderColor: CHART_SEPARATOR,
-          pointBorderWidth: 1.5,
         },
       ],
     }),
@@ -68,26 +64,28 @@ const FlatSharePenetration: React.FC<TenThingChartProps> = ({ discrepancy }) => 
   const options = useMemo<ChartOptions<'bar'>>(
     () => ({
       ...BASE_OPTIONS,
+      // `right` is the gutter benchmarkRule draws a HORIZONTAL rule's caption
+      // into. Without it the caption falls back inline and lands on a bar.
+      layout: { padding: { top: 26, right: 96 } },
       scales: {
         x: catAxis('Postcodes grouped by their share of flats'),
-        y: valAxis({ beginAtZero: true, max: 1.6, title: 'Penetration per 100 households' }),
-        y1: valAxis({
-          min: 0,
-          max: 10,
-          position: 'right',
-          noGrid: true,
-          title: 'Average income decile',
-        }),
+        y: valAxis({ beginAtZero: true, max: 1.5, title: 'Active per 100 dog owners' }),
       },
       plugins: {
         ...BASE_PLUGINS,
+        legend: { display: false },
         tooltip: {
           ...BASE_PLUGINS.tooltip,
           callbacks: {
-            label: (c) =>
-              c.dataset.label?.startsWith('Average')
-                ? `Average income decile: ${Number(c.parsed.y).toFixed(1)}`
-                : `Penetration: ${Number(c.parsed.y).toFixed(2)} per 100 households`,
+            title: (items) => {
+              const i = items[0]?.dataIndex ?? 0;
+              return `${FLAT_SHARE.labels[i]}: ${FLAT_SHARE.flatsPct[i]}% flats`;
+            },
+            label: (c) => `Active: ${Number(c.parsed.y).toFixed(2)} per 100 dog owners`,
+            footer: (items) => {
+              const i = items[0]?.dataIndex ?? 0;
+              return `Average income decile: ${FLAT_SHARE.avgIncomeDecile[i].toFixed(1)}`;
+            },
           },
         },
       },
@@ -98,24 +96,25 @@ const FlatSharePenetration: React.FC<TenThingChartProps> = ({ discrepancy }) => 
   return (
     <TenThingsChart
       eyebrow="Audience"
-      title="Penetration follows the flats, and the flats follow the money"
+      title="The flatter the postcode, the better Lyka does"
       subtitle="Five quintiles of postcodes, ordered by the share of dwellings that are flats"
       height={340}
       discrepancy={discrepancy}
       caption={
         <>
-          The income line is plotted alongside penetration because the two move together: the
-          flattest quintile is also the richest at decile 7.7. Within a single city the apartment
-          advantage falls to 1.16 to 1.19x, and in Brisbane it reverses.
+          <b>1.64x</b> between the most and fewest flats, against 1.41x on households: flat heavy
+          areas own fewer dogs, so the household base was hiding part of this. A region grain cross
+          check that needs no estimate at all puts the same gap at 2.16x. The driver is still the
+          postcode rather than the flat, and the average income decile in the numbers table is the
+          evidence: the flattest quintile is also the richest at 7.7. Hover a bar for it.
         </>
       }
     >
-      <Chart
-        type="bar"
+      <Bar
         data={data}
         options={options}
-        plugins={[penetrationLabels]}
-        aria-label="Combination chart across five quintiles of postcodes ordered by share of flats. Penetration per 100 households is 0.96, 0.94, 0.94, 1.03 and 1.33 from fewest flats to most. A line shows the average household income decile of each quintile: 6.9, 6.1, 6.1, 6.3 and 7.7. Penetration and income both peak in the flattest quintile."
+        plugins={[penetrationLabels, nationalRule]}
+        aria-label="Column chart across five quintiles of postcodes ordered by share of flats, from 1 per cent to 52 per cent. Active customers per 100 dog owners are 0.80, 0.87, 0.83, 0.89 and 1.31 from fewest flats to most, against a national rate of 1.03. Only the flattest quintile is above the national rate."
       />
     </TenThingsChart>
   );

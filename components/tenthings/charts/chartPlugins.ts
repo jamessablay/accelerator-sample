@@ -188,49 +188,10 @@ export const lineValueLabels = (o: {
   },
 });
 
-/**
- * City names beside each bubble. Point 05 only.
- *
- * Reads the rendered radius off the element rather than a closure, because the
- * radius is the one genuinely dynamic parameter in this set: it is derived from
- * the measured container width.
- *
- * EVERY LABEL CARRIES A MAT COLOURED HALO. Bubbles overlap by design (that is
- * what makes it a bubble chart) and two of the five capitals are close enough
- * that one label always lands on the other's fill: Brisbane sits at 1.55 and 250
- * against Sydney at 1.49 and 260, and Sydney's bubble is the largest on the
- * chart. Nudging the position just moves the collision somewhere else at the
- * next container width. The halo is the same device the sunburst uses for its
- * wedge labels, drawn here as strokeText under fillText because canvas has no
- * paint-order property.
- */
-export const bubbleLabels = (o: {
-  fmt: (i: number) => string;
-  color?: string;
-  /** The surface behind the chart. The halo matches it so it reads as a gap. */
-  halo?: string;
-}): Plugin => ({
-  id: 'bubbleLabels',
-  afterDatasetsDraw(chart) {
-    const meta = chart.getDatasetMeta(0);
-    const { ctx, chartArea: area } = chart;
-    ctx.save();
-    ctx.font = CANVAS_FONT.labelBold;
-    ctx.textAlign = 'center';
-    ctx.lineJoin = 'round';
-    ctx.lineWidth = 3.5;
-    ctx.strokeStyle = o.halo ?? '#FFFBED';
-    ctx.fillStyle = o.color ?? TEN_THINGS.seriesDeep;
-    meta.data.forEach((el, i) => {
-      const r = (el.options as { radius?: number }).radius ?? 10;
-      // Above the bubble by default, below it if that would clip the top.
-      const above = el.y - r - 6;
-      const fits = above > area.top + 10;
-      ctx.textBaseline = fits ? 'bottom' : 'top';
-      const y = fits ? above : el.y + r + 6;
-      ctx.strokeText(o.fmt(i), el.x, y);
-      ctx.fillText(o.fmt(i), el.x, y);
-    });
-    ctx.restore();
-  },
-});
+// `bubbleLabels` LIVED HERE AND WENT WITH POINT 05 (2026-08-10). It drew city
+// names beside each bubble with a mat coloured halo, because bubbles overlap by
+// design and two capitals always collided. The dog owner redraw made point 05 a
+// bar chart, which was its only consumer, so the plugin, `BubbleController` in
+// chartBase, `TEN_THINGS.bubbleFill` and `CANVAS_FONT.labelBold` all came out
+// together rather than being left as dead weight. It is in git history if a
+// bubble chart ever returns; the halo technique is worth reading first.

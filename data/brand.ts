@@ -448,8 +448,9 @@ export const TEN_THINGS = {
   warmInk: '#B8571C',
   /** Not measured / not identified. 1.82:1, so it ALWAYS carries a benchmark hairline. */
   inertFill: '#A9C3B4',
-  /** Bubble fill. Alpha so overlapping bubbles read as overlaps, not as one shape. */
-  bubbleFill: 'rgba(16,177,147,0.55)',
+  // `bubbleFill` lived here (rgba(16,177,147,0.55), seriesFill at 55% so
+  // overlapping bubbles read as overlaps rather than as one shape). It went on
+  // 2026-08-10 with point 05's bubble chart, its only consumer.
   /** Dashed benchmark rules and their captions. 5.25:1 vs mat. */
   benchmark: '#5B6E64',
 } as const;
@@ -464,6 +465,66 @@ export const TEN_THINGS_STROKE_TOKENS = [
   'warmInk',
   'benchmark',
 ] as const;
+
+// -----------------------------------------------------------------------------
+// THE BASIS PAIR. Which denominator a Ten Things point divides by.
+// -----------------------------------------------------------------------------
+//
+// Added 2026-08-10 with the dog owner basis refactor. Five of the ten points
+// divide by a population and were redrawn against Roy Morgan's count of dog
+// owners; the other five are rates, counts or a time series, so no population
+// figure enters them and there is nothing to redraw. The distinction is marked
+// on the tile rail, on a pill in the modal, and on a labelled block.
+//
+// NOT THE SOURCE'S OWN COLOURS. The source page uses #2E8B64 and #8A9199,
+// neither of which is Lyka. Both marks below are EXISTING tokens under a new
+// name, the same move TEN_THINGS.warmInk makes: `dogOwner.mark` is
+// LYKA.accentInk / TEN_THINGS.seriesInk, `noDenominator.mark` is LYKA.muted.
+//
+// ⚠ THE OBVIOUS MATCH FOR THE SOURCE'S SOFT GREY IS LYKA.mintMuted, AND IT IS
+// ILLEGAL HERE. #A9C3B4 is 1.88:1 on white, under even the 3:1 non-text floor,
+// so it cannot carry a pill label and cannot serve as a rail that means
+// something. Check 6c asserts it keeps failing. LYKA.muted is the palest ink in
+// the palette that clears AA, so it is the floor and there is nothing quieter.
+//
+// Only the two tints are new values, and each is its own mark lightened 88%
+// toward white. Contrast, all asserted in data/__integrity.ts check 16:
+//
+//   dogOwner  mark on white 5.06:1 | creamMat 4.89 | ivory 4.70 | creamPanel 4.48
+//   dogOwner  markInk on mark   4.89:1   the pill label
+//   dogOwner  tintInk on tint  10.33:1   the block's body copy
+//   dogOwner  mark on tint      4.29:1   the block's left rail, over the 3:1 floor
+//   noDenom   mark on white 5.44:1 | creamMat 5.25 | ivory 5.05 | creamPanel 4.82
+//   noDenom   markInk on mark   5.25:1
+//   noDenom   tintInk on tint  10.43:1
+//   noDenom   mark on tint      4.66:1
+//
+// `dogOwner.tint` #E2EFED sits close to FOCUS.wash #E3F2EC. That is allowed for
+// the same reason SEGMENT_COLORS and LAYER_COLORS may share a band: the two
+// never appear on the same page, FOCUS being a Consumer Journey device. Do not
+// consolidate them, because the meanings are unrelated and one moving would
+// silently move the other.
+export const BASIS_COLORS = {
+  dogOwner: {
+    /** Tile rail, pill fill, block rail. = LYKA.accentInk. */
+    mark: '#0A7D68',
+    /** The pill label, on `mark`. = LYKA.pageBg. */
+    markInk: '#FFFBED',
+    /** The block panel. `mark` lightened 88% toward white. */
+    tint: '#E2EFED',
+    /** The block's body copy, on `tint`. = LYKA.ink. */
+    tintInk: '#143C33',
+  },
+  noDenominator: {
+    /** = LYKA.muted, the palest ink in the palette that clears AA. */
+    mark: '#5B6E64',
+    markInk: '#FFFBED',
+    tint: '#EBEEEC',
+    tintInk: '#143C33',
+  },
+} as const;
+
+export type BasisKey = keyof typeof BASIS_COLORS;
 
 // -----------------------------------------------------------------------------
 // THE GAP RAMP. A FOURTH COLOUR BAND, and a diverging one.

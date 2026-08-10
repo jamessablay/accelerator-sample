@@ -1,75 +1,88 @@
 import React, { useMemo } from 'react';
-import { Chart } from 'react-chartjs-2';
-import type { ChartData, ChartOptions } from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+import type { ChartData, ChartOptions, Plugin } from 'chart.js';
 import { TEN_THINGS, CHART_SEPARATOR } from '../../../data/brand';
 import { INCOME_LADDER } from '../../../data/tenThingsSeries';
 import TenThingsChart from '../TenThingsChart';
-import { BASE_OPTIONS, BASE_PLUGINS, catAxis, valAxis } from './chartBase';
+import { BASE_OPTIONS, BASE_PLUGINS, CANVAS_FONT, catAxis, valAxis } from './chartBase';
 import type { TenThingChartProps } from './types';
 
 // -----------------------------------------------------------------------------
-// Point 02. Grouped bars plus a line on a second axis.
+// Point 02. REDRAWN per 100 dog owners, 2026-08-10.
 //
-// <Chart type="bar">, NOT <Bar>. react-chartjs-2's typed <Bar> registers
-// BarController only, so the `type: 'line'` dataset below throws
-// '"line" is not a registered controller' at runtime while typechecking clean.
-// chartBase registers LineController and PointElement for exactly this.
+// STACKED NOW, AND THE STACK IS HONEST HERE. Point 10's comment warns that
+// overlaying two DISJOINT groups reads as a part to whole. This is the opposite
+// case: still active is a genuine SUBSET of ever tried, so a bar whose total is
+// ever tried and whose dark base is the survivors states a real quantity, and
+// the light band above it is exactly the people who left. The household version
+// drew these grouped, on the argument that a stack would draw a total that does
+// not exist. On a subset that argument does not apply, and the source's own
+// redraw stacks them.
 //
-// GROUPED, NOT STACKED. "Ever tried" and "still active" are a superset and a
-// subset, so a stack would draw a total that does not exist.
+// <Bar>, NOT <Chart type="bar">. The household version needed the generic
+// wrapper because it carried a `type: 'line'` retention dataset on a second
+// axis, and react-chartjs-2's typed <Bar> registers BarController only. The
+// redrawn chart has no line, so the typed export is correct again. Retention is
+// still in the numbers table; it is just not plotted.
 //
-// THE RIGHT AXIS GOES TO ZERO. The source truncates it at 20, which turns a
-// 10.8 point retention spread into something that looks like a doubling. At
-// full scale the line is a gentle climb, which is what 27.6 to 38.4 per cent is.
-// The gap between the two bar series is the louder finding anyway.
-//
-// The source's arrow callout at decile 10 is in the caption, not on the canvas.
+// THE LEGEND SAYS "EVER TRIED" FOR THE LIGHT BAND AND THAT WOULD BE WRONG.
+// In a stack the light segment alone is ever tried MINUS still active, so it is
+// labelled "Lapsed" and the stack total is captioned as ever tried. The source's
+// own legend has this defect; it is not carried over.
 // -----------------------------------------------------------------------------
 
-const IncomeLadder: React.FC<TenThingChartProps> = ({ discrepancy }) => {
+/** The stack total, above each column. Ever tried, which is the published figure. */
+const everTriedTotals: Plugin<'bar'> = {
+  id: 'incomeLadderTotals',
+  afterDatasetsDraw(chart) {
+    const { ctx } = chart;
+    let topMeta = null as ReturnType<typeof chart.getDatasetMeta> | null;
+    for (let d = chart.data.datasets.length - 1; d >= 0; d--) {
+      if (chart.isDatasetVisible(d)) {
+        topMeta = chart.getDatasetMeta(d);
+        break;
+      }
+    }
+    if (!topMeta) return;
+    ctx.save();
+    ctx.font = CANVAS_FONT.metaBold;
+    ctx.fillStyle = TEN_THINGS.seriesDeep;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    topMeta.data.forEach((bar, i) => {
+      const total = chart.data.datasets.reduce(
+        (sum, ds) => sum + (Number((ds.data as number[])[i]) || 0),
+        0,
+      );
+      if (!total) return;
+      ctx.fillText(total.toFixed(2), bar.x, bar.y - 6);
+    });
+    ctx.restore();
+  },
+};
+
+const IncomeLadder = ({ discrepancy }: TenThingChartProps) => {
   const data = useMemo<ChartData<'bar'>>(
     () => ({
       labels: [...INCOME_LADDER.labels],
       datasets: [
         {
-          type: 'bar' as const,
-          label: 'Ever tried',
-          yAxisID: 'y',
-          order: 2,
-          data: [...INCOME_LADDER.everTried],
-          backgroundColor: TEN_THINGS.seriesFill,
-          borderColor: CHART_SEPARATOR,
-          borderWidth: 1,
-          borderRadius: 3,
-          borderSkipped: false,
-        },
-        {
-          type: 'bar' as const,
           label: 'Still active',
-          yAxisID: 'y',
-          order: 2,
+          stack: 'ever',
           data: [...INCOME_LADDER.stillActive],
           backgroundColor: TEN_THINGS.seriesDeep,
           borderColor: CHART_SEPARATOR,
           borderWidth: 1,
-          borderRadius: 3,
-          borderSkipped: false,
         },
         {
-          type: 'line' as const,
-          label: 'Retention %',
-          yAxisID: 'y1',
-          order: 1,
-          data: [...INCOME_LADDER.retentionPct],
-          borderColor: TEN_THINGS.warmInk,
-          backgroundColor: TEN_THINGS.warmInk,
-          borderWidth: 2.5,
-          tension: 0.3,
-          pointRadius: 3.5,
-          pointHoverRadius: 6,
-          pointBackgroundColor: TEN_THINGS.warmInk,
-          pointBorderColor: CHART_SEPARATOR,
-          pointBorderWidth: 1.5,
+          label: 'Lapsed',
+          stack: 'ever',
+          data: INCOME_LADDER.everTried.map(
+            (v, i) => Math.round((v - INCOME_LADDER.stillActive[i]) * 100) / 100,
+          ),
+          backgroundColor: TEN_THINGS.seriesFill,
+          borderColor: CHART_SEPARATOR,
+          borderWidth: 1,
         },
       ],
     }),
@@ -80,16 +93,11 @@ const IncomeLadder: React.FC<TenThingChartProps> = ({ discrepancy }) => {
     () => ({
       ...BASE_OPTIONS,
       scales: {
-        x: catAxis('Household income decile: 1 lowest to 10 highest'),
-        y: valAxis({ beginAtZero: true, max: 6, title: 'Customers per 100 households' }),
-        y1: valAxis({
-          beginAtZero: true,
-          max: 50,
-          position: 'right',
-          noGrid: true,
-          title: 'Still active: %',
-          tick: (v) => `${v}%`,
-        }),
+        x: { stacked: true, ...catAxis('Household income decile: 1 lowest to 10 highest') },
+        y: {
+          stacked: true,
+          ...valAxis({ beginAtZero: true, max: 5.6, title: 'Per 100 dog owners' }),
+        },
       },
       plugins: {
         ...BASE_PLUGINS,
@@ -97,10 +105,14 @@ const IncomeLadder: React.FC<TenThingChartProps> = ({ discrepancy }) => {
           ...BASE_PLUGINS.tooltip,
           callbacks: {
             title: (items) => `Income decile ${items[0]?.label}`,
-            label: (c) =>
-              c.dataset.label === 'Retention %'
-                ? `Retention: ${Number(c.parsed.y).toFixed(1)}%`
-                : `${c.dataset.label}: ${Number(c.parsed.y).toFixed(2)} per 100 households`,
+            label: (c) => `${c.dataset.label}: ${Number(c.parsed.y).toFixed(2)} per 100 dog owners`,
+            footer: (items) => {
+              const i = items[0]?.dataIndex ?? 0;
+              return [
+                `Ever tried: ${INCOME_LADDER.everTried[i].toFixed(2)} per 100 dog owners`,
+                `Retention: ${INCOME_LADDER.retentionPct[i].toFixed(1)}%`,
+              ];
+            },
           },
         },
       },
@@ -111,23 +123,26 @@ const IncomeLadder: React.FC<TenThingChartProps> = ({ discrepancy }) => {
   return (
     <TenThingsChart
       eyebrow="Audience"
-      title="Every step up the income ladder wins on both trial and retention"
-      subtitle="Trial and active base per 100 households, with retention on the right axis"
+      title="Trial climbs steeply with income, measured against dog owners"
+      subtitle="Everyone who has ever tried, per 100 dog owners, split into still active and lapsed"
       height={340}
       discrepancy={discrepancy}
       caption={
         <>
-          At decile 10, <b>5.08 per 100 households</b> have ever tried Lyka, so 94.9 in 100 never
-          have. Against a demonstrated ceiling near 8 per 100 in the best postcodes, the richest
-          decile sits at about half its proven potential.
+          The richest tenth reaches <b>4.86 per 100 dog owners</b> ever tried, <b>3.97x</b> the
+          poorest tenth, so 95 in 100 have still never tried Lyka. Switching from households to dog
+          owners barely moves the ladder (4.07x becomes 3.97x), which is the useful finding: the
+          income effect is real rather than an artefact of richer areas keeping fewer dogs. The
+          still active split is derived from retention, which is the same on either base; the source
+          publishes only the totals.
         </>
       }
     >
-      <Chart
-        type="bar"
+      <Bar
         data={data}
         options={options}
-        aria-label="Combination chart across ten household income deciles. Two bar series, ever tried and still active per 100 households, both rising with income from 1.28 and 0.35 at decile 1 to 5.08 and 1.95 at decile 10. A line shows retention rising from 27.6 per cent to 38.4 per cent across the same deciles."
+        plugins={[everTriedTotals]}
+        aria-label="Stacked column chart across ten household income deciles. Each column is everyone who has ever tried Lyka per 100 dog owners, split into still active at the base and lapsed above. The total rises with income from 1.20 at decile 1 to 4.86 at decile 10, and the still active share rises from 0.33 to 1.87 across the same deciles."
       />
     </TenThingsChart>
   );

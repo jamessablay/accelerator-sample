@@ -16,28 +16,58 @@
 // Numbers live in the sibling tenThingsSeries.ts. See its header for why.
 //
 // -----------------------------------------------------------------------------
-// SOURCE
+// SOURCE, and there are now TWO. THE PAGE IS ON THE DOG OWNER BASIS.
 //
-// "Lyka - Ten Things The Data Says.html" in the project folder, one level up.
-// Every string below is that file's, with the house style pass applied:
+// "Lyka - Ten Things (Dog-Owner Basis).html" (2026-08-10) supersedes the
+// original for the FIVE points that divide by a population: 02, 03, 05, 07 and
+// 10. Households include the roughly half of homes with no dog, which could
+// never buy, so Roy Morgan's count of dog owners is the honest denominator.
+// Those five carry rewritten `statValue`, `statLabel`, `learn`, `worthKnowing`
+// and `numbers`, and redrawn charts.
 //
-//   - 29 em dashes removed. Replaced with a colon, a comma or a full stop.
-//   - 9 en dashes removed. Ranges are written "1 to 3", never "1-3".
+// "Lyka - Ten Things The Data Says.html" (2026-07-24) is still the source for
+// the other five: 01, 04, 06, 08 and 09. Those are rates, counts or a time
+// series, so no population figure enters them and there is nothing to redraw.
+// Their PNGs are BYTE IDENTICAL across the two source files, which is what
+// confirms the split is 5 and 5 rather than an editorial choice, and it is why
+// their copy and their chart components are untouched.
+//
+// `headline`, `cardHeadline`, `implication` and `test` are CARRIED OVER
+// UNCHANGED on all ten. The new source says so explicitly, and it means the
+// argument and the recommendation did not move when the base did.
+//
+// Both sources are in the project folder, one level up. Every string below is a
+// source file's, with the house style pass applied:
+//
+//   - Em dashes removed. Replaced with a colon, a comma or a full stop.
+//   - En dashes removed. Ranges are written "1 to 3", never "1-3".
 //   - Hyphenated compound modifiers unhyphenated ("family home suburbs", not
-//     "family-home suburbs"). Genuine prefixes are left alone: "non-branded" is
-//     a prefix, not a compound modifier.
+//     "family-home suburbs"; "dog owner basis", not "dog-owner basis"). Genuine
+//     prefixes are left alone: "non-branded" is a prefix, not a compound
+//     modifier.
 //
 // No figure and no claim was changed.
 //
+// -----------------------------------------------------------------------------
+// THREE OPEN CONFLICTS, AND A FOURTH THAT ARRIVED WITH THE NEW SOURCE.
+//
 // Points 02, 04 and 07 each carried a `discrepancy` note where the source
 // disagrees with itself. All three were REMOVED on client direction
-// 2026-08-10, so no point sets the field today. THE UNDERLYING CONFLICTS ARE
-// UNRESOLVED and the copy still quotes the figures they were about: point 02's
-// index of 179, point 04's 34.1 to 36.2% and point 07's 1.60x. The removed
-// text is in git history and in the two CLAUDE.md files. **The rule that no
-// figure gets quietly edited to make a chart agree with its own headline still
-// stands**, and the field is still wired end to end, so restoring a note is
-// one property.
+// 2026-08-10, so no point sets the field today. Point 02's was about an index of
+// 179 that its rewritten copy no longer quotes, so that one is closed by the
+// rewrite. Point 04's 34.1 to 36.2% and point 07's 1.60x are STILL OPEN and the
+// copy still quotes both.
+//
+// **The new one is point 06.** Its own basis note says the ex kiosk figures of
+// 125 and 84 from the seasonality report supersede the 123 and 84 the chart
+// plots and the copy quotes. On 125 the peak to trough swing is 41 points, not
+// the 39 the stat says. That report is not in the project folder. It is carried
+// verbatim rather than acted on, because the alternative is editing a client
+// facing figure to agree with a document nobody here has read.
+//
+// The rule that no figure gets quietly edited to make a chart agree with its own
+// headline still stands, and `discrepancy` is still wired end to end, so
+// restoring a visible note is one property on a record.
 // -----------------------------------------------------------------------------
 
 export type TenThingCategory =
@@ -61,12 +91,25 @@ export type TenThingChartKey =
   | 'incomeLadder'
   | 'flatShare'
   | 'retentionCuts'
-  | 'cityLifecycle'
+  | 'cityReach'
   | 'seasonalIndex'
-  | 'topRegionsRav'
+  | 'topRegionsReach'
   | 'mmmConfidence'
   | 'brandedSearchGap'
-  | 'lapsedPool';
+  | 'lapsedVsActive';
+
+/**
+ * Which denominator this point's figures divide by.
+ *
+ * `dogOwner` is one of the five redrawn against Roy Morgan's dog owner counts.
+ * `noDenominator` is one of the five measured as a rate, a count or a time
+ * series, where no population figure enters and there is nothing to redraw.
+ *
+ * The split is 5 and 5, and the About copy says so out loud, so
+ * data/__integrity.ts asserts the count rather than trusting the prose. Colour
+ * comes from BASIS_COLORS in data/brand.ts; the labels are BASIS_LABELS below.
+ */
+export type TenThingBasis = 'dogOwner' | 'noDenominator';
 
 /**
  * The "The numbers" disclosure, verbatim from the source.
@@ -111,19 +154,44 @@ export interface TenThing {
    * Same split as Persona.title against Persona.name.
    */
   cardHeadline: string;
+  /** Which base the figures divide by. Drives the tile rail, the pill and the block. */
+  basis: TenThingBasis;
+  /**
+   * One paragraph saying what the basis means FOR THIS POINT. Required, not
+   * optional, and that is deliberate: an absent note would drop its block and
+   * the modal would still look finished, which is the same silent failure the
+   * media plan's unlabelled Role of Channel had. __integrity.ts asserts it is
+   * non empty.
+   */
+  basisNote: string;
   /** The proof figure. Tabular numerals. */
   statValue: string;
   /** The uppercase mono line under the figure. */
   statLabel: string;
-  /** One paragraph. */
+  /** One paragraph. Rendered under the "What we found" label. */
   learn: string;
   /** Substrings of `learn` to render bold. __integrity.ts asserts each is present. */
   emphasis?: readonly string[];
-  /** The "Worth knowing" disclosure. */
+  /**
+   * Rendered under the "Why it matters" label.
+   *
+   * It was the "Worth knowing" DISCLOSURE, collapsed behind a <details>, until
+   * 2026-08-10. The new source promotes it to a visible labelled block and it is
+   * one here too: a populated field nobody opens is a field nobody reads.
+   */
   worthKnowing: string;
+  /** Rendered under "What to do". */
   implication: string;
+  /** Rendered under "What we still need to test". */
   test: string;
   numbers: NumbersTable;
+  /**
+   * Point 07 only. A SECOND disclosure, for a table on a different measure from
+   * the chart's. RAV is an average across customers, so the change of base
+   * leaves it alone, and it is the only support for the 1.60x the copy quotes
+   * and for the map's own scale.
+   */
+  numbersSecondary?: NumbersTable;
   chart: TenThingChartKey;
   /** Point 07 only. The choropleth composite stays a PNG. */
   mapImage?: TenThingMapImage;
@@ -141,6 +209,18 @@ export interface TenThing {
   discrepancy?: string;
 }
 
+/**
+ * The two basis states, as they read on screen.
+ *
+ * `pill` is the tile legend and the modal chip. `block` is the heading on the
+ * paragraph under the chart. Copy lives here rather than in brand.ts, which is
+ * colour only.
+ */
+export const BASIS_LABELS: Readonly<Record<TenThingBasis, { pill: string; block: string }>> = {
+  dogOwner: { pill: 'Dog owner basis', block: 'Measured against dog owners' },
+  noDenominator: { pill: 'No denominator', block: 'No dog owner version exists' },
+};
+
 export const TEN_THINGS_POINTS: readonly TenThing[] = [
   // ---------------------------------------------------------------------------
   {
@@ -149,6 +229,10 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
     headline:
       'Growth is coming from the cheapest distribution channel and the least valuable customer',
     cardHeadline: 'Growth is coming from the cheapest channel and the least valuable customer',
+    basis: 'noDenominator',
+    basisNote:
+      'Average revenue per signup, compared channel by channel. No population denominator, so ' +
+      'there is no dog owner version to draw.',
     statValue: '0.29 vs 1.15',
     statLabel: 'RAV: kiosk signup vs media signup',
     learn:
@@ -186,17 +270,22 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
     category: 'Audience',
     headline: 'There is still headroom in the premium end of the market',
     cardHeadline: 'There is still headroom in the premium end of the market',
+    basis: 'dogOwner',
+    basisNote:
+      "This chart divides by Roy Morgan's count of dog owners, the people who could actually buy, " +
+      'not by households.',
     statValue: '95 in 100',
-    statLabel: 'of the richest households have never tried Lyka',
+    statLabel: 'dog owners have never tried Lyka',
     learn:
-      'The top income decile indexes at 179, retains best at 38%, and only 5.08 per 100 households ' +
-      'have ever purchased. Against a demonstrated ceiling near 8 per 100 in the best postcodes, ' +
-      'the top decile sits at about half its proven potential.',
-    emphasis: ['179', '38%', '5.08 per 100 households'],
+      'The richest tenth of areas reaches 4.86 per 100 dog owners ever tried and 1.87 still ' +
+      'active, 3.97x the poorest tenth. On the base that can actually buy, 95 in 100 dog owners ' +
+      'in the wealthiest areas have still never tried Lyka.',
+    emphasis: ['4.86 per 100 dog owners', '1.87', '3.97x'],
     worthKnowing:
-      'Only 12.3% of dog owners are strongly moved by advertising, but Mindful Researchers and ' +
-      'Devoted Caterers are 52% of that reachable group and 64% of the qualified audience. ' +
-      'Precision beats reach.',
+      'Switching from households to dog owners barely moves this ladder (4.07x becomes 3.97x), ' +
+      'which is the useful finding: the income effect is real, not an artefact of richer areas ' +
+      'keeping fewer dogs. Only 12.3% of dog owners are strongly moved by advertising, and ' +
+      'Mindful Researchers and Devoted Caterers are 52% of that reachable group.',
     implication:
       'Keep prioritising premium audiences. Weight to channels that over index on affluence: ' +
       'SVOD, BVOD, cinema, premium digital video.',
@@ -204,20 +293,31 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
       'Broad reach against targeted premium, measured on long term growth rather than first order CPA.',
     numbers: {
       summary: 'The numbers: trial, active base and retention across the ten income deciles',
-      columns: ['Decile', 'Ever tried per 100 HH', 'Active per 100 HH', 'Retention'],
-      rows: [
-        ['1', '1.28', '0.35', '27.6%'],
-        ['2', '1.77', '0.48', '27.3%'],
-        ['3', '1.89', '0.52', '27.7%'],
-        ['4', '2.25', '0.65', '29.1%'],
-        ['5', '2.65', '0.81', '30.7%'],
-        ['6', '2.75', '0.84', '30.6%'],
-        ['7', '3.48', '1.13', '32.4%'],
-        ['8', '3.56', '1.16', '32.6%'],
-        ['9', '4.11', '1.43', '34.7%'],
-        ['10', '5.08', '1.95', '38.4%'],
+      columns: [
+        'Decile',
+        'Ever tried per 100 dog owners',
+        'Active per 100 dog owners',
+        'Retention',
       ],
-      note: 'Decile 1 is the lowest household income, decile 10 the highest.',
+      rows: [
+        ['1', '1.20', '0.33', '27.6%'],
+        ['2', '1.60', '0.44', '27.3%'],
+        ['3', '1.80', '0.50', '27.7%'],
+        ['4', '2.10', '0.61', '29.1%'],
+        ['5', '2.40', '0.74', '30.7%'],
+        ['6', '2.60', '0.80', '30.6%'],
+        ['7', '3.20', '1.04', '32.4%'],
+        ['8', '3.30', '1.08', '32.6%'],
+        ['9', '4.00', '1.39', '34.7%'],
+        ['10', '4.86', '1.87', '38.4%'],
+      ],
+      note:
+        'Decile 1 is the lowest household income, decile 10 the highest. The ever tried column is ' +
+        "the source chart's own value labels, which it prints to one decimal place except for the " +
+        'top decile. The active column is DERIVED: the source publishes only the totals, and ' +
+        'retention is a rate among customers, so it is the same on either base and moves ever ' +
+        'tried onto the active base exactly. It reproduces the 1.87 the source states for the top ' +
+        'decile. Treat it as SPEED arithmetic, not as a published research figure.',
     },
     chart: 'incomeLadder',
   },
@@ -228,16 +328,24 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
     category: 'Audience',
     headline: 'Lyka wins in dense, affluent postcodes, less so in family home suburbs',
     cardHeadline: 'Lyka wins in dense, affluent postcodes',
-    statValue: '1.33 vs 0.94',
-    statLabel: 'penetration in the flattest fifth vs the least flat',
+    basis: 'dogOwner',
+    basisNote:
+      "This chart divides by Roy Morgan's count of dog owners, the people who could actually buy, " +
+      'not by households. Roy Morgan does not publish dog owners below region level, so each ' +
+      "postcode is given its region's dog ownership rate: that captures differences between " +
+      'regions but not within them.',
+    statValue: '1.64x',
+    statLabel: 'most flats against fewest flats, per dog owner',
     learn:
-      'Penetration rises with the share of flats. But the effect is the postcode, not the flat: ' +
-      'within a single city the apartment advantage falls to 1.16 to 1.19x, and in Brisbane it reverses.',
-    emphasis: ['the postcode, not the flat'],
+      'Penetration rises with the share of flats, and the dog owner base makes the gap wider: ' +
+      '1.64x between the flattest and least flat fifth of postcodes, against 1.41x on households. ' +
+      'Flat heavy areas own fewer dogs, so the household measure was hiding part of the effect.',
+    emphasis: ['1.64x', '1.41x on households'],
     worthKnowing:
-      'The best flat postcodes are small and sit in decile 10: Rozelle 3.44, Balmain 3.41. The ' +
-      'biggest flat postcodes are among the worst: Melbourne 3000 at 0.42, Bankstown 0.40. Rate ' +
-      'and volume point in opposite directions.',
+      'A region grain cross check that needs no estimate at all puts the same gap at 2.16x. But ' +
+      'the driver is still the postcode, not the flat: the best flat postcodes are small and sit ' +
+      'in decile 10, and the biggest are among the worst. Brief it as affluent inner city, never ' +
+      'as "apartments".',
     implication:
       'Invest in premium urban precincts: lift screens, concierge partnerships, precinct ' +
       'activation. Brief it as affluent inner city, never as "apartments".',
@@ -245,18 +353,27 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
       'Do residential lift screens and precinct activation in affluent apartment postcodes beat ' +
       'broad metro digital outdoor on cost per acquisition?',
     numbers: {
-      summary: 'The numbers: penetration and average income decile across five flat share quintiles',
-      columns: ['Flat share quintile', 'Penetration per 100 HH', 'Avg income decile'],
+      summary:
+        'The numbers: flats share, active customers and average income decile across five ' +
+        'quintiles of postcodes',
+      columns: [
+        'Flat share quintile',
+        'Flats',
+        'Active per 100 dog owners',
+        'Avg income decile',
+      ],
       rows: [
-        ['Fewest flats', '0.96', '6.9'],
-        ['2', '0.94', '6.1'],
-        ['3', '0.94', '6.1'],
-        ['4', '1.03', '6.3'],
-        ['Most flats', '1.33', '7.7'],
+        ['Fewest flats', '1%', '0.80', '6.9'],
+        ['2nd', '4%', '0.87', '6.1'],
+        ['Middle', '8%', '0.83', '6.1'],
+        ['4th', '17%', '0.89', '6.3'],
+        ['Most flats', '52%', '1.31', '7.7'],
       ],
       note:
-        'The income column is plotted alongside penetration. The source chart showed penetration ' +
-        'alone, which cannot show the confound the headline claims.',
+        'The national rate is 1.03 per 100 dog owners. The income column is the evidence for the ' +
+        'headline\'s claim that the driver is the postcode rather than the dwelling; it is not ' +
+        'plotted on the redrawn chart, and it is unaffected by the change of base because it ' +
+        'describes the income mix of the postcodes rather than a rate over a population.',
     },
     chart: 'flatShare',
   },
@@ -267,6 +384,10 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
     category: 'Audience',
     headline: 'Two segments, two reasons to buy, but only one of them changes retention',
     cardHeadline: 'Two segments, two reasons to buy, one retention curve',
+    basis: 'noDenominator',
+    basisNote:
+      'Retention is a rate among customers who already joined. Both sides of the sum are ' +
+      'customers, so the surrounding population never enters it.',
     statValue: '34.1 to 36.2%',
     statLabel: 'retention across inner metro dwelling quartiles: flat',
     learn:
@@ -306,40 +427,46 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
     category: 'Life stage',
     headline: 'Every market is at a different stage, so one national plan fits none of them',
     cardHeadline: 'Every market is at a different stage, so one national plan fits none',
-    // "~12 months", not "About 12 months". A stat value has to fit ONE line in
-    // the tile (about 147px at 1280) or its hairline lifts out of line with the
-    // rest of the row. The tilde is the source's own notation and keeps the
-    // approximation, which "12 months" on its own would quietly drop.
-    statValue: '~12 months',
-    // Shortened from "Brisbane behind Sydney | Perth about 2 years behind
-    // Brisbane" for the same reason: at 1280 that ran to four lines. Both facts
-    // survive.
-    statLabel: 'Brisbane behind Sydney. Perth trails by 2 years',
+    basis: 'dogOwner',
+    basisNote:
+      "This chart divides by Roy Morgan's count of dog owners, the people who could actually buy, " +
+      'not by households.',
+    // ONE LINE in the tile, about 147px at 1280, or the hairline lifts out of
+    // line with the rest of the row. "1.23 vs 1.21" is 12 characters and fits.
+    statValue: '1.23 vs 1.21',
+    statLabel: 'Brisbane and Melbourne per 100 dog owners: level',
     learn:
-      'Brisbane today looks like Sydney twelve months ago. Perth trails Brisbane by roughly two ' +
-      'years. Penetration and tenure move together, which is what a lifecycle looks like.',
+      'Sydney leads at 1.49 per 100 dog owners, then the ACT at 1.33. Brisbane (1.23) and ' +
+      'Melbourne (1.21) are level, and Perth (0.85) is further back than the household view ' +
+      'suggested.',
+    emphasis: ['1.49 per 100 dog owners', '1.23', '1.21'],
     worthKnowing:
-      'Melbourne is the exception that matters: it loses to Sydney in every multicultural band ' +
-      'while being the less multicultural city. Composition works in its favour; performance does ' +
-      'not. Sydney based Lyka may simply hold a home town advantage.',
+      'On households Brisbane looked a clear step ahead of Melbourne. It was not: Brisbane simply ' +
+      "owns more dogs, 43 adults in 100 against Melbourne's 39. Markets really are at different " +
+      'stages, but the spacing was wrong. Do not say Brisbane is a year ahead of Melbourne.',
     implication: 'Use Sydney as the innovation market. Prove there, then scale into less mature states.',
     test:
       'Why does Melbourne underperform in two specific belts: New Homes and Hopes corridors ' +
       '(short 2,001 customers at Sydney cohort rates) and Independence and Careers professional ' +
       'belts (short 1,906)?',
     numbers: {
-      summary: 'The numbers: penetration, average tenure and active base across five capitals',
-      columns: ['City', 'Penetration', 'Avg tenure (days)', 'Active'],
+      summary: 'The numbers: active customers per 100 dog owners across six markets',
+      columns: ['Market', 'Active per 100 dog owners'],
       rows: [
-        ['Sydney', '1.49', '260', '26,121'],
-        ['Melbourne', '1.20', '243', '19,687'],
-        ['Brisbane', '1.55', '250', '6,717'],
-        ['Perth', '0.99', '221', '7,142'],
-        ['Adelaide', '0.68', '219', '3,439'],
+        ['Sydney', '1.49'],
+        ['ACT', '1.33'],
+        ['Brisbane', '1.23'],
+        ['Melbourne', '1.21'],
+        ['Perth', '0.85'],
+        ['Adelaide', '0.71'],
       ],
-      note: 'Penetration is active customers per 100 households. Bubble area is the active base.',
+      note:
+        'The national rate is 1.03. The ACT is a sixth row the household version did not carry, ' +
+        'and tenure and the active count are not on the redrawn chart. The source publishes dog ' +
+        'ownership rates for only two of these markets, Brisbane at 43 adults in 100 and ' +
+        'Melbourne at 39, which is what closes the gap between those two.',
     },
-    chart: 'cityLifecycle',
+    chart: 'cityReach',
   },
 
   // ---------------------------------------------------------------------------
@@ -348,6 +475,14 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
     category: 'Life stage',
     headline: 'Demand has a dependable annual shape; two months of it, anyway',
     cardHeadline: 'Demand has a dependable annual shape; two months of it, anyway',
+    basis: 'noDenominator',
+    // THE PARENTHETICAL IS THE SOURCE'S OWN AND IT CONTRADICTS THIS POINT'S
+    // CHART. 125 against the 123 plotted makes the swing 41 points, not the 39
+    // the stat says. The seasonality report it cites is not in the project
+    // folder. Carried verbatim rather than acted on: see the header.
+    basisNote:
+      'A national time series. Geography plays no part. (The ex kiosk figures of 125 and 84 from ' +
+      'the seasonality report supersede these, for a different reason.)',
     statValue: '39 points',
     statLabel: 'peak to trough swing, January to September',
     learn:
@@ -392,15 +527,23 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
     category: 'Geography',
     headline: 'Value has an address, and it is a short list',
     cardHeadline: 'Value has an address, and it is a short list',
-    statValue: '1.60x',
-    statLabel: 'best region vs national average value per signup',
+    basis: 'dogOwner',
+    basisNote:
+      "This chart divides by Roy Morgan's count of dog owners, the people who could actually buy, " +
+      'not by households. The RAV table and the map below are unaffected: value per signup is an ' +
+      'average across customers, so no population divides it.',
+    statValue: '2.09',
+    statLabel: 'Sydney Central, the best region, per 100 dog owners',
     learn:
-      "Postcode level RAV concentrates in Sydney's north and east, Melbourne's inner south, " +
-      "Brisbane's inner north, Perth's inner ring and Adelaide's central hills, all with " +
-      'penetration still well below their own ceiling.',
+      'On the true base the strongest regions are Sydney Central and Sydney Northern, both just ' +
+      'over 2 per 100 dog owners, then Melbourne Inner City and Melbourne Central, then the Gold ' +
+      'Coast and Sunshine Coast. Value per signup is an average across customers, so the 1.60x ' +
+      'value concentration is unaffected by the change of base.',
+    emphasis: ['2 per 100 dog owners', '1.60x'],
     worthKnowing:
-      'Half the customer base sits in 19 SA4 regions covering the same households as 258 ' +
-      'postcodes. The short list costs nothing in precision.',
+      'The priority list barely moves: 11 of the top 12 regions are the same on both measures, ' +
+      'with Canberra coming in and Sydney Outer Western dropping out. The geography of value is ' +
+      'robust to the denominator.',
     implication:
       'Concentrate premium video and high impact outdoor into the priority regions rather than ' +
       'spreading metro wide.',
@@ -408,7 +551,37 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
       'Can tightly targeted outdoor beat radio or BVOD on cost per acquisition inside a ' +
       'concentrated catchment?',
     numbers: {
-      summary: 'The numbers: the ten highest value SA4 regions, with penetration and headroom',
+      summary:
+        'The numbers: the top 18 of 58 regions by active customers per 100 dog owners, with the ' +
+        'boundary match quality for each',
+      columns: ['Region', 'Active per 100 dog owners', 'Boundary match'],
+      rows: [
+        ['Sydney: Central', '2.09', 'B'],
+        ['Sydney: Northern', '2.08', 'A'],
+        ['Melbourne: Inner City', '1.62', 'C'],
+        ['Melbourne: Central', '1.60', 'A'],
+        ['Qld Country: Gold Coast', '1.55', 'A'],
+        ['Qld Country: Sunshine Coast', '1.54', 'A'],
+        ['Sydney: Gosford/Wyong', '1.47', 'A'],
+        ['Brisbane: Western', '1.45', 'A'],
+        ['Sydney: Southern', '1.40', 'A'],
+        ['Brisbane: City & Northern', '1.40', 'A'],
+        ['NSW Country: ACT', '1.33', 'A'],
+        ['Brisbane: Eastern', '1.30', 'B'],
+        ['Sydney: Outer Western', '1.24', 'A'],
+        ['NSW Country: Wollongong', '1.18', 'A'],
+        ['Melbourne: Outer North East', '1.15', 'A'],
+        ['Melbourne: Northern', '1.14', 'A'],
+        ['NSW Country: Newcastle', '1.09', 'A'],
+        ['Vic Country: Geelong', '1.07', 'A'],
+      ],
+      note:
+        'The national rate is 1.03. Boundary match is how well the Lyka postcode file lines up ' +
+        'with the Roy Morgan region: A matches closely, B is a reasonable match, C should be ' +
+        'treated with caution. Note the best region and the third best are not A.',
+    },
+    numbersSecondary: {
+      summary: 'The numbers: value per signup, the ten highest value SA4 regions',
       columns: ['SA4 region', 'RAV', 'Penetration', 'Headroom'],
       rows: [
         ['Sydney: Northern Beaches', '1.34', '3.06', '9'],
@@ -422,9 +595,15 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
         ['Melbourne: Inner South', '1.10', '1.75', '106'],
         ['Southern Highlands and Shoalhaven', '1.07', '1.32', '17'],
       ],
-      note: 'RAV is value per signup against a national average of 1.00.',
+      note:
+        'RAV is value per signup against a national average of 1.00, on SA4 regions and a ' +
+        'household penetration column. It is kept because value per signup is an average across ' +
+        'customers and so is unaffected by the change of base, and because it is what the map ' +
+        'below plots. The copy quotes 1.60x and the highest value here is 1.34x, as is the map ' +
+        'legend. That conflict is unresolved: settle it with the client rather than by editing ' +
+        'either figure.',
     },
-    chart: 'topRegionsRav',
+    chart: 'topRegionsReach',
     mapImage: {
       src: '/images/ten-things/map-composite.png',
       alt:
@@ -456,6 +635,9 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
     category: 'Channel',
     headline: 'The model proves advertising works. It cannot yet say which channel',
     cardHeadline: 'The model proves advertising works. It cannot say which channel',
+    basis: 'noDenominator',
+    basisNote:
+      'A diagnostic about what the media model can identify. No denominator involved.',
     statValue: 'Aggregate only',
     statLabel: 'what the MMM can and cannot support',
     learn:
@@ -488,6 +670,9 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
     category: 'Channel',
     headline: 'Demand is being created and then lost before it converts',
     cardHeadline: 'Demand is being created and then lost before it converts',
+    basis: 'noDenominator',
+    basisNote:
+      'National counts and shares of search behaviour. Nothing here divides by an area.',
     statValue: '9 : 1',
     // SHORTENED to fit three lines at 1280, where "acquisitions," is a 13
     // character unbreakable token in a 147px column and forced a fourth line.
@@ -531,19 +716,23 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
     category: 'Retention',
     headline: 'Trial is not the binding constraint. Survival is.',
     cardHeadline: 'Trial is not the binding constraint. Survival is.',
-    statValue: '109,545',
-    // Shortened for the same reason as point 05. The comparison is the punch, so
-    // both figures stay; only the words around them go.
-    statLabel: 'lapsed in the top 3 deciles | 101,091 active in all',
+    basis: 'dogOwner',
+    basisNote:
+      "This chart divides by Roy Morgan's count of dog owners, the people who could actually buy, " +
+      'not by households.',
+    statValue: '3.71',
+    // Shortened for the same reason as point 05: the value must fit one line and
+    // the label must not take a fourth. Both figures survive in `learn`.
+    statLabel: 'lapsed per 100 dog owners in Sydney Central',
     learn:
-      'Two-thirds of everyone who has ever tried Lyka is now inactive: 203,221 lapsed. Income ' +
-      'moves ever tried by 4.0x but retention by only 1.4x. And the lapsed pool in the wealthiest ' +
-      'three deciles is larger than the entire active business.',
-    emphasis: ['203,221 lapsed', '4.0x', '1.4x', 'larger than the entire active business'],
+      'Every strong market carries more lapsed customers than active ones. Sydney Central leads ' +
+      'on both counts: 3.71 lapsed per 100 dog owners against 2.09 active. Two thirds of ' +
+      'everyone who has ever tried Lyka is now inactive.',
+    emphasis: ['3.71 lapsed per 100 dog owners against 2.09 active'],
     worthKnowing:
-      '82.6% of the lapsed pool sits in 689 postcodes; 53.9% in the top three income deciles, the ' +
-      'same areas that retain best today. These are not bad customers. They are good customers ' +
-      'who left.',
+      'The win back geography survives the change of base: 7 of the top 8 markets are the same on ' +
+      'households and on dog owners. The one change worth making is the running order. Lead the ' +
+      'reactivation plan with Sydney Central rather than the Gold Coast.',
     implication:
       'Treat reactivation as an acquisition channel in its own right, weighted to the strongest ' +
       'win back markets: Gold Coast, Brisbane Inner, Northern Beaches, Melbourne Inner South.',
@@ -551,29 +740,122 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
       'Obtain lapse dates, then run a geographically weighted reactivation campaign against a ' +
       'matched holdout: cost per reactivated customer versus cost per new acquisition.',
     numbers: {
-      summary: 'The numbers: lapsed and active customers across the ten income deciles',
-      columns: ['Decile', 'Lapsed', 'Active'],
+      summary:
+        'The numbers: lapsed and active customers per 100 dog owners across the twelve strongest ' +
+        'markets',
+      columns: ['Region', 'Lapsed per 100 dog owners', 'Active per 100 dog owners'],
       rows: [
-        ['1', '1,810', '689'],
-        ['2', '4,765', '1,788'],
-        ['3', '8,810', '3,370'],
-        ['4', '10,883', '4,465'],
-        ['5', '16,868', '7,474'],
-        ['6', '21,950', '9,659'],
-        ['7', '28,590', '13,686'],
-        ['8', '34,364', '16,646'],
-        ['9', '39,095', '20,805'],
-        ['10', '36,086', '22,509'],
+        ['Sydney: Central', '3.71', '2.09'],
+        ['Qld Country: Gold Coast', '3.22', '1.55'],
+        ['Sydney: Northern', '3.09', '2.08'],
+        ['Qld Country: Sunshine Coast', '3.09', '1.54'],
+        ['Melbourne: Inner City', '3.08', '1.62'],
+        ['Sydney: Gosford/Wyong', '3.02', '1.47'],
+        ['Melbourne: Central', '2.87', '1.60'],
+        ['Brisbane: City & Northern', '2.72', '1.40'],
+        ['Sydney: Southern', '2.62', '1.40'],
+        ['Sydney: Outer Western', '2.48', '1.24'],
+        ['Brisbane: Western', '2.45', '1.45'],
+        ['Brisbane: Eastern', '2.35', '1.30'],
       ],
       note:
-        'Lapsed and active are disjoint groups, so a column on the chart is everyone who ever ' +
-        'tried. The source chart overlaid them, which read as a part to whole.',
+        'Lapsed and active are disjoint groups, so a bar on the chart is everyone who ever tried ' +
+        'and the two figures add. The source chart draws the bar total as the LAPSED figure with ' +
+        'active overlaid inside it, which reads as a part to whole: Sydney Central looks like ' +
+        '2.09 of 3.71 when the true reading is 2.09 of 5.80. The household version of this chart ' +
+        'had the same defect and was stacked for the same reason.',
     },
-    chart: 'lapsedPool',
+    chart: 'lapsedVsActive',
   },
 ];
 
 /** The provenance line, shown once under the grid. */
 export const TEN_THINGS_SOURCES =
-  'Lyka acquisition file to 29 Jun 2026 | Lyka postcode file, 304,729 customers | ' +
-  'Mutinex GrowthOS MMM | ABS Census 2021 | Experian Mosaic';
+  'Lyka customer file by postcode | Roy Morgan Single Source Apr 2025 to Mar 2026, dog owners, ' +
+  'people aged 14+ | ABS Census 2021 on ABS ASGS 2021 boundaries | Lyka acquisition file to ' +
+  '29 Jun 2026 | Mutinex GrowthOS MMM | Experian Mosaic';
+
+/**
+ * The caveat on the two postcode grain charts.
+ *
+ * ON THE PAGE, NOT IN A COMMENT. Roy Morgan does not publish dog owners below
+ * region level, so points 03 and 07 give each postcode its region's rate. That
+ * is an estimate inside a deck whose whole argument is that it uses the honest
+ * denominator, so it has to be visible rather than known.
+ *
+ * TWO LENGTHS, ONE CONST, and the split is measured rather than stylistic. The
+ * full text set the Sources strip to 122px at 1280x720, which pushed the grid's
+ * scroll from 45px to 160px: a caveat that knocks a one viewport deck off one
+ * viewport has a real cost. `short` keeps the disclosure unmissable on the page
+ * and `full` sits in the About dialog with the rest of the basis explanation,
+ * which is where a reader looking for the methodology would go anyway. Keeping
+ * them in one object is what stops the two drifting into different claims.
+ */
+export const TEN_THINGS_ESTIMATE_NOTE = {
+  short:
+    'Two charts estimate dog owners below region level. See About this basis.',
+  full:
+    'Roy Morgan does not publish dog owners below region level, so the two postcode grain charts ' +
+    "give each postcode its region's dog ownership rate. That captures differences between " +
+    'regions but not within them. The apartment chart also carries a region grain cross check ' +
+    'that needs no such estimate.',
+} as const;
+
+/**
+ * "About this basis": the two page level sections the new source added.
+ *
+ * They open from a button beside the legend rather than sitting on the grid,
+ * because the grid is a one viewport 5 x 2 frame and seeing all ten at once is
+ * the point of the page. See the layout note in pages/TenThings.tsx.
+ *
+ * -----------------------------------------------------------------------------
+ * TWO DEPARTURES FROM THE SOURCE'S OWN COPY, both deliberate.
+ *
+ * 1. "green tag" is "teal tag" here, because the marker is BASIS_COLORS teal
+ *    #0A7D68 rather than the source page's #2E8B64 green. Naming a colour that
+ *    is not on screen is worse than not naming one.
+ *
+ * 2. THE SOURCE'S THIRD PARAGRAPH IS NOT CARRIED, and two of its three
+ *    sentences are why. "Click any point for the chart and the detail" is
+ *    already the page lede. "Click a chart to enlarge it" is FALSE here: only
+ *    point 07's map opens a Lightbox, the Chart.js charts do not. And "this
+ *    sits alongside the original Ten Things The Data Says and the re-check
+ *    note, both unchanged" is FALSE here too: there is one page and it IS the
+ *    dog owner version, so the household one is superseded rather than running
+ *    beside it.
+ *
+ *    That paragraph is navigation and provenance copy for a standalone HTML
+ *    document, and this is an app. If the provenance half is wanted, write a
+ *    sentence that is true of the deck rather than restoring one that is not.
+ * -----------------------------------------------------------------------------
+ */
+export const TEN_THINGS_ABOUT: readonly { heading: string; paragraphs: readonly string[] }[] = [
+  {
+    heading: 'The same ten points, measured against dog owners wherever that is possible',
+    paragraphs: [
+      'Roy Morgan tells us how many dog owners live in each of 58 regions across Australia. That ' +
+        'is the honest denominator for anything about share of a market: households include the ' +
+        'roughly half of homes with no dog, which could never buy. In this version, every chart ' +
+        'that divides by a population has been redrawn on dog owners, and that is the only ' +
+        'version shown.',
+      'Five of the ten points have such a denominator: premium headroom, apartments, market ' +
+        'maturity, the geography of value and the lapsed base. They carry a teal tag. The other ' +
+        'five, channel value, retention, seasonality, the media model and the search leak, are ' +
+        'measured as rates, counts or a time series, so no population figure enters them and ' +
+        'there is nothing to redraw. They keep their original chart and carry a grey tag.',
+    ],
+  },
+  {
+    heading: '"95 in 100 have never tried": which 100?',
+    paragraphs: [
+      'Point 02 reads the same on either base, but for a reason worth knowing. Nationally there ' +
+        'is almost exactly one dog owner per household (1.07), so per 100 households and per 100 ' +
+        'dog owners give nearly identical answers: 5.08 and 4.86 ever tried in the wealthiest ' +
+        'tenth.',
+      'If instead you express it per dog owning household, only about half of all homes, the ' +
+        'same fact becomes roughly 89 in 100. All three are true; they answer different ' +
+        'questions. This deck uses dog owners throughout, because that is the population Roy ' +
+        'Morgan actually counted and it needs no extra assumption.',
+    ],
+  },
+];

@@ -26,7 +26,6 @@ import {
   Chart as ChartJS,
   BarController,
   LineController,
-  BubbleController,
   CategoryScale,
   LinearScale,
   BarElement,
@@ -39,10 +38,12 @@ import {
 import { LYKA, TEN_THINGS, CHART_INK, CHART_MUTED, CHART_GRID } from '../../../data/brand';
 import { TYPE } from '../../../data/type';
 
+// BubbleController came out on 2026-08-10 with point 05, its only consumer: the
+// dog owner redraw turned that chart from a bubble into bars. Register it again
+// if a bubble chart ever returns, and remember trap 1 above applies to it too.
 ChartJS.register(
   BarController,
   LineController,
-  BubbleController,
   CategoryScale,
   LinearScale,
   BarElement,
@@ -80,15 +81,12 @@ export const CANVAS_FONT = {
   micro: '11px "DM Sans", sans-serif',
   /** TYPE.meta 12. Value labels. */
   metaBold: 'bold 12px "DM Sans", sans-serif',
-  /** TYPE.label 13. Bubble city names. */
-  labelBold: 'bold 13px "DM Sans", sans-serif',
 } as const;
 
 /** The px size each CANVAS_FONT entry claims. Asserted against TYPE in dev. */
 export const CANVAS_FONT_TOKENS = {
   micro: TYPE.micro,
   metaBold: TYPE.meta,
-  labelBold: TYPE.label,
 } as const;
 
 /**

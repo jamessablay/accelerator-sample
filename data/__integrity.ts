@@ -30,7 +30,7 @@ import { lighten } from './brand';
 import { personaCategories } from './personasData';
 import { PERSONA_VIDEOS, personaVideo } from './personaMedia';
 import { PLAN_LAYERS, MEDIA_TOTAL, FLIGHTING_PCT, MONTHS } from './mediaPlanData';
-import { SEGMENT_COLORS, LAYER_COLORS, OWNER_COLORS, TEN_THINGS, TEN_THINGS_STROKE_TOKENS, LYKA, GAP_RAMP, FOCUS, GAP_NEGATIVE_HUE } from './brand';
+import { SEGMENT_COLORS, LAYER_COLORS, OWNER_COLORS, TEN_THINGS, TEN_THINGS_STROKE_TOKENS, BASIS_COLORS, LYKA, GAP_RAMP, FOCUS, GAP_NEGATIVE_HUE } from './brand';
 import { MEDIA_FOCUS_STAGES, MEDIA_FOCUS_JOURNEYS } from './mediaFocus';
 import { GROWTH_LABELS } from './growthLabels';
 import { SEGMENT_IMAGES } from '../components/personas/CategoryDetail';
@@ -40,8 +40,10 @@ import {
   FLAT_SHARE,
   RETENTION_CUTS,
   SEASONAL_INDEX,
+  CITY_REACH,
   TOP_REGIONS_RAV,
-  LAPSED_POOL,
+  TOP_REGIONS_REACH,
+  LAPSED_VS_ACTIVE,
 } from './tenThingsSeries';
 import { TEN_THINGS_CHARTS } from '../components/tenthings/charts';
 import { CANVAS_FONT, CANVAS_FONT_TOKENS } from '../components/tenthings/charts/chartBase';
@@ -735,8 +737,12 @@ export function runIntegrityChecks(): void {
   // ---------------------------------------------------------------------------
   // 9 to 14. Ten Things.
   //
-  // Six joins, all of which fail silently and plausibly at runtime, which is the
-  // bar for being in this file at all.
+  // Nine joins, all of which fail silently and plausibly at runtime, which is
+  // the bar for being in this file at all. Three arrived with the dog owner
+  // refactor on 2026-08-10 (12c, 12d and 13b/13c): a derived series that must
+  // reproduce two published figures, a cross check between two independently
+  // transcribed charts, and the basis join, whose failure mode is that a tile
+  // rail simply is not there.
   // ---------------------------------------------------------------------------
 
   // 9. The chart key join. A key with no entry in TEN_THINGS_CHARTS renders an
@@ -800,30 +806,65 @@ export function runIntegrityChecks(): void {
     const p = TEN_THINGS_POINTS.find((x) => x.id === id);
     return p ? p.numbers.rows.map((r) => r[index] ?? '') : [];
   };
+  //     The `agrees` calls below moved onto the dog owner basis on 2026-08-10.
+  //     Point 05 gained one for the first time: on the household basis it was a
+  //     bubble of three columns and no single series lined up with a table
+  //     column, and it is a plain bar series now.
   agrees('02 ever tried', INCOME_LADDER.everTried, col('02', 1));
   agrees('02 still active', INCOME_LADDER.stillActive, col('02', 2));
   agrees('02 retention', INCOME_LADDER.retentionPct, col('02', 3));
-  agrees('03 penetration', FLAT_SHARE.penetration, col('03', 1));
-  agrees('03 income decile', FLAT_SHARE.avgIncomeDecile, col('03', 2));
+  agrees('03 flats %', FLAT_SHARE.flatsPct, col('03', 1));
+  agrees('03 penetration', FLAT_SHARE.penetration, col('03', 2));
+  agrees('03 income decile', FLAT_SHARE.avgIncomeDecile, col('03', 3));
   agrees('04 retention', [...RETENTION_CUTS.dwelling.values, ...RETENTION_CUTS.income.values], col('04', 1));
+  agrees('05 reach', CITY_REACH.map((c) => c.perHundred), col('05', 1));
   agrees('06 index', SEASONAL_INDEX.values, col('06', 1));
-  agrees('07 RAV', TOP_REGIONS_RAV.map((r) => r.rav), col('07', 1));
-  agrees('10 lapsed', LAPSED_POOL.lapsed, col('10', 1));
-  agrees('10 active', LAPSED_POOL.active, col('10', 2));
+  agrees('07 reach', TOP_REGIONS_REACH.map((r) => r.perHundred), col('07', 1));
+  agrees('10 lapsed', LAPSED_VS_ACTIVE.map((r) => r.lapsed), col('10', 1));
+  agrees('10 active', LAPSED_VS_ACTIVE.map((r) => r.active), col('10', 2));
 
-  // 12b. The three totals point 10's copy states out loud.
-  const total = (a: readonly number[]) => a.reduce((s, v) => s + v, 0);
-  const activeSum = total(LAPSED_POOL.active);
-  const lapsedSum = total(LAPSED_POOL.lapsed);
-  const topThree = total(LAPSED_POOL.lapsed.slice(7));
-  if (activeSum !== LAPSED_POOL.totals.active) {
-    fail(`Ten Things 10: active sums to ${activeSum.toLocaleString('en-AU')} but the copy says ${LAPSED_POOL.totals.active.toLocaleString('en-AU')}.`);
+  // 12b. Point 07's SECOND table, the household era RAV figures. It is kept
+  //      because RAV is an average across customers, so the change of base
+  //      leaves it alone, and it is the only support for the 1.60x the copy
+  //      quotes and for the choropleth map. Nothing else would notice it
+  //      drifting, because no chart plots it any more.
+  const p07 = TEN_THINGS_POINTS.find((p) => p.id === '07');
+  const ravColumn = p07?.numbersSecondary?.rows.map((r) => r[1] ?? '') ?? [];
+  agrees('07 RAV (secondary table)', TOP_REGIONS_RAV.map((r) => r.rav), ravColumn);
+
+  // 12c. Point 02's `stillActive` is DERIVED rather than published: the redrawn
+  //      chart labels only the stacked totals. Retention is base invariant, so
+  //      everTried x retentionPct moves the series onto the active base exactly,
+  //      and the source states both figures for the top decile. Asserting the
+  //      derivation reproduces them is the same shape as check 15 for APEX: two
+  //      routes to one number, so a slip in either cannot ship quietly.
+  const topEver = INCOME_LADDER.everTried[INCOME_LADDER.everTried.length - 1];
+  const topActive = INCOME_LADDER.stillActive[INCOME_LADDER.stillActive.length - 1];
+  if (Math.abs(topEver - INCOME_LADDER.publishedTopDecile.everTried) > 0.005) {
+    fail(`Ten Things 02: the top decile plots ${topEver} ever tried but the source publishes ${INCOME_LADDER.publishedTopDecile.everTried}.`);
   }
-  if (lapsedSum !== LAPSED_POOL.totals.lapsed) {
-    fail(`Ten Things 10: lapsed sums to ${lapsedSum.toLocaleString('en-AU')} but the copy says ${LAPSED_POOL.totals.lapsed.toLocaleString('en-AU')}.`);
+  if (Math.abs(topActive - INCOME_LADDER.publishedTopDecile.stillActive) > 0.005) {
+    fail(`Ten Things 02: the derived still active figure for the top decile is ${topActive}, but the source publishes ${INCOME_LADDER.publishedTopDecile.stillActive}. Retention is base invariant, so this derivation must reproduce it; do not edit either number to make them agree.`);
   }
-  if (topThree !== LAPSED_POOL.totals.lapsedTopThreeDeciles) {
-    fail(`Ten Things 10: deciles 8 to 10 lapsed sums to ${topThree.toLocaleString('en-AU')} but the stat says ${LAPSED_POOL.totals.lapsedTopThreeDeciles.toLocaleString('en-AU')}.`);
+  // Still active is a SUBSET of ever tried on every decile. A stacked chart
+  // whose base segment exceeded its total would draw a negative band.
+  INCOME_LADDER.everTried.forEach((ever, i) => {
+    if (INCOME_LADDER.stillActive[i] > ever) {
+      fail(`Ten Things 02: decile ${i + 1} has ${INCOME_LADDER.stillActive[i]} still active out of ${ever} ever tried. Still active is a subset, so the stack would draw a negative lapsed band.`);
+    }
+  });
+
+  // 12d. Points 07 and 10 share twelve regions and both publish an ACTIVE
+  //      figure for each. They were transcribed from two different charts, so
+  //      agreeing is a real cross check rather than a tautology.
+  const reachByRegion = new Map(TOP_REGIONS_REACH.map((r) => [r.region, r.perHundred]));
+  for (const row of LAPSED_VS_ACTIVE) {
+    const reach = reachByRegion.get(row.region);
+    if (reach === undefined) {
+      fail(`Ten Things 10: region "${row.region}" is not in point 07's top 18, so the two charts name the same place differently and neither cross checks the other.`);
+    } else if (Math.abs(reach - row.active) > 0.005) {
+      fail(`Ten Things: "${row.region}" is ${row.active} active on point 10 and ${reach} on point 07. One of the two transcriptions is wrong.`);
+    }
   }
 
   // 13. The stroke floor on the Ten Things palette.
@@ -839,6 +880,68 @@ export function runIntegrityChecks(): void {
     const ratio = contrast(hex, LYKA.pageBg);
     if (ratio < STROKE_FLOOR) {
       fail(`TEN_THINGS.${token} = ${hex} is ${ratio.toFixed(2)}:1 against the cream mat ${LYKA.pageBg}, below the ${STROKE_FLOOR}:1 stroke floor. Either darken it or move it out of TEN_THINGS_STROKE_TOKENS.`);
+    }
+  }
+
+  // 13b. THE BASIS JOIN, added with the dog owner refactor 2026-08-10.
+  //
+  //      Three failures, all silent. A point with no `basisNote` drops its whole
+  //      block and the modal still looks finished, which is the media plan's
+  //      unlabelled Role of Channel failure exactly. A `basis` that stops
+  //      resolving in BASIS_COLORS renders an undefined fill, so the tile rail
+  //      simply disappears and reads as a design choice. And the split being 5
+  //      and 5 is stated OUT LOUD in the About copy ("five of the ten points",
+  //      "the other five"), so it is derived rather than trusted: a sixth point
+  //      moving basis would leave a confident sentence on screen that its own
+  //      data no longer supports, which is the TensionMap lesson.
+  const basisCounts: Record<string, number> = {};
+  for (const p of TEN_THINGS_POINTS) {
+    basisCounts[p.basis] = (basisCounts[p.basis] ?? 0) + 1;
+    if (!BASIS_COLORS[p.basis]) {
+      fail(`Ten Things point ${p.id} declares basis "${p.basis}", which is not in BASIS_COLORS. Its tile rail will render no colour at all.`);
+    }
+    if (!p.basisNote.trim()) {
+      fail(`Ten Things point ${p.id} has an empty basisNote, so its basis block will not render and the modal will still look complete.`);
+    }
+  }
+  const dogOwnerCount = basisCounts.dogOwner ?? 0;
+  const noDenominatorCount = basisCounts.noDenominator ?? 0;
+  if (dogOwnerCount !== 5 || noDenominatorCount !== 5) {
+    fail(`Ten Things: the basis split is ${dogOwnerCount} dog owner and ${noDenominatorCount} no denominator, but TEN_THINGS_ABOUT says "five of the ten" and "the other five". Update the About copy or the basis fields, whichever is wrong.`);
+  }
+
+  // 13c. The basis colour pairs. `mark` carries a pill label and is also a rail,
+  //      which is a non-text mark, so it has to clear AA against its own ink AND
+  //      3:1 against every surface a rail lands on. `tint` carries body copy.
+  //
+  //      THE TRAP THIS EXISTS FOR: the source page's own grey is #8A9199, and
+  //      the closest Lyka token to it is `mintMuted` at 1.88:1, which check 6c
+  //      separately asserts must keep FAILING. Reaching for it here is the
+  //      obvious move and it would put an invisible rail on five tiles.
+  const BASIS_SURFACES: [string, string][] = [
+    ['white', '#FFFFFF'],
+    ['the cream mat', LYKA.pageBg],
+    ['ivory', LYKA.ivory],
+    ['the cream panel', LYKA.cream],
+  ];
+  for (const [name, pair] of Object.entries(BASIS_COLORS)) {
+    const onInk = contrast(pair.mark, pair.markInk);
+    if (onInk < TEXT_FLOOR) {
+      fail(`BASIS_COLORS.${name}: the pill label ${pair.markInk} on ${pair.mark} is ${onInk.toFixed(2)}:1, under AA ${TEXT_FLOOR}:1.`);
+    }
+    for (const [surfaceName, surface] of BASIS_SURFACES) {
+      const ratio = contrast(pair.mark, surface);
+      if (ratio < 3.0) {
+        fail(`BASIS_COLORS.${name}.mark ${pair.mark} is ${ratio.toFixed(2)}:1 on ${surfaceName}, under the 3:1 non-text floor. The tile rail would be invisible there.`);
+      }
+    }
+    const bodyOnTint = contrast(pair.tintInk, pair.tint);
+    if (bodyOnTint < TEXT_FLOOR) {
+      fail(`BASIS_COLORS.${name}: body copy ${pair.tintInk} on the block tint ${pair.tint} is ${bodyOnTint.toFixed(2)}:1, under AA ${TEXT_FLOOR}:1.`);
+    }
+    const railOnTint = contrast(pair.mark, pair.tint);
+    if (railOnTint < 3.0) {
+      fail(`BASIS_COLORS.${name}: the block's rail ${pair.mark} is ${railOnTint.toFixed(2)}:1 on its own tint ${pair.tint}, under the 3:1 non-text floor.`);
     }
   }
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { LYKA, TEN_THINGS } from '../../data/brand';
+import { LYKA, TEN_THINGS, BASIS_COLORS } from '../../data/brand';
 import { TRACKING } from '../../data/type';
 import type { TenThing } from '../../data/tenThingsData';
 
@@ -35,11 +35,28 @@ const TenThingsCard = React.forwardRef<HTMLButtonElement, TenThingsCardProps>(
       className="group relative flex h-full min-h-0 flex-col overflow-hidden rounded-xl border bg-white p-2.5 text-left transition-transform duration-300 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A7D68]"
       style={{ borderColor: LYKA.mint, boxShadow: '0 1px 2px rgba(0,86,72,0.05)' }}
     >
-      {/* The accent rail. Opacity, not a colour swap, so nothing shifts on hover. */}
+      {/* THE RAIL CARRIES THE BASIS, AND IT COSTS NOTHING IN HEIGHT.
+
+          It was a hover only accent in TEN_THINGS.seriesInk. Since 2026-08-10 it
+          is permanent and coloured by which denominator the point divides by,
+          which is exactly what the source page encodes on its own 4px left
+          border. That placement was chosen over a pill in the badge row for one
+          measured reason: the grid has no `max-h` and no `min-h`, so rows size
+          from max content contribution and ANY new element grows all ten tiles.
+          A pill row costs about 18px a card, and at 1280x720 the frame already
+          scrolls.
+
+          Colour alone is not a label, so the decode lives in two places that do
+          have room: the legend beside the page h1, and the pill in the modal.
+
+          HOVER WIDENS IT RATHER THAN FADING IT IN, since it is now always
+          visible. Width, not colour, so the basis reading never changes under
+          the pointer, and `transition-all` on a 3px to 5px change moves nothing
+          else: the rail is absolutely positioned. */}
       <span
         aria-hidden="true"
-        className="absolute inset-y-0 left-0 w-[3px] rounded-l-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus:opacity-100"
-        style={{ backgroundColor: TEN_THINGS.seriesInk }}
+        className="absolute inset-y-0 left-0 w-[3px] rounded-l-xl transition-all duration-300 group-hover:w-[5px] group-focus:w-[5px]"
+        style={{ backgroundColor: BASIS_COLORS[point.basis].mark }}
       />
 
       <span className="mb-1.5 flex flex-shrink-0 items-center gap-2">

@@ -1,7 +1,14 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { LYKA, TEN_THINGS } from '../data/brand';
+import { LYKA, TEN_THINGS, BASIS_COLORS } from '../data/brand';
 import { TRACKING } from '../data/type';
-import { TEN_THINGS_POINTS, TEN_THINGS_SOURCES } from '../data/tenThingsData';
+import {
+  BASIS_LABELS,
+  TEN_THINGS_ABOUT,
+  TEN_THINGS_ESTIMATE_NOTE,
+  TEN_THINGS_POINTS,
+  TEN_THINGS_SOURCES,
+} from '../data/tenThingsData';
+import type { TenThingBasis } from '../data/tenThingsData';
 import TenThingsCard from '../components/tenthings/TenThingsCard';
 import TenThingsDetail from '../components/tenthings/TenThingsDetail';
 import Modal from '../components/shared/Modal';
@@ -34,10 +41,37 @@ import Modal from '../components/shared/Modal';
 //
 // ONE MODAL, ONE CHART. Rendering a chart on each tile would construct ten
 // Chart.js instances and ten ResizeObservers on page load.
+//
+// THE DOG OWNER BASIS (2026-08-10). Five of the ten points divide by a
+// population and were redrawn against Roy Morgan's dog owner counts; the other
+// five are rates, counts or a time series. Each tile's left rail carries which,
+// the legend below the lede decodes the two colours, and the two page level
+// sections the source added open from the "About this basis" button rather than
+// sitting on the grid: seeing all ten at once is the point of this page and
+// there is no room for four paragraphs above it.
 // -----------------------------------------------------------------------------
+
+/** One swatch and its label. The tile rail's decode, since colour is not a label. */
+const BasisKey: React.FC<{ basis: TenThingBasis }> = ({ basis }) => (
+  <span className="flex items-center gap-1.5">
+    <span
+      aria-hidden="true"
+      className="h-3 w-[3px] flex-shrink-0 rounded-sm"
+      style={{ backgroundColor: BASIS_COLORS[basis].mark }}
+    />
+    <span
+      className="text-micro font-bold uppercase font-mono"
+      style={{ letterSpacing: TRACKING.eyebrow, color: LYKA.muted }}
+    >
+      {BASIS_LABELS[basis].pill}
+    </span>
+  </span>
+);
 
 const TenThings: React.FC = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [aboutOpen, setAboutOpen] = useState(false);
+  const aboutRef = useRef<HTMLButtonElement | null>(null);
   const cardRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const active = openIndex === null ? null : TEN_THINGS_POINTS[openIndex];
@@ -70,6 +104,11 @@ const TenThings: React.FC = () => {
     [openIndex],
   );
 
+  const closeAbout = useCallback(() => {
+    setAboutOpen(false);
+    requestAnimationFrame(() => aboutRef.current?.focus());
+  }, []);
+
   return (
     <div className="animate-fadeIn flex h-full flex-col">
       <header className="flex-shrink-0 pb-3 md:mr-[92px]">
@@ -86,9 +125,30 @@ const TenThings: React.FC = () => {
           Ten things the data says
         </h1>
         <p className="mt-1.5 max-w-4xl text-body md:text-lead" style={{ color: LYKA.muted }}>
-          Ten answers. Open any one for the chart behind it, the implication and the test, then
-          step straight through to the next.
+          Ten answers, measured against dog owners wherever that is possible. Open any one for the
+          chart behind it, the implication and the test, then step straight through to the next.
         </p>
+        {/* The legend decodes the tile rail, which is the one thing on the grid
+            encoded in colour alone. The About button sits with it rather than
+            beside the h1 so the whole basis story is one cluster. */}
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <BasisKey basis="dogOwner" />
+          <BasisKey basis="noDenominator" />
+          <button
+            ref={aboutRef}
+            type="button"
+            onClick={() => setAboutOpen(true)}
+            aria-haspopup="dialog"
+            className="rounded-full border px-3 py-1 text-micro font-bold uppercase font-mono transition-colors hover:bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A7D68]"
+            style={{
+              letterSpacing: TRACKING.eyebrow,
+              borderColor: LYKA.mint,
+              color: LYKA.accentInk,
+            }}
+          >
+            About this basis
+          </button>
+        </div>
       </header>
 
       {/* THE GRID IS CONTENT SIZED AND CENTRED, and that is the fix for empty
@@ -156,8 +216,64 @@ const TenThings: React.FC = () => {
         </span>
         <span className="text-meta leading-relaxed" style={{ color: LYKA.ink }}>
           {TEN_THINGS_SOURCES}
+          {/* ON THE PAGE, NOT IN A COMMENT. Two charts estimate dog owners below
+              region level, inside a deck whose whole argument is that it uses
+              the honest denominator, so the disclosure has to be visible.
+
+              THE SHORT FORM, because the full one cost 82px of strip and pushed
+              the grid's scroll at 1280x720 from 45px to 160px. The full text is
+              in the About dialog, with the rest of the methodology. */}
+          <span className="mt-0.5 block italic" style={{ color: LYKA.muted }}>
+            {TEN_THINGS_ESTIMATE_NOTE.short}
+          </span>
         </span>
       </div>
+
+      {/* PASSES NEITHER onPrev NOR onNext, and that is load bearing. Modal gates
+          its stepper on `onPrev !== undefined || onNext !== undefined`, so
+          passing `null` (which the point dialog below does, to render the
+          chevrons disabled at the ends) would put a dead stepper on this one. */}
+      <Modal
+        isOpen={aboutOpen}
+        onClose={closeAbout}
+        maxWidth="max-w-3xl"
+        eyebrow="What this version is"
+        title="About this basis"
+      >
+        <div className="space-y-6">
+          {TEN_THINGS_ABOUT.map((section) => (
+            <section key={section.heading}>
+              <h3 className="text-title font-display" style={{ color: LYKA.tealDeepest }}>
+                {section.heading}
+              </h3>
+              {section.paragraphs.map((p, i) => (
+                <p
+                  key={i}
+                  className="mt-2 max-w-[74ch] text-body leading-relaxed"
+                  style={{ color: LYKA.muted }}
+                >
+                  {p}
+                </p>
+              ))}
+            </section>
+          ))}
+          <section className="border-t pt-4" style={{ borderColor: LYKA.mint }}>
+            <h3 className="text-title font-display" style={{ color: LYKA.tealDeepest }}>
+              A note on the two postcode grain charts
+            </h3>
+            <p
+              className="mt-2 max-w-[74ch] text-body leading-relaxed"
+              style={{ color: LYKA.muted }}
+            >
+              {TEN_THINGS_ESTIMATE_NOTE.full}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-4">
+              <BasisKey basis="dogOwner" />
+              <BasisKey basis="noDenominator" />
+            </div>
+          </section>
+        </div>
+      </Modal>
 
       <Modal
         isOpen={active !== null}
