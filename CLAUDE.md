@@ -25,10 +25,16 @@ This file gives Claude Code the architecture, data model and known quirks for th
 >
 > **The concurrent session's eighth page (Plugging Into The Ecosystem) landed
 > as `530659b`** while this round was being deployed, so both rounds are on the
-> branch. The round was deployed to Cloudflare from the COMMITTED state
-> `f5968ec` via a throwaway worktree (version `30cb8f65`), so **the live site
-> deliberately excludes the Ecosystem page**: shipping a just landed page is
-> its author's call, and `npm run deploy:cf` from a clean tree ships it.
+> branch. The round first went to Cloudflare from the COMMITTED state `f5968ec`
+> via a throwaway worktree (version `30cb8f65`), which excluded the then
+> uncommitted Ecosystem page; **Cloudflare was then re-deployed at the branch
+> tip (version `743a52b8`) once the page had landed**. That session also put
+> the deck on **Netlify at https://speed-x-lyka-accelerator.netlify.app**, so
+> the deck is now live on TWO public hosts; both were verified serving BYTE
+> IDENTICAL bundles (`index-D_TAyPJ9.js`, compared with `cmp`, not by eye).
+> Keep them level: `npm run deploy:cf` only updates Cloudflare, and there is
+> still no auto deploy on either, so every round needs both pushed manually or
+> one of the two retired.
 >
 > ## STATE AS OF 2026-08-10 (media plan round 2 + first public deploy)
 >
