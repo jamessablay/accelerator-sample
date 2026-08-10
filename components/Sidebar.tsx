@@ -22,15 +22,18 @@ interface SidebarProps {
 }
 
 const navItems = [
+  // First, on request 2026-08-10. It has now held every slot this deck has
+  // tried: it shipped second (the findings set up the audience model), moved
+  // below the media plan on 2026-08-04 (lead with who the audience is, close
+  // on the evidence), and leads the deck since 2026-08-10. Note the DEFAULT
+  // LANDING PAGE is still Personas (App.tsx); nav order and landing page are
+  // independent decisions.
+  { page: Page.TEN_THINGS, icon: <TenThingsIcon />, label: 'Ten Things The Data Says' },
   { page: Page.BUSINESS_DASHBOARD, icon: <BusinessDashboardIcon />, label: 'Business Dashboard' },
   { page: Page.PERSONAS, icon: <PeopleIcon />, label: 'Personas' },
   { page: Page.CUSTOMER_JOURNEY, icon: <ConsumerJourneyIcon />, label: 'Consumer Journey' },
   { page: Page.APEX_BY_SPEED, icon: <ApexIcon />, label: 'APEX by SPEED' },
   { page: Page.INTERACTIVE_MEDIA_PLAN, icon: <CalendarAltIcon />, label: 'Interactive Media Plan' },
-  // Last, below the media plan. It was second, on the argument that the ten
-  // findings set up the audience model. Moved on request 2026-08-04: the deck
-  // now leads with who the audience is and closes on the evidence.
-  { page: Page.TEN_THINGS, icon: <TenThingsIcon />, label: 'Ten Things The Data Says' },
   // The Lyka x SPEED shared-Notion-workspace proposal, a ways-of-working page
   // rather than an audience or media page.
   { page: Page.NOTION_COWORKING, icon: <NotionCoworkingIcon />, label: 'Notion Coworking Setup' },
