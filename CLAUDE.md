@@ -2,6 +2,72 @@
 
 This file gives Claude Code the architecture, data model and known quirks for this app. The workspace-level `CLAUDE.md` two folders up has the cross-project map.
 
+> ## STATE AS OF 2026-08-10, LATEST (Steph's review round: five pages)
+>
+> A client review round from Steph landed as one commit, `f5968ec`, pushed;
+> `origin/lyka-main` is at **40** (verify with `git rev-list --count lyka-main`).
+> Ten files, all verified in the browser after edit.
+>
+> | | |
+> |---|---|
+> | Business Dashboard | Everything under "Lyka's commercial picture, in one place" removed: the paragraph and the eight metric list. The empty state is icon, eyebrow, heading. `PENDING_METRICS` deleted with it |
+> | Journey: Mindful Researchers | The dynamic drops "Their journey is not about creating category interest" and now reads positively. `journeyMeta.ts`, hand maintained, safe |
+> | Journey: Devoted Caterers / Action | The "cut off in the source deck" note is GONE from all three renderers, by trimming the descriptor to its last complete item ("...portions and transition progress.") so `isTruncatedDescriptor` no longer fires. **The trim is in GENERATED `journeyDetailsData.ts` and a regeneration reverts it**, at which point the note comes back on its own, which is why the detector and the three note sites are kept. Nothing was invented; the dangling fragment was dropped |
+> | APEX: BVOD row | "Boxes cut off on my large monitor" was the top row's hover tooltips clipping 66px against the table card's `overflow-hidden`. All three tooltip types (score pill, tier pill, star cell) now PORTAL to `document.body` with fixed positioning and an above/below flip, the Lightbox pattern. Verified at 1920x1080 and 2560x1440, both directions |
+> | Ten Things 04 | "inner ring professional" is "inner city professional". (Point 07's map ALT TEXT still says "inner ring along the river" about Perth; that is geography, screen reader only, deliberately left) |
+> | Ten Things 05 + 06 | Both charts lose their second in card heading; `TenThingsChart.title` is **optional** now and the h3 is skipped when unset. 06 is retitled "Two months of the year are dependable. The rest are not" (tile + modal h2, per Steph's wording) |
+> | Ten Things 07 | What we found leads with "The strongest regions are Sydney Central and Sydney Northern" instead of "On the true base", which needed explaining |
+> | Notion | Setup headline is "Your Claude, plugged into a shared space"; "our" read as SPEED owning it |
+>
+> Gates: typecheck (both configs), production build, `[data integrity] ok`
+> (19 media rows, 28 apex rows), and the Ten Things tile grid re-measured
+> unchanged at 242.1px after the 06 retitle.
+>
+> **A concurrent session is building an eighth page (Plugging Into The
+> Ecosystem)** and holds `App.tsx`, `Sidebar.tsx`, `types.ts`, `metadata.json`
+> and this file dirty; its files are untracked and not in the repo. This
+> `CLAUDE.md` is therefore edited on top of their changes and left uncommitted,
+> the same call the media plan round made.
+>
+> ## STATE AS OF 2026-08-10 (media plan round 2 + first public deploy)
+>
+> Two things a code reader must know before trusting the sections below, both of
+> which several inline notes predate:
+>
+> **1. THE DECK IS DEPLOYED AND FULLY PUBLIC.** First ever deploy, to Cloudflare
+> Workers on client direction:
+> https://speed-x-lyka-accelerator.aaronzspeed.workers.dev (version `d0c19798`).
+> A `PUBLIC_ACCESS` flag at the top of `worker/index.ts` **BYPASSES the password
+> gate**, so anyone with the link sees the confidential deck. The gate code is
+> intact below the flag; flip it to `false` and redeploy to re-gate.
+> `SITE_PASSWORD` / `SESSION_SECRET` are set on the Worker but unused while
+> public. This reverses every "not deployed, local only" line in the Deploy and
+> Source control sections below. `origin/lyka-main` is at **39 commits** (`2a06e7f`
+> video swap, `3ed6ac2` public access, `7faf486` media plan round).
+>
+> **2. A SECOND MEDIA PLAN ROUND LANDED (Marah, 2026-08-10), so parts of the
+> "Interactive Media Plan page" section below are now stale:**
+> - **20 channels is now 19** (10 SPEED, 9 in house). Radio Segment was removed
+>   and its $50,000 folded into Nova Ear Worm (Rosella Boy) with Wippa, now
+>   $400,000 (the extra $50,000 on November). SHOW IT 4,255,000 to **4,205,000**,
+>   CHECK IT 5,650,000 to **5,700,000**; MEDIA_TOTAL still $11,000,000, January
+>   still $3,295,000. A $0 "Package" row fails integrity 5b-iii, so `budgetLabel`
+>   is now UNUSED (kept for reuse) and `nova-studio.jpg` is unreferenced.
+> - **`FLIGHTING_PCT` is now DERIVED** from the plan's monthly grand totals (at
+>   the FOOT of `mediaPlanData.ts`, after `PLAN_LAYERS`), so the "UNRESOLVED /
+>   awaiting a call" flighting note is resolved: the dashed overlay matches the
+>   bars. NB Marah did not confirm this method (she wanted a Teams chat); it is
+>   Aaron's call.
+> - **Paramount+ is removed from the BVOD copy.** The "still named / flagged"
+>   note is resolved. NB Marah's email wanted it KEPT (she restored the logo);
+>   Aaron chose removal, so flag the drop when it goes back to her.
+> - **Premium Linear News & Sport TV** carries the client's blended rationale
+>   (Strategy kept, both directives). **BBL & Cricket** still has both rationales
+>   back to back, awaiting Marah's blend. Her `metrics` repeats "message
+>   take-out" (verbatim, flagged).
+>
+> Full detail in `Accelerator - Lyka/CLAUDE.md`.
+>
 > ## READ THIS FIRST: what is Lyka and what is not
 >
 > Converted from the **Hamilton Island** Standard Accelerator on **2026-07-31** (shell), then given the real Lyka audience model the same day (personas and segments), the real Lyka media plan on **2026-08-05**, and the real Lyka APEX pull on **2026-08-07**. **Every page now carries Lyka content.**
@@ -328,13 +394,18 @@ honesty constraint at the top of `MindsetFlow.tsx`.
    and ZERO study numbers. Its note is therefore element two in the DOM, above
    the internal scroll fold by construction, and every cell pop-up shows both
    study values beside the gap so the arithmetic is inspectable, not asserted.
-3. **A source cell is truncated.** Devoted Caterers / Action `rationalScore` ends
-   mid-sentence at `"...transition progress and ease of"`. Verified: it is cut off
-   **in the PPTX itself**, so `journeyDetailsData.ts` is faithful and regenerating
-   will not fix it. `isTruncatedDescriptor()` detects it and the spine, the strip
-   and the gap matrix all print a note. Do not invent an ending. **The matrix is
-   the most exposed view to it**, because a cell pop-up's whole content is the
-   two descriptors.
+3. **A source cell WAS truncated, and the client had the disclosure removed
+   (2026-08-10).** Devoted Caterers / Action `rationalScore` ends mid-sentence in
+   the PPTX itself at `"...transition progress and ease of"`. It carried an on
+   screen "shown as supplied, not completed" note until Steph flagged the note as
+   a weird reference, and the resolution was to TRIM the cell to its last
+   complete item ("...portions and transition progress."), not to invent an
+   ending: nothing the study did not say is on screen, and the incomplete
+   fragment is dropped. **The trim lives in the GENERATED file, so a
+   regeneration reverts it**, at which point `isTruncatedDescriptor()` fires
+   again and the note self restores in the spine, the strip and the gap matrix.
+   That is why the detector and its three note sites are kept even though
+   nothing currently trips them. The no invented endings rule is unchanged.
 
 ### Modal: focus never actually moved into the dialog until 2026-08-04
 
@@ -2041,6 +2112,45 @@ To take the public URL down entirely instead, set `"workers_dev": false` in [wra
 
 ## Source control
 
+> ### Pass 20 is committed and pushed (2026-08-10)
+>
+> **`origin/lyka-main` is at 36 commits.** Verify with
+> `git rev-list --count lyka-main` rather than trusting this number: the block
+> below explains why a docs commit can never state its own hash, and the same
+> argument makes any count here stale the moment it is written.
+>
+> | | |
+> |---|---|
+> | `dcbfba3` | Ten Things onto the dog owner basis: the data, five rebuilt charts, three renamed join keys, `BASIS_COLORS`, the tile rail, the five labelled blocks, the About dialog, four integrity checks |
+> | `bce22df` | Its docs, plus the staleness the refactor exposed and three README claims that predated it |
+>
+> **The split is code then docs, and that is the only split that was physically
+> available.** Splitting WITHIN the refactor was considered and rejected: the
+> chart components and their series are one change, so any intermediate commit
+> fails `npm run typecheck`. Same conclusion as pass 18 reached, and the same
+> rule: check whether a split is available before promising one.
+>
+> **THIS PASS REBASED ONTO WORK FROM ANOTHER SESSION**, which had merged the
+> Notion Coworking Setup page (`9ce495c`) while this one was in progress. One
+> conflict, in the `## What this is` page list, where both passes had edited
+> the same bullet block and each claimed "last in the nav". Resolved by keeping
+> both bullets and dropping the nav position from the older one.
+>
+> **The gate was re-run AFTER the rebase, not just before it.** A rebase can
+> merge cleanly and still be semantically broken: `data/brand.ts` auto merged
+> two independent additions (`BASIS_COLORS` and a Notion note on `speedRed`),
+> and only a typecheck and a dev load prove both survived. Typecheck (both
+> configs), the production build and the integrity console were all clean after.
+>
+> **Verified after pushing**, because the safety rule here is about what reached
+> the remote rather than what was intended: neither `lyka-shell` nor `main` is
+> an ancestor of `origin/lyka-main`, and both still have no upstream. Plain
+> `git push` throughout.
+>
+> **Not in this repo:** the folder level and workspace level `CLAUDE.md` files
+> also changed with this pass. They live in the OneDrive tree above the app and
+> are not under version control, so they are saved on disk only.
+
 > ### Everything through pass 19 is committed and pushed (2026-08-07)
 >
 > **`origin/lyka-main` carries 26 commits** and the working tree is clean. Pass
@@ -2173,15 +2283,44 @@ To take the public URL down entirely instead, set `"workers_dev": false` in [wra
 **Repo: `The-Speed-Agency/speed-x-lyka-accelerator`, private.** Created 2026-08-04.
 https://github.com/The-Speed-Agency/speed-x-lyka-accelerator
 
-**The working branch is `lyka-main`, and it is the ONLY branch that exists on the remote.** It is an **orphan**: one commit, no parent, carrying the tree as it stood after pass 8. The Hamilton Island origin (`The-Speed-Agency/speed-x-hamilton-island-accelerator`) had been removed during the conversion precisely so a push from this copy could not reach a live client repo, and the orphan is how that protection was kept while still getting a remote.
+**The working branch is `lyka-main`.** It is an **orphan**: its root commit has no parent and carries the tree as it stood after pass 8. The Hamilton Island origin (`The-Speed-Agency/speed-x-hamilton-island-accelerator`) had been removed during the conversion precisely so a push from this copy could not reach a live client repo, and the orphan is how that protection was kept while still getting a remote.
+
+**⚠ "THE ONLY BRANCH ON THE REMOTE" IS NO LONGER TRUE, since 2026-08-10.** A
+second branch, **`lyka-notion`**, appeared on the remote and was merged into
+`lyka-main` the same day (`9ce495c`, both parents intact). It is fully contained
+now and can be deleted whenever someone wants to.
+
+**That line mattered for a specific reason, so check the reason rather than the
+count.** It was never about the number of branches: it was about **no Hamilton
+Island history reaching a Lyka named repo**. `lyka-notion` was checked against
+exactly that before the merge and is clean. It branched off `7505b80`, one of
+this repo's own commits, and **neither `lyka-shell` nor `main` is an ancestor of
+it**. The test is two commands, and it is the one to run on any future branch
+that appears here:
+
+```bash
+git merge-base --is-ancestor lyka-shell origin/<branch> && echo PROBLEM
+git merge-base --is-ancestor main       origin/<branch> && echo PROBLEM
+```
+
+**The push rules below are UNCHANGED and still absolute.** A second legitimate
+branch existing does not soften `--all` or `--mirror`, it makes them slightly
+more tempting.
 
 ### THREE LOCAL BRANCHES, AND ONLY ONE MAY BE PUSHED
 
 ```
-* lyka-main    1 commit    -> origin/lyka-main    THE branch. Push this.
+* lyka-main    36 commits  -> origin/lyka-main    THE branch. Push this.
   lyka-shell   35 commits  NO upstream            9 Lyka + 26 Hamilton Island
   main         Hamilton    NO upstream            pre conversion
 ```
+
+`lyka-main` said "1 commit" here until 2026-08-10, which was true at creation and
+had been wrong for 35 commits. **Two counts on this page mean different things
+and only one of them moves:** `lyka-main`'s is the branch total and goes stale
+every push, so derive it (`git rev-list --count lyka-main`); `lyka-shell`'s 26
+Hamilton Island commits is a fixed historical fact about a branch nobody commits
+to, and it is the number the push rules below are actually about.
 
 `lyka-shell` and `main` still hold **26 commits of another client's development**, kept on disk deliberately rather than destroyed, because the conversion history is occasionally worth reading. They have no upstream and must not get one.
 
@@ -2189,7 +2328,32 @@ https://github.com/The-Speed-Agency/speed-x-lyka-accelerator
 - Plain `git push` is safe: git's default `push.default = simple` pushes only the current branch to its own upstream, and the other two have none.
 - If you no longer want them on disk, the destructive cleanup is `git branch -D lyka-shell main && git reflog expire --expire=now --all && git gc --prune=now --aggressive`. **That is irreversible from this folder.** The canonical Hamilton Island deck has its own folder and its own repo, so nothing is lost to the agency, but nothing is recoverable here either.
 
-**Verified at creation:** the remote carries one branch and one commit; no `.env`, `.dev.vars`, `.netlify/state.json` or `.wrangler` is tracked or anywhere in history; and a fresh clone installs, typechecks and builds, so the repo is self contained.
+### Merging while another session holds the working tree (2026-08-10)
+
+`lyka-notion` was merged in while a **concurrent session had 19 files
+uncommitted** in this folder, including two the merge needed to touch
+(`CLAUDE.md` and `data/brand.ts`). Two things came out of it that will apply
+again, because this folder is shared.
+
+**Do the merge in a throwaway worktree, not here.** `git merge` in a tree with
+those two files dirty either refuses or puts someone else's unsaved work at
+risk. `git worktree add --detach <tmp> lyka-main`, merge there, verify there,
+push the resulting sha with `git push origin <sha>:lyka-main`, then remove the
+worktree. Nothing in the live tree is touched at any point. Junction
+`node_modules` into the worktree (`New-Item -ItemType Junction`) and it will
+typecheck and build too, which is the only way to verify a merge you are not
+allowed to check out.
+
+**THE LOCAL BRANCH WAS LEFT BEHIND THE REMOTE ON PURPOSE, and that is not an
+oversight to tidy up.** Fast forwarding the local ref would have left the other
+session's uncommitted `CLAUDE.md` and `brand.ts` reading as though they DELETE
+the notion content, and committing them would then have reverted it **with no
+conflict marker anywhere**. Leaving `lyka-main` where it is means git does the
+reconciliation instead: the next person gets a normal "behind, needs pull", and
+the pull merges both sets of edits properly. A branch pointer that is behind is
+a visible, standard state; a silent revert is not.
+
+**Verified at creation:** the remote carried one branch and one commit; no `.env`, `.dev.vars`, `.netlify/state.json` or `.wrangler` is tracked or anywhere in history; and a fresh clone installs, typechecks and builds, so the repo is self contained.
 
 **The repo no longer carries another client's data.** `data/apexData.ts` was the last Hamilton Island content and became Lyka's on 2026-08-07 (the media plan and its creative turned on 2026-08-05). The Hamilton figures survive only in git history, which is one more reason the local `lyka-shell` and `main` branches must never be pushed.
 
