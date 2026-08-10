@@ -48,6 +48,30 @@ This file gives Claude Code the architecture, data model and known quirks for th
 >
 > Stage totals: Unaware 27% / 3%, **Curious 47% / 15%**, Considering 15% / 55%, Ready 11% / 27%. Both columns sum to 100%. **The inversion between them is the deck's argument**: 82% of Lyka's customers come from the two smallest, warmest stages, which are only 26% of the market. Every panel leads with both figures for that reason.
 >
+> ### ⚠ CONFLICTED TROUBLESHOOTERS CARRIES CLIENT COPY (2026-08-10)
+>
+> Lyka replaced the bold pull-out (`snapshot`) outright and the **first sentence
+> only** of `description`, supplied on a marked up screenshot. The rest of that
+> paragraph is still the research's own, verbatim, including the percentages.
+>
+> **It is a REVERSAL, not a rewording.** The source read "More likely to live
+> alone, with parents or in shared households, although the segment also
+> includes busy young families navigating competing responsibilities." The
+> client's version says family led rather than singles or share house, which is
+> the opposite claim, and it introduces two figures the source document does not
+> contain (index 130 and index 117), so neither can be cross checked. The two
+> indices later in the same paragraph are still the study's.
+>
+> **This is the failure mode worth knowing: it reverts SILENTLY.** Unlike the
+> 401 move below, nothing asserts it. Regenerating restores prose that is still
+> valid prose, every join still resolves, no check fires, and the deck quietly
+> goes back to telling the client a household finding they have corrected. The
+> only defences are this note and the block in `personasData.ts` itself.
+>
+> Checked at the time: the old household claim appeared in exactly one place in
+> the whole app, and the old snapshot was quoted nowhere else, so both edits are
+> self contained.
+>
 > ### ⚠ ONE PLACEMENT IS THE CLIENT'S, NOT THE RESEARCH'S (2026-08-07)
 >
 > **Disciplined Outsourcers sit in Curious because Lyka asked for them there.** The
@@ -214,6 +238,79 @@ One trap the Strip hit and the ladder's persona chips hit before it: **an inline
 `hover:bg-[#F9F6F1]` utility shows its resting green and never responds to the
 pointer, while every cell around it does. Those cells drive hover from the
 `hoverIndex` state the component already tracked.
+
+### The growth labels, and why they are keyed by persona (2026-08-10)
+
+Lyka asked for "clearer labels on the growth segment opportunities" on a marked
+up Flow screenshot, supplying three: **PRIMARY HVA** / Grow & shift belief in
+simple steps (Conflicted Troubleshooters), and **CONVERT** against Mindful
+Researchers (Address price with evidence) and Devoted Caterers (Reassure through
+social proof). Declared once in [data/growthLabels.ts](data/growthLabels.ts) and
+consumed by all three persona views, the same one-declaration pattern
+`mediaFocus.ts` established.
+
+**THE CLIENT'S OWN CLARIFICATION SETS THE KEY**, and it is worth reading twice:
+"The Primary HVA is only referring to Conflicted Troubleshooters, not including
+the Disciplined Outsourcers." **Curious carries two personas**, so a stage keyed
+label would have swept in Outsourcers, which is the one thing they ruled out.
+Stage is the obvious key for a four stage ladder and it is the wrong one here.
+The map is keyed by persona id, and `__integrity` check 7d asserts both halves,
+because a number key is worse than a title: a drifted title is legible in a diff
+and `301` is not, and the ids are sparse (101 / 201 / 301 / 401 / 402) so a
+plausible typo lands on nothing.
+
+**Two personas are unlabelled and that is the statement**, exactly as with the
+media focus journeys. 7d warns if the map ever covers all five.
+
+**Each view carries as much as its geometry allows, which is not the same
+amount**, and the reason is worth recording because it looks like an
+inconsistency:
+
+| View | Carries | Why |
+|---|---|---|
+| Flow | tag + tactic, two chip lines | 250 unit chips, uniform width |
+| Ladder | **tag only**, tactic in the tooltip | a chip's width IS its market share |
+| Detail panel | tag + tactic, white pill | opened by all three views |
+
+The Ladder is the interesting one. Devoted Caterers sits in an 11% band, about
+90px at 1048, and "Reassure through social proof" needs roughly 170px at the
+12px floor, so the tactic would truncate to noise **on the very persona it
+labels**. That chip already dropped its fit rating and conversion index to the
+tooltip for the same reason, so the tag goes on the chip and the tactic joins
+them. "CONVERT" is seven characters and clears even the 90px chip.
+
+**The Flow's chip grew by two lines, and the geometry was solved rather than
+nudged.** `CHIP_H` 48 to 80 and `CHIP_ROW_GAP` 54 to 86 add 64 units to
+`LOWER_STACK`, so `VB_H_MIN` and `VB_H_MAX` were each raised by **exactly that
+64**. That is not a round number, it is the number that holds the invariant: at
+both clamp ends `CY` and the skip band are unchanged (220 / 146 at the floor,
+375 / 250 at the ceiling), so `SKIP_LANE_FRACTIONS` still reproduces 58 / 122 as
+its comment claims. What cannot be preserved is the middle: at a fixed container
+the viewBox height comes from the container's aspect, so a bigger lower stack is
+paid for out of the nodes, and at VB_H 632 the radius goes 112.6 to 94.7. The
+collision cap gains headroom rather than losing it.
+
+### The Flow's ribbons are filled from their DESTINATION (2026-08-10)
+
+Client note: "weird shading in this area", pointing at the left of the diagram.
+Filling from the source stage put `Unaware` on the first connector, and that
+stage is `#5B6E64`, a deliberately desaturated grey-green. At the 0.3 alpha the
+ribbons carry it renders `#CED1C4`, so **the first arrow read grey while the two
+after it read warm**, which looks like a disabled state rather than a step in a
+ramp. Destination filling gives `#DDC2B1`, `#EACAAE`, `#B6D5C5`: the run warms up
+and resolves on the brand teal, which is the ladder's own story.
+
+**The palette was NOT touched, and that was the constraint.** The muted `Unaware`
+is a documented decision ("the audience that perceives no problem") and still
+owns its wheel wedge, its ladder band and this view's first node. Only what fills
+the connectors moved.
+
+**Width still comes from the SOURCE and must**, so colour and width now describe
+different stages and the legend says so out loud ("Ribbon colour = the stage it
+leads into"). Interaction stays on the source too, because the ribbon IS that
+stage's movement. If that split ever feels like too much for one mark, the fix is
+to drop the colour encoding, never to make width follow colour: width is the
+honesty constraint at the top of `MindsetFlow.tsx`.
 
 ### Three constraints in the new views that are load bearing
 
@@ -1277,6 +1374,35 @@ the total become $10,950,000.
 real budget, because both ways of misplacing it are silent: on an in-house row
 the label renders nowhere (that branch is tested first), and on a $0 row it
 implies money that is not there.
+
+### Condensing a flight: compress the money or remove it (2026-08-10)
+
+The sixth instruction in the same round was to condense realestate.com.au to
+February and March only. **The instruction was about flighting and the decision
+was about money**, which is the thing to notice: the row spent $10,000 in each
+of Feb and Mar then $5,000 a month from April to September, so dropping eight
+months strands **$30,000** and there is no reading of "condense" that places it
+for you.
+
+The two honest answers give different grand totals, $11,000,000 if the tail
+compresses into the two surviving months and $10,970,000 if it leaves, and the
+call was **hold the total**: Feb and Mar carry $25,000 each. The client had
+offered to supply budgets, so if theirs arrive, use them. **The even split is a
+neutral choice rather than a researched one**, even because the two months it
+replaces were even.
+
+**The `weight` array was deliberately not re-levelled.** February stays `heavy`
+and March `medium`, the workbook's own values, although both months now carry
+the same $25,000. That looks like an inconsistency and is not one: the shading
+is an editorial presence weighting and is provably **not** a function of spend,
+which the Cinema row settles on its own by shading two identical $70,000 months
+differently. Re-levelling would invent an editorial call nobody made. What did
+have to change is Apr to Sep nulling out, or check 5b-ii warns that a weight is
+rendering nowhere.
+
+**Only the monthly totals moved** (Feb 1,175k to 1,190k, Mar 555k to 570k, Apr
+to Sep down $5,000 each). No budget, no stage total and no % did, and January is
+still $3,295,000, which is the figure the file header asserts.
 
 ## The APEX page
 
