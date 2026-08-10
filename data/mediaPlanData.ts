@@ -17,11 +17,13 @@
 //
 // The plan year runs October -> September. Values are AUD.
 //
-// TOTAL RE-VERIFIED 2026-08-10, after the client's consolidation round: the
-// 20 rows' `budget` fields sum to $11,000,000, their monthly cells sum to
-// $11,000,000, no row's monthly cells disagree with its own budget, and the
-// stage totals still agree with the sheet's own stage rows
-// (4,255,000 / 5,650,000 / 1,095,000 / 0 / 0). Every in-house row is still $0.
+// TOTAL RE-VERIFIED 2026-08-10, after the client's consolidation round and the
+// later Radio -> Nova fold: the 19 rows' `budget` fields sum to $11,000,000,
+// their monthly cells sum to $11,000,000, no row's monthly cells disagree with
+// its own budget, and the stage totals are
+// (4,205,000 / 5,700,000 / 1,095,000 / 0 / 0). Every in-house row is still $0.
+// (SHOW IT / CHECK IT each moved $50,000 when Radio Segment folded into Nova;
+// see that removal note below. They were 4,255,000 / 5,650,000 before.)
 //
 // **THE STAGE TOTALS MATCHING IS THE PROOF THE MERGES WERE CLEAN.** Two pairs
 // of rows became one row each and one row was deleted, and if any of that had
@@ -71,8 +73,9 @@
 // ROW in two places and one tab has no row at all. That breaks the tidy
 // assumption a re-audit wants to make, which is exactly why it is written down:
 // three of the entries below will otherwise read as missing or duplicated
-// creative. Row count went 23 to 20 (11 SPEED, 9 in house); MEDIA_TOTAL did not
-// move, because both merges are the sum of their parts.
+// creative. Row count went 23 to 20 to 19 (10 SPEED, 9 in house) after Radio
+// Segment folded into Nova; MEDIA_TOTAL did not move (both merges, and the
+// fold, are the sum of their parts).
 //
 //   PR & Morning Shows      -> PR & Morning Shows (mockup, Nine, Seven)
 //   Screens tab   G1 LINEAR -> Premium Linear News & Sport TV (mockup, Seven, Nine)
@@ -88,10 +91,12 @@
 //   Trilogy Outdoor         -> Outdoor Impact (mockup + JCDecaux, oOh!, QMS)
 //                              [tab name != row name: "Outdoor Stature" until
 //                              2026-08-10, renamed on client direction]
-//   Radio Partnership       -> Radio Segment (studio, Nova)   [tab name != row name]
-//                              ⚠ THE STUDIO SHOT IS NO LONGER THE WORKBOOK'S
-//                              either, since 2026-08-07. Same trap as REA below:
-//                              the path did not change, so nothing flags it.
+//   Radio Partnership       -> (NO ROW as of 2026-08-10). Radio Segment was
+//                              removed when its $50,000 folded into the Nova Ear
+//                              Worm line; this tab is now unused, like the
+//                              Podcast tab's Acast half. nova-studio.jpg is
+//                              unreferenced (still in public/images/); do not
+//                              re-wire it. The row is gone, not the asset.
 //   Podcast tab             -> Podcaster Performance (Toni and Ryan) ONLY.
 //                              ⚠ THIS TAB IS NOW HALF UNUSED. It also holds the
 //                              Acast logo, and ACAST PODCASTS WAS REMOVED FROM
@@ -182,41 +187,13 @@ export const MEDIA_TOTAL = 11_000_000;
 export const TOTAL_BUDGET = 11_000_000;
 
 /**
- * The workbook's FLIGHTING row: a monthly weighting, as percentages summing to
- * 100. Drawn as the dashed overlay on the stacked monthly budget chart (dollar
- * values are pct / 100 * MEDIA_TOTAL).
- *
- * ---------------------------------------------------------------------------
- * UNRESOLVED, FOUND 2026-08-06 WHILE VERIFYING THE $11.0M TOTAL. Do not treat
- * this array as validated source. Two problems, both established by search:
- *
- * 1. IT IS THE ONLY THING IN THIS FILE TAKEN FROM A HIDDEN SHEET. These twelve
- *    values occur exactly once in the workbook: `Budget Distribution $ Lyka`
- *    row 59, which is the HIDDEN, superseded first pass sheet whose content is
- *    excluded everywhere else per client direction (it is the same sheet whose
- *    in-house dollars were deliberately left out). There is no FLIGHTING row on
- *    the visible sheet; rows 43 to 57 there hold only the owner legend.
- *
- * 2. IT DESCRIBES NEITHER PLAN. Against the visible plan it is out by a factor
- *    of 2.2 in the peak month: January is 13.9% here and 30.0% in the rows
- *    ($1,529,000 against the real $3,295,000). It does not match its own hidden
- *    sheet either, whose January is 30.1% of $11.62M. So it is not a stale
- *    profile of the first pass, it is an independent weighting, most likely an
- *    untouched assumption left over from the briefing template.
- *
- * The consequence is on screen and it is not subtle: the Budget header pop-up
- * draws a dashed line captioned "Planned flighting weight" that sits less than
- * half the height of its own January column, so the plan reads as badly off its
- * own flighting when the plan is in fact correct and the line is not.
- *
- * The two honest fixes are to DELETE the overlay, or to DERIVE it from the rows
- * (in which case it is the bars restated and adds nothing). Awaiting a call;
- * flagged to the user 2026-08-06. `__integrity` check 5c still asserts the
- * array sums to 100, which is necessary and, on its own, misleading: summing to
- * 100 was never the question.
- * ---------------------------------------------------------------------------
+ * FLIGHTING_PCT (the dashed "Planned flighting weight" overlay on the Budget
+ * header chart) is now DERIVED from the plan's own monthly grand totals, and is
+ * defined at the FOOT of this file, after PLAN_LAYERS, because it sums over
+ * every row. See the note there. Client direction 2026-08-10: the old overlay
+ * came from a hidden sheet and did not match the plan, so it is fixed to the
+ * monthly totals.
  */
-export const FLIGHTING_PCT = [7.66, 8.51, 7.2, 13.9, 10.2, 8.0, 8.0, 6.0, 8.5, 8.0, 8.5, 5.53] as const;
 
 // LayerKey and OwnerKey are declared in data/brand.ts so LAYER_COLORS and
 // OWNER_COLORS can be typed without a circular import. Re-exported here so the
@@ -379,34 +356,20 @@ const showIt: PlanLayer = {
         metrics: 'Reach; video views; completion rate; engagement; shares; saves; comments; branded search; site visits.',
       },
     },
-    {
-      // "Radio Segment" on client direction 2026-08-06, renamed from the
-      // workbook's "Radio Partnership". The workbook TAB is still called Radio
-      // Partnership, so the creative manifest in this file's header maps that
-      // tab name to this row name; do not sync them back together.
-      channel: 'Radio Segment',
-      owner: 'speed',
-      assets: 'Segment',
-      monthly: [50000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      budget: 50000,
-      // Client direction 2026-08-10: "replace $50,000 on Radio Segment to
-      // 'Package'". DISPLAY ONLY, and deliberately so: the $50,000 stays in
-      // MEDIA_TOTAL and in the SHOW IT stage total, so the grand total is still
-      // $11,000,000 and no other row's % moved. See `budgetLabel` on MediaRow
-      // for what that does and does not hide.
-      budgetLabel: 'Package',
-      weight: ['heavy', null, null, null, null, null, null, null, null, null, null, null],
-      detail: {
-        assets: 'Integrated host segment; live discussion; listener interaction; social content with Nova’s Wippa.',
-        role: 'Add personality, entertainment and cultural momentum through trusted and popular voices.',
-        strategyLink: 'MAKE IT RELATABLE: Turn Fine Dog Syndrome into a conversation owners can recognise in their everyday lives.',
-        comesToLife: 'On launch day, Wippa introduces Fine Dog Syndrome, discusses the signs and invites listeners to consider whether their own dog is simply fine.',
-        metrics: 'Audience reach; frequency; listener interaction; social views; search uplift.',
-      },
-      images: ['/images/nova-studio.jpg', '/images/nova.png'],
-      imageWeights: [1.4, 1],
-      captions: ['Launch day with Nova’s Wippa', 'Nova'],
-    },
+    // RADIO SEGMENT WAS REMOVED HERE on client direction 2026-08-10 (Marah, in
+    // the briefing Excel and confirmed in writing: "included that $50K and added
+    // this to the Nova Ear Worm section, new total for this line should be
+    // $400K"). Its $50,000 was folded into the Nova Ear Worm (Rosella Boy) with
+    // Wippa line in CHECK IT (now $400,000); the client zeroed the Radio
+    // Partnership line in the workbook. A $0 SPEED row cannot stay (a 'Package'
+    // budgetLabel on a $0 row fails __integrity 5b-iii), so the row is removed
+    // rather than kept empty. SHOW IT 4,255,000 -> 4,205,000, CHECK IT
+    // 5,650,000 -> 5,700,000, MEDIA_TOTAL unchanged at $11,000,000.
+    // `nova-studio.jpg` is now unreferenced (still in public/images/, like
+    // acast.png), the Radio Partnership tab is unused, and the row's "Fine Dog
+    // Syndrome host segment" rationale is dropped with it (flagged to the client
+    // rather than folded into Nova's copy). The `budgetLabel` field and its
+    // rendering are kept but currently unused; see `budgetLabel` on MediaRow.
     // ACAST PODCASTS WAS REMOVED HERE on client direction 2026-08-10 ("remove
     // 'Acast Podcast' line completely from table"). It was an in-house row, so
     // it carried no dollars and no total moved; the workbook's Podcast tab still
@@ -453,22 +416,21 @@ const showIt: PlanLayer = {
       monthly: [100000, 100000, 0, 100000, 100000, 250000, 250000, 250000, 250000, 250000, 250000, 250000],
       budget: 2150000,
       weight: ['heavy', 'heavy', null, 'heavy', 'heavy', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium'],
-      // BOTH SOURCE ROWS' COPY, VERBATIM AND BACK TO BACK. Nothing here is
-      // written, shortened or blended: the client merged two lines and did not
-      // supply merged copy, and the standing rule on this deck is to flag a gap
-      // rather than fill it, which is how Cinema got its real Strategy line.
-      // The cost is mild redundancy (the trilogy is named in both `assets`
-      // sentences) and two directives in `strategyLink`. **Flagged to the
-      // client; replace wholesale if they send a single merged rationale.**
-      // `metrics` is the one exception and only in the weakest sense: it is a
-      // semicolon list, so the three terms appearing identically in both rows
-      // are listed once instead of twice. No term was dropped or reworded.
+      // MERGED RATIONALE SUPPLIED BY THE CLIENT 2026-08-10 (Marah, from the
+      // briefing Excel): "you can keep STRATEGY the same, the rest will just need
+      // to be updated to ensure it reflects a blend of both LTV & AFL". So
+      // `assets`, `role`, `comesToLife` and `metrics` are her blended copy,
+      // verbatim (straight apostrophes normalised to curly to match this file);
+      // `strategyLink` is UNCHANGED per her instruction and still carries both
+      // original directives. This replaces the earlier back-to-back merge.
+      // FLAGGED to the client: her `metrics` lists "message take-out" twice, a
+      // by-product of blending both rows' metrics. Left verbatim, not deduped.
       detail: {
-        assets: 'Three 30 second masterbrand films: Poo, Pep and Polish. Poo, Pep and Polish masterbrand trilogy spot package across Seven and Foxtel.',
-        role: 'Build mass awareness, stature and fame for Lyka’s three step thriving check. Provide continuity across a high reach, high affinity sport and keep Lyka’s three step check mentally available throughout the AFL season.',
+        assets: 'Three 30-second masterbrand films: Poo, Pep and Polish across News and AFL Season.',
+        role: 'Build mass awareness, stature and fame for Lyka’s three-step thriving check. And also provide continuity across high-reach, high-affinity sport (AFL) to check mentally throughout the season.',
         strategyLink: 'SHOW WHAT THRIVING LOOKS LIKE: Move owners from recognising the problem to understanding the visible signs. KEEP THE CHECK TOP OF MIND: Sustain recognition of the trilogy beyond summer and reinforce the behaviour through repeated exposure.',
-        comesToLife: 'Launch the trilogy within the 6pm news across Seven and Nine, extending the campaign’s trusted news environment. Run the trilogy consistently within premium AFL coverage across Seven and Foxtel, maintaining momentum after the summer sporting burst.',
-        metrics: 'Target audience reach; frequency; completed spots; campaign awareness; message take-out; brand recognition; trilogy exposure; brand awareness; search and site response uplift.',
+        comesToLife: 'Launch the trilogy within the 6pm news across Seven and Nine, extending the campaign’s trusted news environment. And run the trilogy consistently within premium AFL coverage across Seven and Foxtel, maintaining momentum after the summer sporting burst.',
+        metrics: 'Target-audience reach; frequency; completed spots; campaign awareness; message take-out; brand recognition, trilogy exposure; brand awareness; message take-out; search and site-response uplift.',
       },
       // NO CARD WAS LOST IN THE MERGE. AFL's only image was seven.png, which
       // Linear TV already wired at index 1, so the gallery is the same three
@@ -523,17 +485,17 @@ const showIt: PlanLayer = {
         role: 'Deliver high attention, sequential storytelling across Lyka’s most influential screen channels.',
         strategyLink: 'SHOW WHAT THRIVING LOOKS LIKE: Help owners understand all three signs and the difference between being fine and truly thriving.',
         // "the trilogy of films", not "the films", on client direction
-        // 2026-08-06. NOTE: this string still names Paramount+ while the
-        // gallery below no longer shows its logo. Flagged, not silently
-        // reconciled: the client crossed out the CARD, and dropping a platform
-        // from client copy is a different decision from dropping its logo.
-        comesToLife: 'Serve the trilogy of films in sequence, moving from Poo to Pep to Polish and building the complete thriving story over time. Utilising the high attention channels across all of BVOD (7plus, 9Now, Paramount+, SBS) and SVOD (Binge, Netflix, Amazon Prime, Disney+).',
+        // 2026-08-06. PARAMOUNT+ REMOVED FROM THIS COPY on client direction
+        // 2026-08-10 ("remove the Paramount+ wording on BVOD"), so the copy now
+        // matches the gallery, which dropped the Paramount+ card on 2026-08-06.
+        comesToLife: 'Serve the trilogy of films in sequence, moving from Poo to Pep to Polish and building the complete thriving story over time. Utilising the high attention channels across all of BVOD (7plus, 9Now, SBS) and SVOD (Binge, Netflix, Amazon Prime, Disney+).',
         metrics: 'Completed views; sequential exposure; trilogy completion; cost per completed view; brand lift.',
       },
       // FIVE BVOD logos. The Screens tab labels its visuals in column G, and the
       // "BVOD" label at G9 covers rows 9 to 10, which hold SIX: 7plus, 9Now,
       // Paramount+, SBS, 10play AND Kayo. The `comesToLife` copy above (rendered
-      // as "Implementation") names only four of them, but that column is the
+      // as "Implementation") names only three of them (Paramount+ removed from
+      // the copy 2026-08-10), but that column is the
       // strategy note and the tab is headed "Visuals to be included", so the tab
       // governs the gallery.
       //
@@ -698,8 +660,15 @@ const checkIt: PlanLayer = {
       channel: 'Nova Ear Worm (Rosella Boy) with Wippa',
       owner: 'speed',
       assets: 'Segment | Socials',
-      monthly: [200000, 150000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      budget: 350000,
+      // Client direction 2026-08-10 (Marah, in the briefing Excel, confirmed in
+      // writing): the Radio Segment package's $50,000 was folded into this line,
+      // taking it $350,000 to $400,000. The extra $50,000 lands in NOVEMBER
+      // (Oct $200,000 / Nov $200,000), matching the client's own monthly split.
+      // This moves $50,000 SHOW IT -> CHECK IT (SHOW IT 4,255,000 -> 4,205,000,
+      // CHECK IT 5,650,000 -> 5,700,000); MEDIA_TOTAL is unchanged at
+      // $11,000,000 and January is still $3,295,000 (money moved Oct -> Nov).
+      monthly: [200000, 200000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      budget: 400000,
       weight: ['heavy', 'heavy', null, null, null, null, null, null, null, null, null, null],
       detail: {
         // "Rosella", not the workbook's "Rosala": the client corrected the
@@ -1038,3 +1007,20 @@ const shareIt: PlanLayer = {
 };
 
 export const PLAN_LAYERS: PlanLayer[] = [showIt, checkIt, proveIt, tryIt, shareIt];
+
+// FLIGHTING_PCT: the dashed "Planned flighting weight" overlay, as monthly
+// percentages summing to 100. DERIVED from the plan's own monthly grand totals
+// on client direction 2026-08-10 (Marah: the old overlay "does not match this
+// plan"; fix it "to the proper totals per month, based on the GRAND CAMPAIGN
+// TOTAL per month"). Deriving it means the overlay can never disagree with the
+// bars again: the chart draws pct / 100 * MEDIA_TOTAL, which reproduces each
+// month's grand total exactly. It replaced a hardcoded array taken from a
+// HIDDEN workbook sheet that matched neither plan (January was 13.9% against
+// the real 30.0%); see git history. Sums over PLAN_LAYERS, so it lives here.
+const MONTHLY_TOTALS: number[] = MONTHS.map((_, i) =>
+  PLAN_LAYERS.reduce(
+    (sum, layer) => sum + layer.rows.reduce((s, row) => s + (row.monthly[i] ?? 0), 0),
+    0,
+  ),
+);
+export const FLIGHTING_PCT: number[] = MONTHLY_TOTALS.map((v) => (v / MEDIA_TOTAL) * 100);
