@@ -27,8 +27,17 @@
 //     "family-home suburbs"). Genuine prefixes are left alone: "non-branded" is
 //     a prefix, not a compound modifier.
 //
-// No figure and no claim was changed. Where the source disagrees with itself,
-// the `discrepancy` field says so on screen. See point 07.
+// No figure and no claim was changed.
+//
+// Points 02, 04 and 07 each carried a `discrepancy` note where the source
+// disagrees with itself. All three were REMOVED on client direction
+// 2026-08-10, so no point sets the field today. THE UNDERLYING CONFLICTS ARE
+// UNRESOLVED and the copy still quotes the figures they were about: point 02's
+// index of 179, point 04's 34.1 to 36.2% and point 07's 1.60x. The removed
+// text is in git history and in the two CLAUDE.md files. **The rule that no
+// figure gets quietly edited to make a chart agree with its own headline still
+// stands**, and the field is still wired end to end, so restoring a note is
+// one property.
 // -----------------------------------------------------------------------------
 
 export type TenThingCategory =
@@ -124,6 +133,10 @@ export interface TenThing {
    *
    * RENDERED VISIBLY under the chart. This field exists so the tempting fix
    * (edit one number until they match) is never taken on a client facing figure.
+   *
+   * UNSET ON EVERY POINT since 2026-08-10, when the client removed all three.
+   * The field and its rendering are deliberately kept: the conflicts they named
+   * are still open, and re-adding a note is one property. See the file header.
    */
   discrepancy?: string;
 }
@@ -207,9 +220,6 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
       note: 'Decile 1 is the lowest household income, decile 10 the highest.',
     },
     chart: 'incomeLadder',
-    discrepancy:
-      'The index of 179 quoted above is not in this table and is not plotted. It is a separate ' +
-      'measure from the per 100 household figures shown here. Confirm its basis before presenting.',
   },
 
   // ---------------------------------------------------------------------------
@@ -288,10 +298,6 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
       note: 'The first four rows are the dwelling cut. The last four are the income cut.',
     },
     chart: 'retentionCuts',
-    discrepancy:
-      'The headline range of 34.1 to 36.2% is an inner metro cut and is not the range in this ' +
-      'table, which runs 32.7 to 35.0% across all dwelling quartiles. The two are measured on ' +
-      'different bases. Confirm which is intended before presenting.',
   },
 
   // ---------------------------------------------------------------------------
@@ -442,11 +448,6 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
         adelaide: '/images/ten-things/map-adelaide.png',
       },
     },
-    discrepancy:
-      'The headline figure of 1.60x is not on this chart. The highest SA4 shown is Sydney ' +
-      'Northern Beaches at 1.34x, and the postcode map is clipped at the 95th percentile, also ' +
-      '1.34x. The two figures are measured at different geographic levels. Confirm which is ' +
-      'intended before this is presented.',
   },
 
   // ---------------------------------------------------------------------------

@@ -792,7 +792,11 @@ The source shipped **ten matplotlib PNGs in a green and gold palette**, 3.1MB of
 
 ### Three honesty items that must survive any edit
 
-1. **Point 07's stat does not match its own chart.** The card says `1.60x`; the chart, the numbers table and the map legend all cap at `1.34x`. It may be a postcode level maximum against an SA4 maximum, or the value the map's 95th percentile clip removes, or stale. **Nobody picked one.** The `discrepancy` field on the record renders visibly under the chart. Points 02 and 04 carry smaller versions of the same thing. Never reconcile these by editing a number.
+1. **Point 07's stat does not match its own chart.** The card says `1.60x`; the chart, the numbers table and the map legend all cap at `1.34x`. It may be a postcode level maximum against an SA4 maximum, or the value the map's 95th percentile clip removes, or stale. **Nobody picked one.** Points 02 and 04 carry smaller versions of the same thing: an index of 179 that is in the copy and in neither the table nor the chart, and a headline range of 34.1 to 36.2% measured on an inner metro cut against a table running 32.7 to 35.0% across all dwelling quartiles.
+
+   **All three ON SCREEN notes were removed on client direction 2026-08-10** ("delete the check before presenting boxes"), so the deck no longer says any of this to a reader. **The conflicts are untouched and the copy still quotes all three figures.** The `discrepancy` field, its plumbing through every chart and the boxed renderer in `TenThingsChart.tsx` are all deliberately kept, unset, so restoring a note is one property on a record.
+
+   **The rule this item exists for is unchanged and is now the whole of it: NEVER reconcile one of these by editing a number.** Removing the note removed the disclosure, not the discrepancy, and it makes the rule matter more rather than less, because the conflict is now invisible to anyone reading the page. If a figure has to be settled, get the client's answer and change the source of truth, or put the note back.
 2. **The map ramp is off brand and stays off brand.** A PNG choropleth cannot be recoloured, and regenerating needs the original notebook and the ABS boundary data, neither of which is in this project folder. A visible caption says so. If the notebook ever surfaces, the Lyka palette already holds the right diverging pair: tangerine `#F68B1F` through cream to teal `#0A7D68`.
 3. **Two source charts had errors** (points 09 and 10, above). Both are documented in the component headers, not just here.
 

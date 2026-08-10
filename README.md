@@ -40,7 +40,7 @@ Six rules there are load bearing rather than advisory:
 - **Journey score strings need a dash before the description.** The graph's regex accepts `-`, en dash and em dash but not a colon, and with no separator it concatenates every digit in the string.
 - **Never relabel `data/apexData.ts` figures as Lyka.** They are affluent traveller Roy Morgan data. `pages/ApexBySpeed.tsx` carries a visible placeholder notice for that reason.
 - **Ten Things keeps its copy and its numbers in two files.** `tenThingsData.ts` holds the published tables as formatted strings, `tenThingsSeries.ts` holds what the charts plot. A chart must never parse its own labels. `__integrity.ts` asserts they agree.
-- **A stat that disagrees with its own chart gets a visible `discrepancy` note, never a quietly edited number.** Point 07's headline 1.60x against a chart topping out at 1.34x is unresolved and says so on screen.
+- **A stat that disagrees with its own chart never gets a quietly edited number.** Point 07's headline 1.60x against a chart topping out at 1.34x is unresolved, as are point 02's index of 179 and point 04's 34.1 to 36.2%. Each said so on screen in a `discrepancy` note until the client had all three deleted on 2026-08-10. The field and its renderer are kept, unset: restoring a note is one property, and the conflicts are still open.
 
 ## Verification
 
