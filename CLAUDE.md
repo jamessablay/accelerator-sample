@@ -23,11 +23,12 @@ This file gives Claude Code the architecture, data model and known quirks for th
 > (19 media rows, 28 apex rows), and the Ten Things tile grid re-measured
 > unchanged at 242.1px after the 06 retitle.
 >
-> **A concurrent session is building an eighth page (Plugging Into The
-> Ecosystem)** and holds `App.tsx`, `Sidebar.tsx`, `types.ts`, `metadata.json`
-> and this file dirty; its files are untracked and not in the repo. This
-> `CLAUDE.md` is therefore edited on top of their changes and left uncommitted,
-> the same call the media plan round made.
+> **The concurrent session's eighth page (Plugging Into The Ecosystem) landed
+> as `530659b`** while this round was being deployed, so both rounds are on the
+> branch. The round was deployed to Cloudflare from the COMMITTED state
+> `f5968ec` via a throwaway worktree (version `30cb8f65`), so **the live site
+> deliberately excludes the Ecosystem page**: shipping a just landed page is
+> its author's call, and `npm run deploy:cf` from a clean tree ships it.
 >
 > ## STATE AS OF 2026-08-10 (media plan round 2 + first public deploy)
 >
