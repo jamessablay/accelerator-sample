@@ -289,6 +289,17 @@ function loginPage(next: string, failed: boolean): Response {
 
 export default {
 	async fetch(request: Request, env: Env): Promise<Response> {
+		// PUBLIC ACCESS ENABLED 2026-08-10 on client instruction ("all access").
+		// While this is true the password gate below is bypassed and every request
+		// is served straight from the asset layer with no login. The full gate is
+		// left intact below; flip PUBLIC_ACCESS back to false and redeploy to
+		// re-gate. Typed `: boolean` (not an inferred literal) so tsc keeps the
+		// gate code below reachable and does not flag it as dead.
+		const PUBLIC_ACCESS: boolean = true;
+		if (PUBLIC_ACCESS) {
+			return env.ASSETS.fetch(request);
+		}
+
 		// Fail closed. A missing secret must never mean an open site.
 		if (!env.SITE_PASSWORD || !env.SESSION_SECRET) {
 			return new Response('Access is not configured for this deployment.', {
