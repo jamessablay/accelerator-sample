@@ -159,7 +159,7 @@ export const PILLARS: readonly CoworkPillar[] = [
 // D. How it works (slides 5 and 6)
 // -----------------------------------------------------------------------------
 
-export const SETUP_HEADLINE = 'Your Claude, plugged into our shared space';
+export const SETUP_HEADLINE = 'Your Claude, plugged into a shared space';
 
 export const SETUP_STEPS: readonly CoworkStep[] = [
   {

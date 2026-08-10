@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { LYKA } from '../../data/brand';
 import {
   ApexChannelRow,
@@ -155,11 +156,13 @@ const ChannelRow: React.FC<ChannelRowProps> = ({ row, maxTnw, zebra }: ChannelRo
   );
 };
 
-const TierPill: React.FC<{ tier: keyof typeof TIER_COLOURS }> = ({ tier }) => {
+const TierPill: React.FC<{ tier: keyof typeof TIER_COLOURS }> = ({ tier }: { tier: keyof typeof TIER_COLOURS }) => {
   const [hover, setHover] = useState(false);
+  const wrapRef = useRef(null);
   const c = TIER_COLOURS[tier];
   return (
     <span
+      ref={wrapRef}
       className="relative inline-block"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
@@ -175,7 +178,7 @@ const TierPill: React.FC<{ tier: keyof typeof TIER_COLOURS }> = ({ tier }) => {
         {tier}
       </span>
       {hover && (
-        <Tooltip>
+        <Tooltip anchor={wrapRef.current}>
           <div className="font-semibold">{c.label}</div>
           <div className="text-xs opacity-90 mt-0.5">{c.description}</div>
         </Tooltip>
@@ -192,14 +195,16 @@ interface ScorePillProps {
   emphasised?: boolean;
 }
 
-const ScorePill: React.FC<ScorePillProps> = ({ value, sourceKey, emphasised }) => {
+const ScorePill: React.FC<ScorePillProps> = ({ value, sourceKey, emphasised }: ScorePillProps) => {
   const [hover, setHover] = useState(false);
+  const wrapRef = useRef(null);
   const band = scoreStrength(value);
   const s = SCORE_BAND_STYLES[band];
   const tooltip = SCORE_TOOLTIPS[sourceKey];
 
   return (
     <span
+      ref={wrapRef}
       className="relative inline-block"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
@@ -220,7 +225,7 @@ const ScorePill: React.FC<ScorePillProps> = ({ value, sourceKey, emphasised }) =
         {value}
       </button>
       {hover && (
-        <Tooltip>
+        <Tooltip anchor={wrapRef.current}>
           <div className="font-semibold">{tooltip.title}</div>
           <div className="text-xs opacity-90 mt-0.5">{tooltip.body}</div>
           <div className="text-[10px] opacity-70 mt-1">
@@ -243,8 +248,9 @@ const SCORE_TOOLTIPS: Record<ScoreSource, { title: string; body: string }> = {
   },
 };
 
-const StarCell: React.FC<{ stars: number; multiplier: number }> = ({ stars, multiplier }) => {
+const StarCell: React.FC<{ stars: number; multiplier: number }> = ({ stars, multiplier }: { stars: number; multiplier: number }) => {
   const [hover, setHover] = useState(false);
+  const wrapRef = useRef(null);
   const filled = Math.max(0, Math.min(5, stars));
   const empty = 5 - filled;
 
@@ -257,6 +263,7 @@ const StarCell: React.FC<{ stars: number; multiplier: number }> = ({ stars, mult
 
   return (
     <span
+      ref={wrapRef}
       className="relative inline-flex flex-col items-center"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
@@ -277,8 +284,9 @@ const StarCell: React.FC<{ stars: number; multiplier: number }> = ({ stars, mult
         <span className="font-mono text-[11px] mt-0.5 text-[#5B6E64]">x{multiplier.toFixed(2)}</span>
       </button>
       {hover && (
-        <Tooltip wide>
+        <Tooltip anchor={wrapRef.current} wide>
           <div className="font-semibold">TTD/PA Consulting premium environment</div>
+
           <div className="text-xs opacity-90 mt-0.5">
             x{multiplier.toFixed(2)} multiplier ({filled} of 5).
           </div>
@@ -300,24 +308,78 @@ const starOutcome = (m: number): string => {
   return 'Cluttered feeds. TTD finds premium perceptions are diminished.';
 };
 
-const Tooltip: React.FC<{ children: React.ReactNode; wide?: boolean }> = ({ children, wide }) => (
-  <span
-    role="tooltip"
-    className={`absolute z-30 left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 rounded-lg text-white text-xs shadow-[0_18px_40px_-16px_rgba(0,86,72,0.28)] pointer-events-none ${
-      wide ? 'w-64' : 'w-56'
-    }`}
-    style={{ backgroundColor: LYKA.tealDeepest }}
-  >
-    {children}
+// Portalled to document.body with fixed positioning, so it escapes the table
+// card's `overflow-hidden` (which the rounded corners need) and the scroll
+// wrapper's `overflow-y: auto` (a side effect of overflow-x: auto for narrow
+// screens). Rendered in-flow, the top row's upward tooltip was clipped by 66px
+// on a large monitor; flipping direction would only move the clip to the bottom
+// row, so the box has to leave the container entirely. Same body-portal pattern
+// as components/shared/Lightbox.tsx. Flips below the anchor when there is not
+// enough room above in the viewport.
+const Tooltip: React.FC<{ anchor: HTMLElement | null; children: React.ReactNode; wide?: boolean }> = ({
+  anchor,
+  children,
+  wide,
+}: {
+  anchor: HTMLElement | null;
+  children: React.ReactNode;
+  wide?: boolean;
+}) => {
+  const ref = useRef(null);
+  const [placement, setPlacement] = useState({ left: 0, top: 0, below: false, ready: false });
+
+  useLayoutEffect(() => {
+    if (!anchor || !ref.current) return;
+    const a = anchor.getBoundingClientRect();
+    const h = ref.current.offsetHeight;
+    const gap = 8;
+    const below = a.top - h - gap < 8;
+    setPlacement({
+      left: a.left + a.width / 2,
+      top: below ? a.bottom + gap : a.top - gap,
+      below,
+      ready: true,
+    });
+  }, [anchor]);
+
+  return createPortal(
     <span
-      className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0"
+      ref={ref}
+      role="tooltip"
+      className={`fixed px-3 py-2 rounded-lg text-white text-xs shadow-[0_18px_40px_-16px_rgba(0,86,72,0.28)] pointer-events-none ${
+        wide ? 'w-64' : 'w-56'
+      }`}
       style={{
-        borderLeft: '6px solid transparent',
-        borderRight: '6px solid transparent',
-        borderTop: `6px solid ${LYKA.tealDeepest}`,
+        zIndex: 60,
+        left: placement.left,
+        top: placement.top,
+        transform: placement.below ? 'translateX(-50%)' : 'translate(-50%, -100%)',
+        visibility: placement.ready ? 'visible' : 'hidden',
+        backgroundColor: LYKA.tealDeepest,
       }}
-    />
-  </span>
-);
+    >
+      {children}
+      <span
+        className="absolute left-1/2 -translate-x-1/2 w-0 h-0"
+        style={
+          placement.below
+            ? {
+                bottom: '100%',
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent',
+                borderBottom: `6px solid ${LYKA.tealDeepest}`,
+              }
+            : {
+                top: '100%',
+                borderLeft: '6px solid transparent',
+                borderRight: '6px solid transparent',
+                borderTop: `6px solid ${LYKA.tealDeepest}`,
+              }
+        }
+      />
+    </span>,
+    document.body,
+  );
+};
 
 export default ApexChannelTable;

@@ -16,8 +16,12 @@ import { TRACKING } from '../../data/type';
 interface TenThingsChartProps {
   /** DM Mono eyebrow. Usually the point's category. */
   eyebrow?: string;
-  /** The argument the chart makes, not the variable it plots. */
-  title: string;
+  /**
+   * The argument the chart makes, not the variable it plots. Optional: on points
+   * whose finding headline already carries the argument (05, 06), the client asked
+   * for this second in-card heading to be dropped, so the h3 is skipped when unset.
+   */
+  title?: string;
   /** Optional italic sub line, matching ChannelDetail's "Spend by month, Nov to Oct". */
   subtitle?: string;
   /**
@@ -73,9 +77,11 @@ const TenThingsChart: React.FC<TenThingsChartProps> = ({
       </div>
     )}
 
-    <h3 className="text-title font-display" style={{ color: LYKA.tealDeepest }}>
-      {title}
-    </h3>
+    {title && (
+      <h3 className="text-title font-display" style={{ color: LYKA.tealDeepest }}>
+        {title}
+      </h3>
+    )}
     {subtitle && (
       <p className="text-body italic mt-0.5 mb-2" style={{ color: LYKA.muted }}>
         {subtitle}

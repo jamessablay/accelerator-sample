@@ -112,7 +112,14 @@ const devotedCaterersStages: JourneyStageDetail[] = [
     influences: "Delivery and unboxing; Transition guide; Email and SMS onboarding; Customer support; Feeding reminders; Dog-response stories and FAQs",
     momentsToWin: "Celebrate first-bowl and first-week milestones; Provide rapid human support; Set expectations around transition; Reassure through similar dog stories; Capture and reinforce early enthusiasm",
     emotionalScore: "Emotional 95 – The dog’s first reactions carry enormous emotional weight. Enthusiastic eating creates pride and reassurance; hesitation creates immediate concern.",
-    rationalScore: "Rational 80 – Closely monitoring appetite, digestion, stool, portions, transition progress and ease of",
+    // CLIENT EDIT (2026-08-10): the source deck truncates this descriptor mid-phrase
+    // ("...transition progress and ease of"), which surfaced an "as supplied, not
+    // completed" note the client flagged as a weird reference. Trimmed to the last
+    // complete item so the clause reads cleanly and isTruncatedDescriptor() no longer
+    // fires (the note then disappears from the spine, strip and gap matrix). Nothing
+    // is invented; the incomplete trailing fragment is dropped. A regeneration from
+    // the PPTX reverts this, so re-apply it.
+    rationalScore: "Rational 80 – Closely monitoring appetite, digestion, stool, portions and transition progress.",
     duration: "First 2–4 weeks",
     definition: "Trialling and watching the dog’s response closely",
     coreQuestion: "The first visible moment their dog enthusiastically eats Lyka.",

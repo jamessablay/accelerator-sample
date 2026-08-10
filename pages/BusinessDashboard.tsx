@@ -10,18 +10,6 @@ import BusinessDashboardIcon from '../components/icons/BusinessDashboardIcon';
 // into REPORT_URL below and the iframe renders in place of the empty state.
 const REPORT_URL: string | null = null;
 
-/** Metrics this page will surface once Lyka's sources are connected. */
-const PENDING_METRICS = [
-  'Active subscriptions and active dogs',
-  'Monthly recurring revenue and ARR',
-  'Cohort retention and churn',
-  'Customer lifetime value',
-  'Blended customer acquisition cost',
-  'Trial to full price conversion',
-  'Reactivation and winback rate',
-  'Basket growth and upsell penetration',
-];
-
 const BusinessDashboard: React.FC = () => {
   return (
     <div className="animate-fadeIn h-full flex flex-col">
@@ -72,28 +60,6 @@ const BusinessDashboard: React.FC = () => {
               >
                 Lyka&apos;s commercial picture, in one place
               </h2>
-
-              <p className="mt-4 text-sm md:text-base leading-relaxed" style={{ color: 'var(--lyka-muted)' }}>
-                This page hosts the live Lyka business dashboard. Once Lyka&apos;s first party sources are
-                connected, it reports the metrics a subscription P&amp;L actually turns on, not platform
-                efficiency metrics.
-              </p>
-
-              <ul className="mt-8 grid grid-cols-1 gap-2 sm:grid-cols-2 text-left">
-                {PENDING_METRICS.map((metric) => (
-                  <li
-                    key={metric}
-                    className="flex items-start gap-2.5 rounded-lg border bg-white px-3.5 py-2.5 text-[13px]"
-                    style={{ borderColor: 'var(--lyka-mint)', color: 'var(--lyka-ink)' }}
-                  >
-                    <span
-                      className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full"
-                      style={{ backgroundColor: 'var(--lyka-accent)' }}
-                    />
-                    <span>{metric}</span>
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
         )}

@@ -391,7 +391,7 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
     statValue: '34.1 to 36.2%',
     statLabel: 'retention across inner metro dwelling quartiles: flat',
     learn:
-      'The inner ring professional buys on expert endorsement; the outer suburban family buys on ' +
+      'The inner city professional buys on expert endorsement; the outer suburban family buys on ' +
       "the dog's own response. That is a difference in the reason to buy, not in loyalty: " +
       'retention is flat across dwelling quartiles but climbs steadily with income.',
     emphasis: ['difference in the reason to buy, not in loyalty'],
@@ -473,8 +473,8 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
   {
     id: '06',
     category: 'Life stage',
-    headline: 'Demand has a dependable annual shape; two months of it, anyway',
-    cardHeadline: 'Demand has a dependable annual shape; two months of it, anyway',
+    headline: 'Two months of the year are dependable. The rest are not',
+    cardHeadline: 'Two months of the year are dependable. The rest are not',
     basis: 'noDenominator',
     // THE PARENTHETICAL IS THE SOURCE'S OWN AND IT CONTRADICTS THIS POINT'S
     // CHART. 125 against the 123 plotted makes the swing 41 points, not the 39
@@ -535,7 +535,7 @@ export const TEN_THINGS_POINTS: readonly TenThing[] = [
     statValue: '2.09',
     statLabel: 'Sydney Central, the best region, per 100 dog owners',
     learn:
-      'On the true base the strongest regions are Sydney Central and Sydney Northern, both just ' +
+      'The strongest regions are Sydney Central and Sydney Northern, both just ' +
       'over 2 per 100 dog owners, then Melbourne Inner City and Melbourne Central, then the Gold ' +
       'Coast and Sunshine Coast. Value per signup is an average across customers, so the 1.60x ' +
       'value concentration is unaffected by the change of base.',

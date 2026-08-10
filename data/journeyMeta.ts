@@ -67,7 +67,7 @@ export const journeyMeta: Record<JourneyType, JourneyMeta> = {
     title: 'Mindful Researchers',
     description: 'Make Lyka the most credible and defensible nutritional choice.',
     dynamic:
-      'Mindful Researchers already accept that food affects long-term health. Their journey is not about creating category interest; it is about helping them determine whether Lyka is the most credible, nutritionally responsible choice. They are highly confident but also highly vigilant. They rely on experts and their own research, with 70% extremely open to fresh food, 86% to DTC and 70% likely to try Lyka. They are also the highest-spending segment in the Lyka study, claiming an average of $51 per week across wet and dry food.',
+      'Mindful Researchers already accept that food affects long-term health. Their journey is about helping them determine whether Lyka is the most credible, nutritionally responsible choice. They are highly confident but also highly vigilant. They rely on experts and their own research, with 70% extremely open to fresh food, 86% to DTC and 70% likely to try Lyka. They are also the highest-spending segment in the Lyka study, claiming an average of $51 per week across wet and dry food.',
     label: 'Mindful Researchers',
     personaId: 201,
   },

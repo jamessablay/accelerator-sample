@@ -93,7 +93,6 @@ const SeasonalIndex: React.FC<TenThingChartProps> = ({ discrepancy }) => {
   return (
     <TenThingsChart
       eyebrow="Life stage"
-      title="Two months of the year are dependable. The rest are not."
       subtitle="Monthly demand index with the growth trend removed"
       height={330}
       discrepancy={discrepancy}

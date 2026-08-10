@@ -89,7 +89,6 @@ const CityReach = ({ discrepancy }: TenThingChartProps) => {
   return (
     <TenThingsChart
       eyebrow="Life stage"
-      title="On the true base the ladder has a different running order"
       subtitle="Active customers per 100 dog owners, six markets"
       height={300}
       discrepancy={discrepancy}

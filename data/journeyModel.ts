@@ -70,14 +70,18 @@ export const splitBullets = (field: string): string[] =>
 /**
  * True when a score descriptor stops mid-sentence.
  *
- * WHY THIS EXISTS. Devoted Caterers / Action ends at "...transition progress and
- * ease of". That is truncated IN THE SOURCE PPTX, verified against the deck, so
- * journeyDetailsData.ts is faithful and regenerating will not fix it. Every other
- * one of the 50 descriptors ends in a full stop, which makes the test reliable.
+ * WHY THIS EXISTS. Devoted Caterers / Action ended at "...transition progress and
+ * ease of", truncated IN THE SOURCE PPTX, verified against the deck. The client
+ * flagged the on-screen note as a weird reference (2026-08-10), so that cell is
+ * now TRIMMED in journeyDetailsData.ts to its last complete item and no descriptor
+ * fires this test. Every descriptor ends in a full stop, which is what makes the
+ * test reliable.
  *
+ * KEEP THE HELPER AND ITS THREE CONSUMERS. journeyDetailsData.ts is generated, so
+ * a regeneration from the PPTX silently restores the truncated cell, and this
+ * check plus the note it drives is the only thing that would say so on screen.
  * Views that surface a descriptor prominently flag it rather than hiding it or
- * inventing an ending. Remove this helper once the study author supplies the
- * missing text.
+ * inventing an ending.
  */
 export const isTruncatedDescriptor = (label: string): boolean => {
   const t = label.trim();
