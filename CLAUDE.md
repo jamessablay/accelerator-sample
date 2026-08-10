@@ -529,7 +529,7 @@ is parsed. Every view reads numbers from it, so they cannot round differently.
 
 ## What this is
 
-A SPEED Standard Accelerator for **Lyka** (fresh, human grade dog food, direct to consumer subscription, lyka.com.au). Seven pages:
+A SPEED Standard Accelerator for **Lyka** (fresh, human grade dog food, direct to consumer subscription, lyka.com.au). Eight pages:
 
 - **Personas**: a custom 3-layer SVG sunburst. Five Lyka personas across a four-stage readiness ladder. Default landing page.
 - **Consumer Journey**: 5 segment-specific six-stage journeys, each with an emotional + rational score line over time.
@@ -537,7 +537,8 @@ A SPEED Standard Accelerator for **Lyka** (fresh, human grade dog food, direct t
 - **APEX by SPEED**: the channel scorecard, real Lyka since 2026-08-07. View tabs (About | True Net Worth Index | Growth Quadrant) over two Roy Morgan audiences (Conflicted Troubleshooters, Mindful Researchers), 14 channels each.
 - **Business Dashboard**: a designed empty state awaiting a Lyka Power BI report.
 - **Ten Things The Data Says**: ten findings in a one viewport 5 x 2 grid, each opening a modal with a Chart.js chart, five labelled blocks and the published numbers. Real Lyka. Ported 2026-08-03, then moved onto the **dog owner basis** on 2026-08-10, which is why it now cites TWO sources: five points divide by a population and were redrawn against Roy Morgan's dog owner counts, five do not and are unchanged.
-- **Notion Coworking Setup**: added 2026-08-10. A scrolling presentation page proposing a shared Lyka × SPEED Notion workspace both teams and both Claudes keep current. Six sections (the problem, the shared-space hub, four content pillars, how it works, why it compounds + privacy, scattered → shared + a dark closing band). Pure DOM/CSS visuals, static + hover, one IntersectionObserver reveal. Reuses `OWNER_COLORS` (green Lyka / red SPEED) for the two-party split. Last in the nav. See "Notion Coworking Setup page".
+- **Notion Coworking Setup**: added 2026-08-10. A scrolling presentation page proposing a shared Lyka × SPEED Notion workspace both teams and both Claudes keep current. Six sections (the problem, the shared-space hub, four content pillars, how it works, why it compounds + privacy, scattered → shared + a dark closing band). Pure DOM/CSS visuals, static + hover, one IntersectionObserver reveal. Reuses `OWNER_COLORS` (green Lyka / red SPEED) for the two-party split. Second to last in the nav. See "Notion Coworking Setup page".
+- **Plugging Into The Ecosystem**: added 2026-08-10. A scrolling presentation page recasting the standalone `Plugging Into The Existing Ecosystem.html` deliverable: SPEED's operating role, to plug into Lyka's existing team, data and measurement tools rather than replace them. Header hero, a hub diagram (four cards fanning into a central `Lyka's ecosystem` hub with measured curved SVG connector ties, `lg` only), four numbered pillars, a light principle band and a dark outcome band. DOM cards + a decorative SVG tie overlay, static + hover. Last in the nav. See "Plugging Into The Ecosystem page".
 
 Lineage: **Xero PITCH Accelerator** → **Hamilton Island Audience Accelerator** → this. The polar geometry helpers (`polarToCartesian`, `describeSunburstArc`, `describeLabelArc`) are Xero inheritance.
 
@@ -557,7 +558,7 @@ There is **no router**. Navigation is a `Page` enum in [types.ts](types.ts) cons
 
 ## Routing model
 
-Seven pages:
+Eight pages:
 
 ```ts
 // types.ts
@@ -569,16 +570,18 @@ export enum Page {
   INTERACTIVE_MEDIA_PLAN = 'Interactive Media Plan',
   APEX_BY_SPEED = 'APEX by SPEED',
   NOTION_COWORKING = 'Notion Coworking Setup',
+  ECOSYSTEM = 'Plugging Into The Ecosystem',
 }
 ```
 
 **Adding a page touches exactly eight places**, and nothing else in the app needs to know: `types.ts` (the enum), a new `components/icons/*Icon.tsx` (the sidebar renders `{item.icon}` unconditionally, so a missing icon is a blank cell), the page component, two edits in `App.tsx` (import and switch case), two in `Sidebar.tsx` (import and `navItems`), then `metadata.json`.
 
 - **Personas** is the default landing page.
-- **All seven nav items open their pages.** APEX was the last one held back (a placeholder behind `?show=all`); it opened on 2026-08-07. The hold-back pattern (`SHOW_ALL` const + `PendingSection` shell) is in git history at `4bba5cf` if a future section needs it. Notion Coworking Setup was added 2026-08-10 and opened directly.
+- **All eight nav items open their pages.** APEX was the last one held back (a placeholder behind `?show=all`); it opened on 2026-08-07. The hold-back pattern (`SHOW_ALL` const + `PendingSection` shell) is in git history at `4bba5cf` if a future section needs it. Notion Coworking Setup was added 2026-08-10 and opened directly.
 - **Sidebar order differs from the enum order.** The visible nav order is set by the `navItems` array in [components/Sidebar.tsx](components/Sidebar.tsx), where **APEX by SPEED sits above Interactive Media Plan** (the two were swapped). The `Page` enum order above is just the enum definition, not the rendered order.
 - **Ten Things sits FIRST in the nav** (on request 2026-08-10). It has now held every slot this deck has tried: it shipped second (the findings set up the audience model), moved below the media plan on 2026-08-04 (lead with the audience, close on the evidence), and leads the deck since 2026-08-10. The rendered order is the `navItems` array, so moving it is a one line change and nothing else needs to know. **The default landing page is still Personas**: nav order and landing page are independent decisions, and moving the button did not change what the deck opens on.
-- **Notion Coworking Setup sits last** (added 2026-08-10). It is a ways of working proposal, not an audience or media page, so it closes the deck after the evidence.
+- **Notion Coworking Setup sits second to last** (added 2026-08-10). It is a ways of working proposal, not an audience or media page.
+- **Plugging Into The Ecosystem sits last** (added 2026-08-10). SPEED's operating role, a positioning page, so it closes the deck after the ways of working page.
 - **Business Dashboard** is a designed empty state. It previously embedded a Power BI report belonging to **another client**, which was removed. To wire Lyka's report, set `REPORT_URL` at the top of [pages/BusinessDashboard.tsx](pages/BusinessDashboard.tsx) to a publish-to-web `app.powerbi.com/view?r=...` URL and the iframe renders in place of the empty state.
 - **Interactive Media Plan** is the Lyka Oct→Sep macro block plan. A funnel-stage grid of five stages (SHOW IT | CHECK IT | PROVE IT | TRY IT | SHARE IT) and 20 channels with monthly gantt flighting bars and Budget + % columns, fed by [data/mediaPlanData.ts](data/mediaPlanData.ts). **Bars are OWNER coloured** (green = Lyka in house, red = SPEED managed, keyed by the legend at the foot of the grid); rails and both budget charts stay stage coloured. In-house rows are flighting only: no dollars anywhere, "In house" in the Budget column. Clicking a gantt bar opens a channel pop-up (ownership strip, rationale + dark-label execution table, an **Examples** creative gallery, then a flighting chart for SPEED rows or an active-months strip for in-house rows). The gold **Budget** header opens a stacked-by-media monthly bar chart **with the workbook's planned flighting weight as a dashed overlay**, the **%** header opens a budget-allocation pie; both filter to funded rows. A bottom line states the $11.0M SPEED managed total. Uses Chart.js via `react-chartjs-2`. Components live in [components/mediaplan/](components/mediaplan/). With 23 rows the grid is taller than one viewport at 1440; the page scrolls rather than clips.
 - **APEX by SPEED** is the channel scorecard. Real Lyka since 2026-08-07; see "The APEX page".
@@ -604,6 +607,7 @@ All data lives in flat TypeScript files under `data/`. There is no database, no 
 | [data/mediaFocus.ts](data/mediaFocus.ts) | **A client declaration, not a derivation.** Which Consumer Journey cells carry the media focus emphasis: two stage titles, three journeys, the label and the note. Consumed by all five journey views so the emphasis cannot drift between them. Matched by stage TITLE; both halves of the join asserted. No React. |
 | [data/mediaPlanData.ts](data/mediaPlanData.ts) | **Real Lyka since 2026-08-05.** The Oct→Sep plan: `MONTHS` (Oct→Sep), `PLAN_LAYERS` (SHOW IT / CHECK IT / PROVE IT / TRY IT / SHARE IT, each with a `blurb`), `MEDIA_TOTAL = TOTAL_BUDGET = 11,000,000` (SPEED managed; no production line), `FLIGHTING_PCT` (the dashed overlay). Each `MediaRow` has **`owner: 'speed' \| 'lyka'`** (drives bar colour, the In house cells and the pop-up), `monthly` (12 values; all zeros on lyka rows), `budget` (0 on lyka rows), **`activeMonths`** (in-house flighting), optional `detail` (role/strategyLink/comesToLife/metrics), `images`, `captions`, `imageWeights`, `extraImages` + `extraCaptions`, and layout flags `provisional`, `pairedImages`, `stackedImages`, `stackedFirstSmall`. Sourced from the Lyka briefing workbook's **visible** `Budget Distribution $ Lyka SPEE` sheet + the three visible `Media Description` sheets; hidden content excluded per client direction (the `$ Lyka` sheet with the in-house dollars, the TRY IT / SHARE IT description sheets, the Australian Open row). **The workbook's own monthly grand-total row omits PROVE IT**, so monthly totals are derived from rows: January is $3,295,000, not the sheet's 3,200,000. **Since the 2026-08-06 review round it ALSO carries client copy and three creatives from `Changes to the intereactive media plan.pptx`, and since 2026-08-07 two more creatives from `Accelerator Feedback - For Aaron.pptx` that REPLACED workbook images in place, so it is no longer a pure transcription of the workbook and must not be "restored" to it.** Read the file header before editing. |
 | [data/notionCoworkingData.ts](data/notionCoworkingData.ts) | **Real Lyka, added 2026-08-10.** All copy for the Notion Coworking Setup page, house-styled once here from the 10-slide `Lyka Notion Coworking Setup.pptx`. `CoworkActor` union (`lyka`/`speed`/`both`, tsc-enforced), plus `PILLARS`, `SETUP_STEPS`, `PRACTICE_STEPS`, `COMPOUNDING`, `PRIVACY_POINTS`, `CONTRASTS`, `CLOSING_STEPS` and the section headings. **Pure TS: no React, no DOM types.** No `__integrity` additions: no silent string-key joins, no asset paths, no new colour pairs. |
+| [data/ecosystemData.ts](data/ecosystemData.ts) | **Real Lyka, added 2026-08-10.** All copy for the Plugging Into The Ecosystem page, house-styled once here from `Plugging Into The Existing Ecosystem.html`: the hero, the hub and its four connections, the four numbered pillars, the principle phrases and the outcome list. **Pure TS: no React, no DOM types.** No `__integrity` additions: no silent string-key joins, no asset paths, no new colour pairs. |
 
 ### Persona schema
 
@@ -1759,6 +1763,53 @@ gantt-specific. Do NOT borrow the other page-owned bands (`SEGMENT_COLORS`,
 no Modal, no new `__integrity` checks, no new assets. The `[data integrity] ok`
 line's counts are unchanged.
 
+## Plugging Into The Ecosystem page
+
+[pages/EcosystemFit.tsx](pages/EcosystemFit.tsx). Added 2026-08-10, recast from
+the standalone `Plugging Into The Existing Ecosystem.html` deliverable one folder
+up. A **scrolling** presentation page (`animate-fadeIn` + `pb-16 md:pb-24`), like
+Notion Coworking Setup and on the same inline `Section` shell. It states SPEED's
+operating role: not to replace Lyka's existing team, data and measurement tools,
+but to plug into them and make the whole ecosystem work harder.
+
+Structure, mapping the source blocks:
+
+- **Header**: the hero. Eyebrow `Lyka × SPEED | Our role`, the three clause h1,
+  then the negative framing (muted) and the positive clause (emphasised).
+- **A. How it fits together** ([EcosystemDiagram.tsx](components/ecosystem/EcosystemDiagram.tsx)):
+  a central dark `tealDeepest` hub ("Lyka's ecosystem" and its three in place
+  capabilities) with the four connection cards around it. A 3-column grid on `lg`
+  (two cards | hub | two cards), hub full width on `md`, stacked on mobile.
+- **B. What we would actually do**: four numbered pillar cards, the `PillarCards`
+  idiom (white card, mint hairline, `accentInk` top rule that thickens on hover).
+- **The principle**: a light band of three pills.
+- **The outcome**: a dark `tealDeepest` closing band, deck-like, carrying the
+  five outcome points.
+
+**The four CURVED SVG connector ties are the one piece of real machinery here.**
+The cards and hub are DOM; the ties are a DECORATIVE SVG overlay (no text, so none
+of the `svgFont` / `useElementSize` type apparatus applies, and `aria-hidden`).
+Their endpoints are **measured** from the real card and hub rects, the pattern
+MindsetFlow uses via [useElementSize](hooks/useElementSize.ts), so they stay
+aligned across sidebar collapse, resize and font load reflow. The page's
+`animate-fadeIn` is a transform on a shared ancestor, so it shifts the wrapper,
+hub and cards together and **relative** coordinates are unaffected: no timing wait
+is needed. Each tie leaves its card's vertical centre and fans into the hub at
+0.3 / 0.7 of its height; hovering a card brightens its tie and dims the other
+three (the focus/dim pattern). **Ties render on `lg` only**, gated on
+`matchMedia('(min-width: 1024px)')`, the same breakpoint that makes the grid
+3-column: below it the corner geometry does not exist, so no ties are drawn.
+
+**All copy is in [data/ecosystemData.ts](data/ecosystemData.ts)**, house-styled
+there once (no hyphenated compound modifiers, no em dashes; the source had several
+of each). Every string traces to the source HTML; never invent a claim.
+
+**Colours from `LYKA` only** (`accentInk` for the ties and accents, `tealDeepest`
+for the hub and closing band). No new `brand.ts` tokens, no new assets and no new
+`__integrity` checks, so the `[data integrity] ok` counts are unchanged. The
+design spec is at
+[docs/superpowers/specs/2026-08-10-ecosystem-page-design.md](docs/superpowers/specs/2026-08-10-ecosystem-page-design.md).
+
 ## Brand and typography
 
 **Palette source of truth.** Lyka's brand is correctly implemented in exactly one place in this workspace: `RFI - Lyka/lyka-rfi/styles/globals.css`. That is where this app's palette came from.
@@ -1881,7 +1932,8 @@ lyka-accelerator/
 │   ├── tenThingsSeries.ts        Every number a Ten Things chart plots. Real Lyka.
 │   ├── mediaPlanData.ts          The Oct→Sep Lyka plan: 5 stages, 20 rows, owner split. Real Lyka.
 │   ├── apexData.ts               APEX: channel constants + 2 Lyka audiences. DERIVED indices. Real Lyka.
-│   └── notionCoworkingData.ts    Notion Coworking Setup page copy. Pure TS, house-styled. Real Lyka.
+│   ├── notionCoworkingData.ts    Notion Coworking Setup page copy. Pure TS, house-styled. Real Lyka.
+│   └── ecosystemData.ts          Plugging Into The Ecosystem page copy. Pure TS, house-styled. Real Lyka.
 ├── hooks/
 │   ├── useVariant.ts             Variant state: ?pv= / ?jv= then localStorage. Scaffolding.
 │   └── useElementSize.ts         ResizeObserver. Feeds svgFont(), and the flow viewBox aspect.
@@ -1893,9 +1945,10 @@ lyka-accelerator/
 │   ├── InteractiveMediaPlan.tsx  The Lyka macro block plan. OPEN since 2026-08-05.
 │   ├── ApexBySpeed.tsx           Channel scorecard. View tabs + persona strip. Real Lyka.
 │   │                             (PendingSections.tsx was deleted 2026-08-07 when APEX opened.)
-│   └── NotionCoworkingSetup.tsx  Scrolling Lyka × SPEED shared-workspace pitch. 6 sections. 2026-08-10.
+│   ├── NotionCoworkingSetup.tsx  Scrolling Lyka × SPEED shared-workspace pitch. 6 sections. 2026-08-10.
+│   └── EcosystemFit.tsx          Scrolling "plug into the ecosystem" pitch: hub diagram + pillars. 2026-08-10.
 ├── components/
-│   ├── Sidebar.tsx               7-item nav. Black panel (SPEED chrome), active pill #0A7D68.
+│   ├── Sidebar.tsx               8-item nav. Black panel (SPEED chrome), active pill #0A7D68.
 │   ├── personas/
 │   │   ├── PersonaCompositionChart.tsx   561-line custom-SVG sunburst. BASELINE, untouched.
 │   │   ├── PersonaDetail.tsx             Permanent 9:16 media slot + content panel. `stacked` forces 1 col.
@@ -1936,7 +1989,8 @@ lyka-accelerator/
 │   │                                     ApexMethodology, labelPlacement.ts (ported from the tool)
 │   ├── notion/                           SharedSpaceDiagram, PillarCards, PracticeWalkthrough,
 │   │                                     CompoundingVisual, BeforeAfter (all DOM/CSS, no SVG apparatus)
-│   ├── icons/                            19 custom SVG icon components (all referenced)
+│   ├── ecosystem/                        EcosystemDiagram (DOM cards + a measured curved tie SVG overlay)
+│   ├── icons/                            20 custom SVG icon components (all referenced)
 │   └── shared/
 │       ├── Modal.tsx                     All pop-ups. Escape, focus trap, scroll lock, opt-in stepper.
 │       │                                 Focus MOVE IN fixed 2026-08-04, see below.
