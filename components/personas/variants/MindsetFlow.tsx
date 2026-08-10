@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { getSegmentColor, LYKA } from '../../../data/brand';
 import { personaMetricsById } from '../../../data/audienceModel';
-import { TYPE, svgFont } from '../../../data/type';
+import { growthLabel, GROWTH_LABEL_NOTE } from '../../../data/growthLabels';
+import { TYPE, TRACKING, svgFont } from '../../../data/type';
 import { useElementSize } from '../../../hooks/useElementSize';
 import type { PersonaVizProps } from './types';
 
@@ -53,8 +54,18 @@ const VB_W = 1160;
 const STATION_X = [130, 420, 710, 1000];
 const CHIP_W = 250;
 /** Chip box, and the two text baselines inside it. Sized to `label` over `meta`. */
-const CHIP_H = 48;
-const CHIP_ROW_GAP = 54;
+/**
+ * 48 until 2026-08-10, when the client's growth labels added TWO lines: the tag
+ * and its tactic. Baselines are name 20, figures 38, tag 56, tactic 72.
+ *
+ * The two unlabelled personas keep the same box rather than a shorter one, so
+ * every chip in the view is one size. A chip that shrinks when it has less to
+ * say makes the labelled ones look like the exception, when the argument is
+ * that the unlabelled ones are.
+ */
+const CHIP_H = 80;
+/** CHIP_H + the 6 unit gutter between the two rows Curious carries. */
+const CHIP_ROW_GAP = 86;
 
 /** Node bottom to caption baseline, caption to sub-line, sub-line to first chip. */
 const CAPTION_GAP = 34;
@@ -67,13 +78,28 @@ const BOTTOM_PAD = 16;
 const LOWER_STACK =
   CAPTION_GAP + SUBLINE_GAP + CHIP_GAP + MAX_CHIP_ROWS * CHIP_ROW_GAP + BOTTOM_PAD;
 
-/** The shape the drawing collapses to when there is nothing to measure. */
-const VB_H_MIN = 494;
+/**
+ * The shape the drawing collapses to when there is nothing to measure.
+ *
+ * 494 until 2026-08-10, RAISED BY EXACTLY THE 64 UNITS THE TALLER CHIPS ADDED to
+ * LOWER_STACK, and that is the point rather than a round number. Both clamp ends
+ * are defined so the geometry ABOVE the nodes is untouched: at the floor
+ * CY is still 220 and the skip band still 146, so SKIP_LANE_FRACTIONS still
+ * reproduces 58 / 122 exactly as its comment claims, and at the ceiling CY is
+ * still 375 and the band still 250. Verified arithmetically, both ends.
+ *
+ * What DOES change is the middle, and it is unavoidable: at a fixed container
+ * the viewBox height is set by the container's aspect, so a bigger lower stack
+ * comes out of the nodes. At VB_H 632 (a 1440 viewport) R_MAX goes 112.6 to 94.7
+ * and the band 206.7 to 178.6. The node collision cap is unaffected, with far
+ * more headroom than before (1.76 x 94.7 = 167 against a 290 station gap).
+ */
+const VB_H_MIN = 558;
 /**
  * Past this the nodes stop growing and the extra height becomes air, which reads
- * as a broken layout rather than a bigger diagram.
+ * as a broken layout rather than a bigger diagram. Raised by the same 64.
  */
-const VB_H_MAX = 700;
+const VB_H_MAX = 764;
 
 /**
  * Largest node radius, growing with the box.
@@ -227,6 +253,8 @@ const MindsetFlow: React.FC<PersonaVizProps> = ({
   const subLineSize = size(TYPE.meta);
   const chipNameSize = size(TYPE.label);
   const chipFigureSize = size(TYPE.meta);
+  /** The growth tag. `micro` is sanctioned here: uppercase, and the only one. */
+  const chipTagSize = size(TYPE.micro);
   const legendSize = size(TYPE.meta);
 
   return (
@@ -250,7 +278,29 @@ const MindsetFlow: React.FC<PersonaVizProps> = ({
 
         {/* ---- Sequential ribbons. Constant width. Behind the nodes. ---- */}
         {stages.slice(0, -1).map((stage, i) => {
-          const c = getSegmentColor(stage.key);
+          // FILLED FROM THE DESTINATION STAGE, not the source (client direction
+          // 2026-08-10, "weird shading in this area").
+          //
+          // Source filling put `Unaware` on the first connector, and that stage
+          // is `#5B6E64`, a deliberately desaturated grey-green ("the audience
+          // that perceives no problem"). At the 0.3 the ribbons carry it lands
+          // on #CED1C4, so the first arrow read GREY while the two after it read
+          // warm, which looks like a disabled state rather than a step in a
+          // ramp. Destination filling gives pink, peach, teal: the run warms up
+          // and resolves on the brand colour, which is the ladder's own story.
+          //
+          // **The palette itself is untouched**, which was the constraint. The
+          // muted `Unaware` is a documented decision and still owns its wheel
+          // wedge, its ladder band and this view's first node. Only what fills
+          // the connectors moved.
+          //
+          // ⚠ WIDTH STILL COMES FROM `stage`, THE SOURCE, and must. That is the
+          // honesty constraint at the top of this file: width is the size of the
+          // stage a movement starts from, never a measured transition rate. So
+          // colour and width now describe different stages, which is why the
+          // legend says so out loud. Interaction stays on the source too: this
+          // ribbon IS that stage's movement, and clicking it opens that stage.
+          const c = getSegmentColor(stages[i + 1].key);
           const x1 = STATION_X[i] + radii[i];
           const x2 = STATION_X[i + 1] - radii[i + 1];
           // Width from the SOURCE stage's share. See the honesty note above.
@@ -473,6 +523,46 @@ const MindsetFlow: React.FC<PersonaVizProps> = ({
                 >
                   {pm.marketPct}% mkt | {pm.customerPct}% cust | {pm.conversionIndex.toFixed(2)}x
                 </text>
+                {/* THE GROWTH PLAY, client direction 2026-08-10. Three personas
+                    carry one and two deliberately do not: see data/growthLabels.ts
+                    for why the absence is the finding, and why this is keyed by
+                    PERSONA ID rather than by stage (Curious holds two personas,
+                    and only one of them is the Primary HVA).
+
+                    Two lines, not one. The tag and its tactic run to about 47
+                    characters together, which overflows a 250 unit chip at any
+                    size that is still legible, so they stack. The tag is the
+                    app's eyebrow treatment: uppercase, micro, tracked.
+
+                    Nothing renders for an unlabelled persona, and the chip does
+                    NOT shrink to suit. */}
+                {(() => {
+                  const g = growthLabel(pm.persona.id);
+                  if (!g) return null;
+                  return (
+                    <>
+                      <text
+                        x={x - half + 10}
+                        y={y + 56}
+                        fontSize={chipTagSize}
+                        fontWeight={700}
+                        letterSpacing={TRACKING.eyebrow}
+                        fill={selected ? c.ink : c.tintInk}
+                      >
+                        {g.tag}
+                      </text>
+                      <text
+                        x={x - half + 10}
+                        y={y + 72}
+                        fontSize={chipFigureSize}
+                        fill={selected ? c.ink : c.tintInk}
+                        opacity={0.92}
+                      >
+                        {g.text}
+                      </text>
+                    </>
+                  );
+                })()}
               </g>
             );
           });
@@ -485,13 +575,13 @@ const MindsetFlow: React.FC<PersonaVizProps> = ({
           the right edge of the viewBox when someone adds a clause, and this is
           precisely the copy most likely to be edited. As DOM it reflows. */}
       <p className="mt-1 text-meta leading-relaxed" style={{ color: LYKA.muted }}>
-        Node area = share of market.{' '}
+        Node area = share of market. Ribbon colour = the stage it leads into.{' '}
         <strong className="font-semibold">
           Ribbon width = the size of the stage a movement starts from, not a measured transition
           rate: the study does not measure movement between stages.
         </strong>{' '}
-        Dashed routes are the two non-sequential jumps the research names. Hover any node, ribbon
-        or chip for its movement goal, verbatim.
+        Dashed routes are the two non-sequential jumps the research names. {GROWTH_LABEL_NOTE}{' '}
+        Hover any node, ribbon or chip for its movement goal, verbatim.
       </p>
     </div>
   );

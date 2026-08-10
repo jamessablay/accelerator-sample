@@ -3,6 +3,7 @@ import React from 'react';
 import { Persona } from '../../data/personasData';
 import { personaVideo } from '../../data/personaMedia';
 import { getSegmentColor, LYKA } from '../../data/brand';
+import { growthLabel } from '../../data/growthLabels';
 import { TRACKING } from '../../data/type';
 
 import ZapIcon from '../icons/ZapIcon';
@@ -86,6 +87,7 @@ const PersonaMediaSlot: React.FC<{ persona: Persona; stacked?: boolean }> = ({
   const colors = getSegmentColor(persona.category);
   const initials = persona.name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
   const fit = FIT_STYLES[persona.solutionFit] ?? { bg: LYKA.mint, fg: LYKA.tealDeepest };
+  const growth = growthLabel(persona.id);
   // Resolved, not read off the record: the film lives in data/personaMedia.ts so
   // regenerating the personas cannot delete it. See that file's header.
   const videoUrl = personaVideo(persona);
@@ -191,6 +193,40 @@ const PersonaMediaSlot: React.FC<{ persona: Persona; stacked?: boolean }> = ({
                 >
                   Fit: {persona.solutionFit}
                 </span>
+                {/* THE GROWTH PLAY, client direction 2026-08-10. This panel is
+                    the one place all three persona views agree on, since the
+                    Wheel, the Ladder and the Flow all open it, so it carries the
+                    tag AND the tactic in full. The Ladder shows the tag alone
+                    (its chips are share width) and the Flow shows both.
+
+                    White pill rather than a brand fill: this card sits on the
+                    persona's own stage colour, which ranges from #5B6E64 to
+                    #003D33, and a coloured pill would have to clear five
+                    different backgrounds. White on any of them is at worst the
+                    inverse of a ratio the palette already guarantees, and
+                    tealDeepest on white is 12.3:1.
+
+                    Renders nothing for the two unlabelled personas, by design. */}
+                {growth && (
+                  <div className="mt-1.5">
+                    <span
+                      className="inline-block rounded-full px-2.5 py-0.5 font-mono text-micro font-bold uppercase"
+                      style={{
+                        backgroundColor: '#FFFFFF',
+                        color: LYKA.tealDeepest,
+                        letterSpacing: TRACKING.eyebrow,
+                      }}
+                    >
+                      {growth.tag}
+                    </span>
+                    <p
+                      className="mt-1 text-meta leading-snug"
+                      style={{ color: 'rgba(255,255,255,0.92)' }}
+                    >
+                      {growth.text}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

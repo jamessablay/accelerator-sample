@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { getSegmentColor, LYKA } from '../../../data/brand';
 import { GAPS, TOTAL_DOG_OWNERS, formatVolume, INVERSION } from '../../../data/audienceModel';
+import { growthLabel } from '../../../data/growthLabels';
 import { TRACKING } from '../../../data/type';
 import type { StageMetrics } from '../../../data/audienceModel';
 import type { PersonaVizProps } from './types';
@@ -206,9 +207,20 @@ const MarketBar: React.FC<BarProps & PersonaVizProps> = ({
                     e.stopPropagation();
                     onSelectPersona(pm.persona);
                   }}
-                  title={`${pm.persona.name} | ${pm.persona.marketShare} of market | ${pm.persona.customerShare} of Lyka customers`}
+                  title={[
+                    pm.persona.name,
+                    `${pm.persona.marketShare} of market`,
+                    `${pm.persona.customerShare} of Lyka customers`,
+                    // The tactic rides in the tooltip here, because the chip
+                    // cannot hold it. See the growth tag note below.
+                    growthLabel(pm.persona.id)
+                      ? `${growthLabel(pm.persona.id)!.tag}: ${growthLabel(pm.persona.id)!.text}`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' | ')}
                 >
-                  {/* TWO LINES, NOT THREE. The third line carried
+                  {/* TWO LINES OF DATA, NOT THREE. The third line carried
                       `0.27x | Medium`, which is already in the detail panel and
                       in this button's own title tooltip. Deleting it rather than
                       enlarging it is what let lines 1 and 2 clear the 12px floor
@@ -230,6 +242,29 @@ const MarketBar: React.FC<BarProps & PersonaVizProps> = ({
                   >
                     {pm.marketPct}% | {pm.customerPct}%
                   </div>
+                  {/* THE GROWTH TAG ONLY. THE TACTIC IS DELIBERATELY NOT HERE,
+                      and the reason is the ladder's defining constraint: A CHIP'S
+                      WIDTH IS ITS PERSONA'S MARKET SHARE. Devoted Caterers sits
+                      in an 11% band, about 90px at 1048, and "Reassure through
+                      social proof" needs roughly 170px at the 12px floor, so it
+                      would truncate to noise on the very persona it labels. The
+                      Flow has 250 unit chips and carries both lines; this view
+                      carries the tag and puts the tactic in the title tooltip,
+                      which is exactly where this chip already keeps the fit
+                      rating and the conversion index it dropped for the same
+                      reason.
+                      "CONVERT" is 7 characters and clears even the 90px chip. */}
+                  {growthLabel(pm.persona.id) && (
+                    <div
+                      className="font-mono text-micro leading-tight mt-0.5 truncate font-bold"
+                      style={{
+                        color: isSelected ? c.ink : c.tintInk,
+                        letterSpacing: TRACKING.eyebrow,
+                      }}
+                    >
+                      {growthLabel(pm.persona.id)!.tag}
+                    </div>
+                  )}
                 </button>
               );
             })}

@@ -32,6 +32,7 @@ import { PERSONA_VIDEOS, personaVideo } from './personaMedia';
 import { PLAN_LAYERS, MEDIA_TOTAL, FLIGHTING_PCT, MONTHS } from './mediaPlanData';
 import { SEGMENT_COLORS, LAYER_COLORS, OWNER_COLORS, TEN_THINGS, TEN_THINGS_STROKE_TOKENS, LYKA, GAP_RAMP, FOCUS, GAP_NEGATIVE_HUE } from './brand';
 import { MEDIA_FOCUS_STAGES, MEDIA_FOCUS_JOURNEYS } from './mediaFocus';
+import { GROWTH_LABELS } from './growthLabels';
 import { SEGMENT_IMAGES } from '../components/personas/CategoryDetail';
 import { TEN_THINGS_POINTS } from './tenThingsData';
 import {
@@ -686,6 +687,36 @@ export function runIntegrityChecks(): void {
   }
   if (MEDIA_FOCUS_STAGES.length >= JOURNEY_STAGE_NAMES.length) {
     warn(`MEDIA_FOCUS_STAGES covers every stage, so the wash marks the whole table and distinguishes nothing.`);
+  }
+
+  // 7d. THE GROWTH LABEL JOIN, both halves, and the same shape as 7c above
+  //     because it fails the same way: A BROKEN JOIN HERE PRODUCES THE ABSENCE
+  //     OF SOMETHING. A label keyed to an id that no longer exists renders no
+  //     error, no fallback and no broken layout. Three views simply draw one
+  //     fewer tag, and nobody notices a tag that is not there.
+  //
+  //     This is more exposed than the media focus join, because the key is a
+  //     NUMBER. A stage title that drifts is at least legible in a diff; a
+  //     persona id is not, and the ids here are deliberately sparse (101, 201,
+  //     301, 401, 402), so a plausible typo lands on nothing.
+  for (const idStr of Object.keys(GROWTH_LABELS)) {
+    const id = Number(idStr);
+    if (!personaIds.has(id)) {
+      fail(`GROWTH_LABELS has id ${id}, which matches no persona. That growth tag renders nowhere, in all three persona views, with no visible defect.`);
+    }
+  }
+  for (const [id, g] of Object.entries(GROWTH_LABELS)) {
+    if (!g.tag.trim() || !g.text.trim()) {
+      fail(`GROWTH_LABELS[${id}] has an empty tag or text. The Flow reserves two chip lines for it, so it would render a labelled-looking chip with nothing in it.`);
+    }
+  }
+
+  //     THE UNLABELLED PERSONAS ARE THE ARGUMENT, so labelling all five is a
+  //     change of meaning rather than a tidy-up. Same guard, same reason as
+  //     MEDIA_FOCUS_JOURNEYS above: "make it consistent" would delete the
+  //     finding and leave five decorations.
+  if (Object.keys(GROWTH_LABELS).length >= personas.length) {
+    warn(`GROWTH_LABELS covers all ${personas.length} personas, so no persona is unmarked. The client's point was that THESE carry a growth play and the others do not.`);
   }
 
   // 8. Variant registries. A duplicate id makes the switcher unclickable for one

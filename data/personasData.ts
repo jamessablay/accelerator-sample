@@ -21,24 +21,50 @@
 // three personas each get a full 90 degrees. That is why the two Curious titles
 // are the shortest: they have half the arc to label.
 //
-// ⚠ ONE PLACEMENT HERE IS A CLIENT DECISION, NOT THE RESEARCH'S. On 2026-08-07
-// Lyka asked for Disciplined Outsourcers to sit in CURIOUS. The source document
-// places them in Unaware / Unconvinced, so this is the one field in this file
-// that its generator would not produce. It is `category` (plus the `stageLabel`
-// that must follow it) on id 401 and NOTHING ELSE: every string on that record is
-// still the research's own, verbatim, including two that now read against the new
-// stage and were deliberately NOT reworded, because they are copy the client
-// reads as theirs:
+// ⚠ FOUR FIELDS HERE ARE CLIENT DECISIONS, NOT THE RESEARCH'S, ACROSS TWO
+// RECORDS. These are the only things in this file its generator would not
+// produce, so REGENERATING SILENTLY REVERTS ALL FOUR. The list, newest first:
 //
-//   - `movement`  "Unconvinced → Considering or Ready after an expert or health
-//                 trigger." The ladder now starts that jump from Curious.
-//   - `barriers[0]` "No immediate evidence that their current routine is
-//                 failing." That is an Unaware posture as the source frames it.
+//   2026-08-10, id 301 Conflicted Troubleshooters, supplied on a marked up
+//   screenshot as "Headline (BOLD)" and "Replace 1st Sentence of Body Copy":
 //
-// So REGENERATING THIS FILE SILENTLY REVERTS THE MOVE. It will put 401 back in
-// Unaware, the stage shares will go back to 49/25 and integrity check 7b will
-// fail against categoryData until that is reconciled too. Re-apply the two fields
-// after any regeneration.
+//   - `snapshot`        replaced outright.
+//   - `description`     FIRST SENTENCE ONLY replaced; the rest is still the
+//                       research's own, verbatim.
+//
+//     **THAT SECOND ONE IS A REVERSAL, NOT A REWORDING**, which is why it is
+//     worth spelling out. The source read "More likely to live alone, with
+//     parents or in shared households"; the client's replacement says family
+//     led rather than singles or share house, which is the opposite claim. It
+//     also introduces two figures the source document does not contain (index
+//     130 and index 117). A regeneration therefore does not just lose the
+//     client's wording, it silently reinstates a household finding they have
+//     corrected. Nothing else in the app repeated that finding: checked.
+//
+//   2026-08-07, id 401 Disciplined Outsourcers, moved to CURIOUS on client
+//   direction where the source places them in Unaware / Unconvinced:
+//
+//   - `category`        the move itself.
+//   - `stageLabel`      must follow it.
+//
+//     NOTHING ELSE on that record moved: every other string is the research's
+//     own, verbatim, including two that now read against the new stage and were
+//     deliberately NOT reworded, because they are copy the client reads as
+//     theirs:
+//
+//       - `movement`  "Unconvinced → Considering or Ready after an expert or
+//                     health trigger." The ladder now starts that jump from
+//                     Curious.
+//       - `barriers[0]` "No immediate evidence that their current routine is
+//                     failing." That is an Unaware posture as the source frames
+//                     it.
+//
+//     Regenerating puts 401 back in Unaware, the stage shares go back to 49/25
+//     and integrity check 7b fails against categoryData until that is
+//     reconciled too.
+//
+// Re-apply all four after any regeneration. Only the 401 pair breaks a check;
+// the 301 pair fails silently, because replaced prose is still valid prose.
 //
 // `avatar` and `videoUrl` are still EMPTY on every record, and the persona films
 // that landed on 2026-08-04 did NOT change that. They are joined by persona id in
@@ -201,8 +227,24 @@ const lykaPersonas: Persona[] = [
     solutionFit: "High Growth Potential",
     fitRationale: "This is the largest realistic audience-shifting opportunity. They already feel a problem and are open to alternatives, but Lyka must position itself as the clearest and safest next step, not as another feeding philosophy they need to research.",
     movement: "Curious → Considering. An acute health or fussiness trigger can produce a direct Curious → Ready jump.",
-    snapshot: "Younger, less-experienced and more time-pressured owners who suspect their current approach may not be working but do not know what the better answer is.",
-    description: "More likely to live alone, with parents or in shared households, although the segment also includes busy young families navigating competing responsibilities. Their dogs create more active feeding and health challenges: 38% have a dog with a health issue, compared with 29% of the market, and 58% describe their dog as choosy with food, compared with 49%. They experience feeding as a process of trial and error. They are willing to experiment but often lack the knowledge or confidence to evaluate competing advice. Time and mental bandwidth are major constraints: 33% say they do not have time to spend making meals, compared with 26% of the market. They seek advice from social media, reviews, online forums and other owners who have faced a similar problem. Commercial openness is substantial: 68% are likely to try a different brand, 54% are likely to try Lyka, and 40% are extremely open to both fresh food and DTC. The directional Roy Morgan Curious overlay shows they are not inherently low-value: 58.9% want the best and are willing to pay for it (ix 146). The issue is confidence, not lack of aspiration.",
+    // ⚠ CLIENT COPY, 2026-08-10, NOT THE RESEARCH'S. Both strings below were
+    // supplied by Lyka on a marked up screenshot: the bold pull-out was
+    // "Headline (BOLD)" and the opening sentence was "Replace 1st Sentence of
+    // Body Copy". Kept VERBATIM, hyphenation and all.
+    //
+    // **THIS IS A REVERSAL, NOT A REWORDING.** The research's own opening read
+    // "More likely to live alone, with parents or in shared households, although
+    // the segment also includes busy young families navigating competing
+    // responsibilities." The client's version says the opposite: family led
+    // rather than singles or share house. It also introduces two figures that
+    // are NOT in the source document (index 130 and index 117), so nothing here
+    // can be checked against the research, and the two indices already quoted
+    // further down this same paragraph are the study's.
+    //
+    // Everything after the first sentence is still the research's own, verbatim.
+    // See the header block: regenerating this file reverts all of it.
+    snapshot: "Family-led owners, disproportionately young parents, mid-life families and young couples, juggling time pressure and still working out the right approach.",
+    description: "High proportion of young parents (index 130) and mid-life families (index 117), rather than singles or share-house dwellers, this segment is defined by competing family responsibilities with little time to do in depth research. Their dogs create more active feeding and health challenges: 38% have a dog with a health issue, compared with 29% of the market, and 58% describe their dog as choosy with food, compared with 49%. They experience feeding as a process of trial and error. They are willing to experiment but often lack the knowledge or confidence to evaluate competing advice. Time and mental bandwidth are major constraints: 33% say they do not have time to spend making meals, compared with 26% of the market. They seek advice from social media, reviews, online forums and other owners who have faced a similar problem. Commercial openness is substantial: 68% are likely to try a different brand, 54% are likely to try Lyka, and 40% are extremely open to both fresh food and DTC. The directional Roy Morgan Curious overlay shows they are not inherently low-value: 58.9% want the best and are willing to pay for it (ix 146). The issue is confidence, not lack of aspiration.",
     barriers: [
       "Low confidence in their own ability to judge what is nutritionally right.",
       "Conflicting online advice creates more work and uncertainty rather than resolving the problem.",
