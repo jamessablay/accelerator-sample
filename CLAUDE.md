@@ -13,7 +13,7 @@ This file gives Claude Code the architecture, data model and known quirks for th
 > | **[data/personasData.ts](data/personasData.ts)** 5 personas | |
 > | **[data/categoryData.ts](data/categoryData.ts)** the 4-stage readiness ladder | |
 > | **[data/journeyDetailsData.ts](data/journeyDetailsData.ts)** 5 journeys × 5 stages | |
-> | **[data/tenThingsData.ts](data/tenThingsData.ts)** + **[data/tenThingsSeries.ts](data/tenThingsSeries.ts)** 10 findings | |
+> | **[data/tenThingsData.ts](data/tenThingsData.ts)** + **[data/tenThingsSeries.ts](data/tenThingsSeries.ts)** 10 findings, on the dog owner basis since 2026-08-10 | |
 > | **[data/mediaPlanData.ts](data/mediaPlanData.ts)** the Oct→Sep plan: 5 stages, 20 channels, $11.0M | |
 > | **[data/apexData.ts](data/apexData.ts)** 2 audiences × 14 channels, from the APEX tool's Lyka Roy Morgan pull (2026-08-07) | |
 > | The Personas sunburst, the Consumer Journey, Ten Things, the Interactive Media Plan, APEX, and every detail panel | |
@@ -458,7 +458,7 @@ A SPEED Standard Accelerator for **Lyka** (fresh, human grade dog food, direct t
 - **Interactive Media Plan**: the real Lyka plan since 2026-08-05. A 5-stage macro block grid (SHOW IT to SHARE IT), 20 channels over Oct→Sep, every bar owned by SPEED (red) or Lyka in house (green) with a legend at the foot, Chart.js pop-ups. See "Interactive Media Plan page".
 - **APEX by SPEED**: the channel scorecard, real Lyka since 2026-08-07. View tabs (About | True Net Worth Index | Growth Quadrant) over two Roy Morgan audiences (Conflicted Troubleshooters, Mindful Researchers), 14 channels each.
 - **Business Dashboard**: a designed empty state awaiting a Lyka Power BI report.
-- **Ten Things The Data Says**: ten findings in a one viewport 5 x 2 grid, each opening a modal with a Chart.js chart, the published numbers, an implication and a test. Real Lyka. Ported 2026-08-03 from a standalone HTML page.
+- **Ten Things The Data Says**: ten findings in a one viewport 5 x 2 grid, each opening a modal with a Chart.js chart, five labelled blocks and the published numbers. Real Lyka. Ported 2026-08-03, then moved onto the **dog owner basis** on 2026-08-10, which is why it now cites TWO sources: five points divide by a population and were redrawn against Roy Morgan's dog owner counts, five do not and are unchanged.
 - **Notion Coworking Setup**: added 2026-08-10. A scrolling presentation page proposing a shared Lyka × SPEED Notion workspace both teams and both Claudes keep current. Six sections (the problem, the shared-space hub, four content pillars, how it works, why it compounds + privacy, scattered → shared + a dark closing band). Pure DOM/CSS visuals, static + hover, one IntersectionObserver reveal. Reuses `OWNER_COLORS` (green Lyka / red SPEED) for the two-party split. Last in the nav. See "Notion Coworking Setup page".
 
 Lineage: **Xero PITCH Accelerator** → **Hamilton Island Audience Accelerator** → this. The polar geometry helpers (`polarToCartesian`, `describeSunburstArc`, `describeLabelArc`) are Xero inheritance.
@@ -518,8 +518,8 @@ All data lives in flat TypeScript files under `data/`. There is no database, no 
 | [data/journeyModel.ts](data/journeyModel.ts) | Derived journey metrics plus the canonical score-string parsers, moved out of `JourneyScoreGraph`. Also `GAP_DOMAIN` and the two cross-journey findings the gap matrix states on screen, `findUniversalStageShift` and `findLevelCells`, **derived at runtime so a revised study cannot leave a false sentence up**. |
 | [data/categoryData.ts](data/categoryData.ts) | **Real Lyka.** 5 entries: the centre disc plus the 4 readiness stages. Each `title` carries its market share, e.g. `"Considering (15%)"`. Adds `marketShare`, `customerShare` and `movement`; the 7 legacy list fields render nowhere and are empty. |
 | [data/journeyDetailsData.ts](data/journeyDetailsData.ts) | **Real Lyka.** 5 personas × 1 `MACRO_JOURNEY` × 5 Transtheoretical stages. Generated from the source deck by a cell-level table parse. Per-stage: `doingThinking`, `painPoints`, `influences`, `momentsToWin`, `emotionalScore`, `rationalScore`, `duration`, `definition`, and `coreQuestion` on Action only. Bullet fields are semicolon delimited; scores carry an en dash. **Not pure data:** imports React and five icon components. |
-| [data/tenThingsData.ts](data/tenThingsData.ts) | **Real Lyka.** The ten findings: copy, published numbers tables, and the `chart` join key. No React. |
-| [data/tenThingsSeries.ts](data/tenThingsSeries.ts) | **Real Lyka.** Every number a Ten Things chart plots. Separate from the copy on purpose; see below. |
+| [data/tenThingsData.ts](data/tenThingsData.ts) | **Real Lyka, on the DOG OWNER BASIS since 2026-08-10.** The ten findings: copy, published numbers tables, the `chart` join key, and **`basis` + `basisNote` on every point**. Also `TEN_THINGS_ABOUT` (the About dialog), `TEN_THINGS_ESTIMATE_NOTE` (short and full) and `TEN_THINGS_SOURCES`. **Two sources govern it**, one per half of the ten; read the file header before editing. No React. |
+| [data/tenThingsSeries.ts](data/tenThingsSeries.ts) | **Real Lyka.** Every number a Ten Things chart plots. Separate from the copy on purpose; see below. Five series are on the dog owner basis and five are unchanged, and **point 02's `stillActive` is DERIVED at module load** from a base invariant retention rate rather than published. `TOP_REGIONS_RAV` is kept and still rendered as point 07's second table. |
 | [data/brand.ts](data/brand.ts) | **The single source of truth for colour.** The `LYKA` palette, `SEGMENT_COLORS` + `getSegmentColor()`, `LayerKey` + `LAYER_COLORS`, `TEN_THINGS`, the **gap ramp** (`gapWash()`, `GAP_SCALE_MAX`, the capped wash bounds and `GAP_RAMP`), **`FOCUS`** (the media focus wash, its deliberately-lighter hover, rule and tag), and the `CHART_*` chrome constants. No React, no DOM types, literal hex only. See "Brand and typography". |
 | [data/__integrity.ts](data/__integrity.ts) | Dev-only assertions on the data joins `tsc` cannot see. Imported from `index.tsx` behind `import.meta.env.DEV`, so it is tree shaken out of production. |
 | [data/apexData.ts](data/apexData.ts) | **Real Lyka since 2026-08-07.** The channel knowledge base (14 channels: label, tier, `knf`, `ttd`, mirroring the APEX tool's `constants.ts`), two audiences' raw Roy Morgan inputs (`heavyPct`, `rmIndex`, `addressableReach`), and the methodology + About copy. **`tnwIndex`, `ttdStars` and `quadrant` are DERIVED at module load**, never typed; `__integrity.ts` check 15 asserts the derivation reproduces the export decks' published values. Also the quadrant meta + thresholds and `QUAD_STYLES`. Read the file header before editing. |
@@ -777,9 +777,60 @@ The curve recomputes from these strings, so replacing stages or scores needs no 
 
 ## Ten Things The Data Says page
 
-[pages/TenThings.tsx](pages/TenThings.tsx). Ported **2026-08-03** from `Lyka - Ten Things The Data Says.html`, one folder up, which is the source of truth for every string. Real Lyka: the acquisition file to 29 Jun 2026, the postcode file of 304,729 customers, the Mutinex GrowthOS MMM, ABS Census 2021 and Experian Mosaic.
+[pages/TenThings.tsx](pages/TenThings.tsx). Ported **2026-08-03**, then moved onto the **DOG OWNER BASIS on 2026-08-10**. There are now TWO sources, both one folder up, and which one governs depends on the point. See the next section before editing anything here.
 
-A **one viewport 5 x 2 grid** of finding tiles, like Personas and Consumer Journey rather than the scrolling APEX page. Ten findings on one screen is the point of the page: you see the whole argument before opening any of it. Clicking a tile opens the shared Modal with the chart, the published numbers, an implication and a test, and a stepper walks all ten.
+A **one viewport 5 x 2 grid** of finding tiles, like Personas and Consumer Journey rather than the scrolling APEX page. Ten findings on one screen is the point of the page: you see the whole argument before opening any of it. Clicking a tile opens the shared Modal with the chart, five labelled blocks, the published numbers, and a stepper walks all ten.
+
+### THE DOG OWNER BASIS (2026-08-10), and why the split is exactly 5 and 5
+
+`Lyka - Ten Things (Dog-Owner Basis).html` re-measures the findings against Roy
+Morgan's count of dog owners rather than households, on the argument that
+households include the roughly half of homes with no dog and so could never buy.
+
+**Five points were redrawn** (02, 03, 05, 07, 10) and **five are byte identical**
+(01, 04, 06, 08, 09). That is not an editorial judgement about what was worth
+revisiting: **hashing every embedded PNG in both source files proves it**, and
+the five unchanged ones are exactly those measured as a rate, a count or a time
+series, where no population figure enters. Their copy and their chart components
+were not touched.
+
+`headline`, `cardHeadline`, `implication` and `test` are **carried over unchanged
+on all ten**, which is the useful headline finding: the argument and the
+recommendation did not move when the base did. What moved is `statValue`,
+`statLabel`, `learn`, `worthKnowing` and `numbers` on the five, plus their charts.
+
+**Every point now declares `basis` and `basisNote`**, both required. The basis
+shows up in three places, and the placement of each was a decision:
+
+- **The tile's left rail**, permanently coloured. It was a hover only accent, and
+  it is the source page's own encoding. **This costs ZERO height**, which is the
+  whole reason it is not a pill in the badge row: the grid has no `max-h` and no
+  `min-h`, rows size from max content contribution, so anything added to the card
+  grows all ten tiles. Measured after the change, a tile is 272x242.1 at 1920 and
+  169.1x259.5 at 1280, both matching the pre change numbers exactly.
+- **A legend beside the lede**, because colour alone is not a label.
+- **A pill and a labelled block in the modal**, where there is room for words.
+
+**Colour comes from `BASIS_COLORS` in brand.ts and both marks are EXISTING tokens
+under a new name** (`LYKA.accentInk` and `LYKA.muted`). The source's own
+`#2E8B64` and `#8A9199` are not Lyka. ⚠ **The obvious Lyka match for that soft
+grey is `mintMuted` at 1.88:1**, which check 6c separately asserts must keep
+FAILING: reaching for it would put an invisible rail on five tiles. Check 13c
+asserts the pairs from the other side.
+
+### The five labelled blocks, and the two fields that were hiding
+
+The modal is now **What we found | Why it matters | [the basis] | What to do |
+What we still need to test**, with the chart above them and the numbers table as
+a disclosure below. Two of those were not labelled blocks before, and the reason
+is the media plan's Role of Channel lesson verbatim: **a populated field with no
+label is a missing field.** `learn` rendered as a bare paragraph under the stat,
+and `worthKnowing` was collapsed inside a `<details>` headed "Worth knowing",
+which on five of the ten points is where the caveat lives.
+
+**The numbers table stays a disclosure and that is not an inconsistency.** It is
+a table of source figures rather than a finding, and it is the one thing on the
+page a reader looks up rather than reads.
 
 ### The nine rebuilt charts
 
@@ -794,6 +845,50 @@ The source shipped **ten matplotlib PNGs in a green and gold palette**, 3.1MB of
 
 07 `TopRegionsRav` and 04 `RetentionCuts` were also reframed (a deviation chart from 1.00, and one chart instead of two truncated subplots), and 03 `FlatSharePenetration` **adds** the average income decile column that was already in the source's own published table, because the headline claims the driver is the postcode and a penetration only chart cannot show that.
 
+#### What the dog owner redraw did to five of them (2026-08-10)
+
+`CityLifecycle`, `TopRegionsRav` and `LapsedPool` are **gone**, replaced by
+`CityReach`, `TopRegionsReach` and `LapsedVsActive`. **The join keys were renamed
+with them**, because each named a measure its chart no longer plots, and a key
+naming the wrong measure is how a reader ends up trusting the name over the
+chart. Check 9 catches a stale key on the next dev load, so the rename is one
+pass across the union, the registry and each point's `chart` field.
+
+| Point | Was | Is |
+|---|---|---|
+| 02 `IncomeLadder` | Grouped bars + a retention line on `y1` | Stacked, total = ever tried |
+| 03 `FlatSharePenetration` | Bars + an income decile line on `y1` | Bars only, two line x labels carrying the flats % |
+| 05 `CityReach` | A **bubble** chart, penetration against tenure, area = active | Horizontal bars, **six** rows (the ACT is new) |
+| 07 `TopRegionsReach` | 10 SA4s by RAV, anchored at 1.00 | 18 of 58 regions by reach, plus a **match quality** grade |
+| 10 `LapsedVsActive` | 10 income deciles, stacked | 12 regions, stacked |
+
+**Two of the five can now drop the generic `<Chart>` for the typed `<Bar>`**,
+because their `type: 'line'` dataset is gone. That is the one direction the
+documented react-chartjs-2 trap is safe to move in.
+
+**Point 05 losing the bubble took three things with it**, and they were removed
+rather than left as dead weight: the `bubbleLabels` plugin and its collision
+halo, `BubbleController` in `chartBase`, and `TEN_THINGS.bubbleFill`. It also
+drops `useElementSize` and the `MIN_CHART_WIDTH` fallback, which existed only
+because a bubble radius has to be derived from a measured container.
+
+**⚠ POINT 10 REPEATS THE EXACT ERROR THE HOUSEHOLD VERSION WAS FIXED FOR.** The
+new source draws each bar's total length as the **lapsed** figure with active
+overlaid inside it, so Sydney Central reads as "2.09 of 3.71 are active" when the
+true reading is 2.09 of 5.80. It is stacked here for the same reason it was in
+2026-08-03, and the arithmetic corroborates the fix: 2.09 of 5.80 is 36% still
+active, which is the "two thirds now inactive" the copy states. On the source's
+geometry it would be 56%, contradicting the same sentence.
+
+**⚠ POINT 07's MATCH GRADE IS DELIBERATELY NOT IN THE BAR FILL.** The source
+draws A dark green, B light green, C grey, which is the same green-against-grey
+pairing the basis pill uses, **in the same modal**: a light green bar could be
+read as "dog owner basis". Every bar keeps one fill and the grade rides on a
+`warmInk` annotation beside the value, on the B and C rows only. Same reasoning
+as the gap matrix outlining its focus cells rather than washing them, because
+there the fill IS the datum. Grades were read by **pixel sampling the source
+PNG**, not guessed.
+
 ### Three honesty items that must survive any edit
 
 1. **Point 07's stat does not match its own chart.** The card says `1.60x`; the chart, the numbers table and the map legend all cap at `1.34x`. It may be a postcode level maximum against an SA4 maximum, or the value the map's 95th percentile clip removes, or stale. **Nobody picked one.** Points 02 and 04 carry smaller versions of the same thing: an index of 179 that is in the copy and in neither the table nor the chart, and a headline range of 34.1 to 36.2% measured on an inner metro cut against a table running 32.7 to 35.0% across all dwelling quartiles.
@@ -804,9 +899,73 @@ The source shipped **ten matplotlib PNGs in a green and gold palette**, 3.1MB of
 2. **The map ramp is off brand and stays off brand.** A PNG choropleth cannot be recoloured, and regenerating needs the original notebook and the ABS boundary data, neither of which is in this project folder. A visible caption says so. If the notebook ever surfaces, the Lyka palette already holds the right diverging pair: tangerine `#F68B1F` through cream to teal `#0A7D68`.
 3. **Two source charts had errors** (points 09 and 10, above). Both are documented in the component headers, not just here.
 
+**A FOURTH ARRIVED WITH THE DOG OWNER SOURCE, on point 06.** Its own basis note
+says the ex kiosk figures of **125 and 84** from the seasonality report supersede
+the **123 and 84** the chart plots and the copy quotes. On 125 the peak to trough
+swing is **41 points**, not the 39 the stat says. **That report is not in the
+project folder.** The note is carried verbatim rather than acted on, because the
+alternative is editing a client facing figure to agree with a document nobody
+here has read. `discrepancy` is still wired and unset, so a visible note is one
+property if the client wants one.
+
+**AND POINT 02's OLD CONFLICT IS CLOSED BY THE REWRITE**, which is worth knowing
+so nobody goes looking for it: the index of 179 that was in the copy and in
+neither the table nor the chart is simply not in the rewritten copy. Point 04's
+34.1 to 36.2% and point 07's 1.60x are still open.
+
+**Point 07's 1.60x is now supported by a SECOND numbers table rather than the
+chart.** The redraw moved that point onto reach, so RAV no longer has a chart;
+`numbersSecondary` carries the ten SA4 rows and the map still plots them. RAV is
+an average across customers, so no population divides it and the change of base
+leaves it alone, which the new source says in as many words. That is why the map
+survived a source that dropped it.
+
+**One more the source states and its own prose does not: the region point 07's
+copy leads with, Sydney Central, is a boundary match B, and the third is a C.**
+Carried into the caption, the table and the tooltip rather than dropped.
+
 ### Why the copy and the numbers are two files
 
-`tenThingsData.ts` holds the PUBLISHED table: pre formatted strings like `"49.3%"` and one empty cell where the source reports no figure. `tenThingsSeries.ts` holds the numbers a chart plots. Reading a series back out of the display strings means parsing `"49.3%"` into `49.3`, which is the exact anti pattern `audienceModel.ts` is quarantined for. `__integrity.ts` asserts the two agree, plus the three totals point 10's copy states out loud (101,091 active, 203,221 lapsed, 109,545 in deciles 8 to 10).
+`tenThingsData.ts` holds the PUBLISHED table: pre formatted strings like `"49.3%"` and one empty cell where the source reports no figure. `tenThingsSeries.ts` holds the numbers a chart plots. Reading a series back out of the display strings means parsing `"49.3%"` into `49.3`, which is the exact anti pattern `audienceModel.ts` is quarantined for. `__integrity.ts` asserts the two agree.
+
+Point 10's three household era totals (101,091 active, 203,221 lapsed, 109,545 in
+deciles 8 to 10) went with check 12b on 2026-08-10: that cut no longer exists.
+**Four checks replaced them**, and three are new shapes:
+
+- **12b** asserts point 07's SECOND table, the RAV figures, which nothing plots
+  any more and which nothing else would notice drifting.
+- **12c** asserts the DERIVED half of point 02 (see below) reproduces the two
+  figures the source publishes, plus that still active is a subset of ever tried
+  on every decile, since a stack whose base exceeds its total draws a negative band.
+- **12d** cross checks points 07 and 10, which share twelve regions and both
+  publish an active figure for each. Two independent transcriptions agreeing is a
+  real check rather than a tautology.
+- **13b** asserts every point declares a resolvable `basis` and a non empty
+  `basisNote`, **and that the split is exactly 5 and 5**. The About copy says
+  "five of the ten" and "the other five" out loud, so it is derived rather than
+  trusted: a sixth point moving basis would leave a confident sentence on screen
+  that its own data no longer supports, which is the `TensionMap` lesson.
+
+**12d and 13b were negative tested**, seen to fire with the right messages, and
+reverted.
+
+### ⚠ ONE SERIES IS DERIVED, NOT PUBLISHED, AND IT IS AN OPEN ASK
+
+**Point 02's `stillActive` appears nowhere in the new source.** The redrawn chart
+labels only the stacked totals and no underlying table was supplied. It is
+recoverable exactly, because **retention is BASE INVARIANT**: it is a rate among
+customers, so both sides of the sum are customers and the denominator cancels.
+`retentionPct` is therefore unchanged from the household version and is the only
+figure needed to move `everTried` onto the active base.
+
+Two independent confirmations that this is right rather than merely plausible:
+decile 10 comes out at 4.86 x 0.384 = 1.866, which rounds to the **1.87 the copy
+publishes**; and pixel measuring the source PNG's bar geometry agrees to within
+0.03 everywhere, inside what a 1dp `everTried` can carry.
+
+**It is still not a published figure.** The numbers table labels the column as
+derived and says so. **Ask the analyst for the underlying table** rather than
+letting the deck quote it as research.
 
 `emphasis` is a list of substrings to bold, so the data file carries no markup and nothing needs `dangerouslySetInnerHTML`. A typo silently no-ops, so that join is asserted too.
 
@@ -842,7 +1001,9 @@ The caption is drawn OUTSIDE the plot area now, anchored to the rule it names, w
 - **Vertical rule:** into `layout.padding.top`, left aligned just right of the rule, flipping to its left when the label would overrun (point 01's rule sits at 71% of a narrow half width panel) and clamped so it cannot leave the canvas.
 - **Horizontal rule:** into `layout.padding.right`, past the end of the line and vertically centred on it.
 
-**The caller has to ask for the room.** `TopRegionsRav` sets `padding.top` 22 and `SeasonalIndex` sets `padding.right` 124 for exactly this. The plugin measures the gutter and falls back to the old inline placement when there is none, so a chart that has not asked still renders, it just renders the collision back.
+**The caller has to ask for the room.** `TopRegionsReach` and `CityReach` set `padding.top` 22, and `SeasonalIndex` and `FlatSharePenetration` set a `padding.right` (124 and 96) for exactly this. The plugin measures the gutter and falls back to the old inline placement when there is none, so a chart that has not asked still renders, it just renders the collision back.
+
+**The dog owner redraw took the rule from two charts to four**, which is worth knowing before touching this plugin: 03, 05 and 07 all now carry the same national 1.03 benchmark, and all three read it from one `NATIONAL_PER_100_DOG_OWNERS` const rather than three literals, so a revision cannot move one chart's rule and leave the other two behind.
 
 ### Layout rules for the tile, and they are content rules
 
@@ -1687,8 +1848,12 @@ lyka-accelerator/
 │   │   ├── TenThingsChart.tsx            Shared frame: mint hairline, cream mat, caption slots
 │   │   └── charts/                       index.ts registry + types.ts contract
 │   │       ├── chartBase.ts              ONE ChartJS.register + BASE_OPTIONS/BASE_PLUGINS. Read its header.
-│   │       ├── chartPlugins.ts           benchmarkRule, barValueLabels, lineValueLabels, bubbleLabels
+│   │       ├── chartPlugins.ts           benchmarkRule, barValueLabels, lineValueLabels
+│   │       │                             (bubbleLabels went with point 05's bubble, 2026-08-10)
 │   │       └── *.tsx                     9 charts. MmmConfidence is HTML, deliberately.
+│   │                                     CityReach, TopRegionsReach and LapsedVsActive
+│   │                                     replaced CityLifecycle, TopRegionsRav and
+│   │                                     LapsedPool with the dog owner redraw.
 │   ├── apex/                             ApexChannelTable (slide 4), ApexGrowthQuadrant (slide 5),
 │   │                                     ApexMethodology, labelPlacement.ts (ported from the tool)
 │   ├── notion/                           SharedSpaceDiagram, PillarCards, PracticeWalkthrough,
@@ -1755,10 +1920,10 @@ No tests, no lint. **`npm run typecheck` runs both configs** and must be used ra
 1. **[data/__integrity.ts](data/__integrity.ts)** runs on every dev page load. Open the console. A clean run logs exactly one line and nothing else:
 
    ```
-   [data integrity] ok. 5 personas, 5 segments, 5 journeys, 3+5 variants, 10 findings, 20 media plan rows, 54 assets queued for check, shares, budgets and published tables balance.
+   [data integrity] ok. 5 personas, 5 segments, 5 journeys, 3+5 variants, 10 findings, 20 media plan rows, 28 apex rows, 56 assets queued for check, shares, budgets and published tables balance.
    ```
 
-   **The counts in that line are derived, so they move.** `3+5` was `3+4` before the gap matrix and `4+4` before the Index view was cut; `54` was `15` before the media plan creative joined the asset check. Treat a change in them as expected after adding or removing either; treat any OTHER output as a real problem.
+   **The counts in that line are derived, so they move.** `3+5` was `3+4` before the gap matrix and `4+4` before the Index view was cut; `56` was `15` before the media plan creative joined the asset check and `54` before that. Treat a change in them as expected after adding or removing either; treat any OTHER output as a real problem. (Verified against a real dev load on 2026-08-10, which is the only way to keep this line honest: it is quoted prose, so nothing asserts it.)
 
    It asserts persona categories against `categoryData`, `categoryData` keys against `SEGMENT_COLORS`, `categoryData[k].title` against `SEGMENT_IMAGES` **in both directions**, every `journeyMeta.personaId`, every `PERSONA_VIDEOS` id, every asset path, the media-plan budget invariant, the palette floors (2.7:1 vs white for wedge fills, 4.5:1 pair based for `ink`/`tintInk`, and for the `LAYER_COLORS`/`OWNER_COLORS` pairs), that the derived stage shares sum to 100% and agree with `categoryData`, and that both variant registries have unique ids and a resolvable default.
 
@@ -1768,7 +1933,9 @@ No tests, no lint. **`npm run typecheck` runs both configs** and must be used ra
 
    **Four checks came in with the gap matrix (2026-08-04)**, all of them promoting something that was merely expected into something enforced: that **all five journeys carry the same five stage titles in the same order** (`JOURNEY_STAGE_NAMES` is derived from `TAB_ORDER[0]` alone, so a renamed stage put real numbers under the wrong column headers); that **all 50 score strings parse, descriptor included** (a colon instead of a dash parses the number and silently drops the text, which on the matrix is an empty pop-up); that there are **25 cells and they fall inside `GAP_DOMAIN`** (outside it the ramp clamps, so two different gaps render as one colour); and that **every `GAP_RAMP` step clears AA as a fill and ink pair**, which is what stops a future edit raising the wash ceiling. **Both of the first two were negative tested and seen to fire, then reverted.**
 
-   For Ten Things it also asserts every `chart` key against `TEN_THINGS_CHARTS`, that the ten ids run `'01'` to `'10'` in order, that every `emphasis` substring is present in its `learn` paragraph (a typo silently no-ops the bolding), the six map assets, **that every plotted series matches its published numbers table** and that point 10's three stated totals are the sums of its arrays, the 3:1 stroke floor on `TEN_THINGS` against the cream mat, and that each `CANVAS_FONT` string's px number equals its named `TYPE` token (`ctx.font` takes a literal string, so `type.ts` cannot be its source and the two would otherwise drift silently).
+   For Ten Things it also asserts every `chart` key against `TEN_THINGS_CHARTS`, that the ten ids run `'01'` to `'10'` in order, that every `emphasis` substring is present in its `learn` paragraph (a typo silently no-ops the bolding), the six map assets, **that every plotted series matches its published numbers table**, the 3:1 stroke floor on `TEN_THINGS` against the cream mat, and that each `CANVAS_FONT` string's px number equals its named `TYPE` token (`ctx.font` takes a literal string, so `type.ts` cannot be its source and the two would otherwise drift silently).
+
+   **Four checks came in with the dog owner redraw (2026-08-10)**, replacing the three household era totals point 10's copy used to state out loud. **12b** asserts point 07's SECOND numbers table, the RAV figures, which no chart plots any more and which nothing else would notice drifting. **12c** asserts that the DERIVED half of point 02 reproduces the two figures the source publishes, and that still active is a subset of ever tried on every decile, since a stack whose base exceeds its total draws a negative band. **12d** cross checks points 07 and 10, which share twelve regions and both publish an active figure for each: two independent transcriptions agreeing is a real check rather than a tautology. **13b and 13c** cover the basis join, whose failure mode is that a tile rail simply is not there, and its colour pairs. **13b also asserts the split is exactly 5 and 5**, because the About copy says "five of the ten" and "the other five" out loud, so a sixth point changing basis would leave a confident sentence on screen that its own data no longer supports. **12d and 13b were negative tested and seen to fire, then reverted.**
    **It checks Content-Type, not just `response.ok`.** Vite's dev server answers a missing `public/` path with the SPA fallback: HTTP 200 and `text/html`. A missing image therefore looks fine to `r.ok`, which is why the earlier naive version of this check reported nothing.
 2. **Residue greps.** Use `git grep`, not `grep -r`: it searches tracked files only, so it skips `node_modules`, `dist`, and `.wrangler` (which holds stale bundles containing old `Hamilton` strings that otherwise pollute every result).
 
