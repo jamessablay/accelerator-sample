@@ -924,9 +924,30 @@ const proveIt: PlanLayer = {
       channel: 'realestate.com.au',
       owner: 'speed',
       assets: 'High impact display',
-      monthly: [0, 0, 0, 0, 10000, 10000, 5000, 5000, 5000, 5000, 5000, 5000],
+      // CONDENSED TO FEBRUARY AND MARCH, client direction 2026-08-10 ("can we
+      // condense the flighting for the 'realestate.com.au' line to only 2
+      // months February & March").
+      //
+      // THE MONEY IS COMPRESSED, NOT REMOVED, which is the decision behind this
+      // and the reason MEDIA_TOTAL is still $11,000,000. It ran $10,000 in each
+      // of Feb and Mar then $5,000 a month Apr to Sep; the $30,000 tail moved
+      // into the two surviving months rather than leaving the plan, which would
+      // have taken the grand total to $10,970,000 and re-derived every other
+      // row's %. The client offered to supply new budgets and the alternative
+      // was put to them; holding the total was the call.
+      //
+      // The split is EVEN because the two months it replaces were even
+      // ($10,000 each). Nothing here is weighted by a judgement nobody made.
+      monthly: [0, 0, 0, 0, 25000, 25000, 0, 0, 0, 0, 0, 0],
       budget: 50000,
-      weight: [null, null, null, null, 'heavy', 'medium', 'medium', 'medium', 'medium', 'medium', 'medium', 'light'],
+      // Feb heavy / Mar medium are the WORKBOOK'S OWN weights for these two
+      // months, kept rather than re-levelled now that both carry $25,000. That
+      // is not an inconsistency: the shading is an editorial presence weighting
+      // and is provably not a function of spend (Cinema shades two identical
+      // $70,000 months differently). Re-levelling would be inventing an
+      // editorial call; keeping them invents nothing. Apr to Sep null out, or
+      // integrity 5b-ii warns that a weight is rendering nowhere.
+      weight: [null, null, null, null, 'heavy', 'medium', null, null, null, null, null, null],
       detail: {
         assets: 'Industry first "Lyka Thriving Count"; suburb level data; high impact display; interactive map or postcode experience; PR ready data story.',
         role: 'Reach an affluent, property engaged Lyka audience and give local proof scale, novelty and talkability.',
