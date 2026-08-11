@@ -2195,8 +2195,27 @@ the origin correct. Both hosts send `Cache-Control: max-age=0,
 must-revalidate`, so it resolves on revalidation, but measuring your own stale
 copy looks exactly like a failed deploy.
 
-**Both are ungated:** `PUBLIC_ACCESS` in `worker/index.ts` bypasses the Worker
-password gate, so anyone with either link sees this confidential deck.
+### ⚠ THE TWO HOSTS ARE GATED DIFFERENTLY. Only one is protected
+
+As at 2026-08-11:
+
+| Host | Gate | Status |
+|---|---|---|
+| Netlify | Netlify's own **site password** | **GATED.** Returns HTTP 401 |
+| Cloudflare | the Worker gate, **bypassed** | **FULLY OPEN.** Returns HTTP 200 |
+
+`PUBLIC_ACCESS` is still `true` at `worker/index.ts:298`, so the Worker serves
+every request without a login. **Putting a password on Netlify therefore does
+not protect the deck**, because the Cloudflare URL is the same content with no
+gate at all, and it is the link that has been shared.
+
+To close it: set `PUBLIC_ACCESS = false`, confirm `SITE_PASSWORD` is set on the
+Worker (`npx wrangler secret list`), and redeploy. Do not assume the two
+passwords are the same; they are separate systems.
+
+**And do not read a Netlify check as a content check while it is gated.** A
+scripted verify against a 401 page finds no old copy and reports clean, which
+is a FALSE PASS: it proved only that the gate page lacks the string.
 
 > ### Before you run any deploy command
 >
