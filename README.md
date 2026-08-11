@@ -29,7 +29,7 @@ Converted from the Hamilton Island Standard Accelerator on 2026-07-31: the shell
 
 **Lyka:** all of it. The brand system, the colour architecture in `data/brand.ts`, both audience pages, Ten Things, the media plan (from the client briefing workbook, 2026-08-05) and APEX (from the APEX tool's Lyka Roy Morgan pull, 2026-08-07). The four-stage ladder (Unaware, Curious, Considering, Ready) comes from Roy Morgan Single Source profile exports. Every persona bullet and every journey cell is transcribed verbatim from the research, and all 50 journey scores are the study's own ratings. `personasData.ts` and `journeyDetailsData.ts` are both **generated** from the source documents rather than hand typed, so they cannot drift.
 
-**Ten Things has TWO sources and which governs depends on the point.** `Lyka - Ten Things (Dog-Owner Basis).html` governs points 02, 03, 05, 07 and 10, which divide by a population and were redrawn against Roy Morgan's dog owner counts. `Lyka - Ten Things The Data Says.html` still governs 01, 04, 06, 08 and 09, whose charts are byte identical across both files. Both are one folder up.
+**Ten Things has TWO sources and which governs depends on the point.** `Lyka - Ten Things (Dog-Owner Basis).html` governs points 02, 03, 05, 07 and 10, which divide by a population and were redrawn against Roy Morgan's dog owner counts. `Lyka - Ten Things The Data Says.html` still governs 01, 04, 06, 08 and 09, whose charts are byte identical across both files. Both are one folder up, in `01 Sources/`.
 
 **Still Hamilton Island:** nothing.
 

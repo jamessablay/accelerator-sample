@@ -38,7 +38,8 @@
 // hashing every embedded image, which is what confirms the split is exactly
 // 5 and 5 rather than an editorial choice about what to revisit.
 //
-// Both are in the project folder, one level up. Behind them: the Lyka customer
+// Both are in the project folder, one level up, in `01 Sources/` since the
+// 2026-08-11 reorganisation. Behind them: the Lyka customer
 // file by postcode, Roy Morgan Single Source Apr 2025 to Mar 2026 (dog owners,
 // people aged 14+), ABS Census 2021 on ABS ASGS 2021 boundaries, and for the
 // unchanged five the Lyka acquisition file to 29 Jun 2026, the Mutinex GrowthOS

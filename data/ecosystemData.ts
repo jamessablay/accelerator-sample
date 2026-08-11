@@ -1,8 +1,10 @@
 // -----------------------------------------------------------------------------
 // PLUGGING INTO THE ECOSYSTEM: all copy for the eighth page.
 //
-// Source of truth: `Plugging Into The Existing Ecosystem.html`, one folder up in
-// `Accelerator - Lyka/`. Every string below traces to that page. This is NOT a
+// Source of truth: `Plugging Into The Existing Ecosystem.html`, in
+// `Accelerator - Lyka/01 Sources/` (one folder up, then into that subfolder; the
+// sources were moved out of the flat wrapper folder on 2026-08-11).
+// Every string below traces to that page. This is NOT a
 // transcription of its markup: the content is recast for the app's house system
 // (the Notion Coworking Setup precedent). Never invent a claim not in the source.
 //

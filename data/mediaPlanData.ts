@@ -2,7 +2,8 @@
 // Interactive Media Plan data: the LYKA plan.
 //
 // Source of truth: "Interactive Media Plan Briefing Template for Lyka.xlsx"
-// (one folder above the app), sheet "Budget Distribution $ Lyka SPEE" for the
+// (one folder up, in `Accelerator - Lyka/01 Sources/` since the 2026-08-11
+// reorganisation), sheet "Budget Distribution $ Lyka SPEE" for the
 // numbers and the three VISIBLE "Media Description" sheets (SHOW IT, CHECK IT,
 // PROVE IT) for the pop-up copy. Hidden content was excluded per client
 // direction, exactly as on the Hamilton Island build: the hidden
@@ -121,8 +122,9 @@
 //
 // NOT FROM THE WORKBOOK, so the audit above will never find a source for these.
 // Expected, not dropped assets. All three came from the client on 2026-08-06, in
-// "Changes to the intereactive media plan.pptx" (Downloads) with loose PNG exports
-// beside it in the project folder. **PREFER THE DECK EMBED OVER THE LOOSE EXPORT
+// "Changes to the intereactive media plan.pptx" with loose PNG exports beside it.
+// Both now live in the project folder's `02 Client Feedback/`; the deck itself sat
+// in ~/Downloads until 2026-08-11. **PREFER THE DECK EMBED OVER THE LOOSE EXPORT
 // unless it is smaller**, because two of the three exports had lost resolution:
 //   nova-earworm.jpg    <- deck slide 10 embed, header cropped   1306x629 (export was 1039x501)
 //   we-mean-well.jpg    <- deck slide 12 embed, full frame       1672x941 (export was a 1163x603 crop)
@@ -131,7 +133,8 @@
 // TWO MORE CLIENT CREATIVES LANDED 2026-08-07, and they are the ones this manifest
 // would otherwise miss entirely, because both REPLACED A FILE IN PLACE:
 //   thriving-index.jpg  <- "Accelerator Feedback - For Aaron.pptx" slide 2 embed
-//                          (Downloads), 1499x929 cropped from a 1672x941 embed.
+//                          (`02 Client Feedback/`), 1499x929 cropped from a
+//                          1672x941 embed.
 //                          Was a 1536x1024 workbook mockup.
 //   nova-studio.jpg     <- the same deck, slide 3 embed, 1672x941 uncropped.
 //                          **Was a 738x738 WORKBOOK image**, so this row no longer

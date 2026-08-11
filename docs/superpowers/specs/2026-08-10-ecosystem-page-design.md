@@ -1,7 +1,7 @@
 # Plugging Into The Ecosystem: page design
 
 **Date:** 2026-08-10
-**Source:** `Plugging Into The Existing Ecosystem.html` (one folder up, in `Accelerator - Lyka/`)
+**Source:** `Plugging Into The Existing Ecosystem.html` (one folder up, in `Accelerator - Lyka/01 Sources/` since the 2026-08-11 reorganisation)
 **Status:** approved, ready to build
 
 ## What and why

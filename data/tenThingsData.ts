@@ -36,7 +36,8 @@
 // UNCHANGED on all ten. The new source says so explicitly, and it means the
 // argument and the recommendation did not move when the base did.
 //
-// Both sources are in the project folder, one level up. Every string below is a
+// Both sources are in the project folder, one level up, in `01 Sources/` since
+// the 2026-08-11 reorganisation. Every string below is a
 // source file's, with the house style pass applied:
 //
 //   - Em dashes removed. Replaced with a colon, a comma or a full stop.

@@ -2,6 +2,53 @@
 
 This file gives Claude Code the architecture, data model and known quirks for this app. The workspace-level `CLAUDE.md` two folders up has the cross-project map.
 
+> ## STATE AS OF 2026-08-11 (the project folder was reorganised)
+>
+> **No code changed. Comments and docs only**, across eight files. Typecheck (both
+> configs) and the production build are clean. But two things a code reader must
+> know, and one real factual correction landed inside the app.
+>
+> **1. EVERY `// Source of truth:` HEADER NOW POINTS INTO A SUBFOLDER.** The
+> project folder one level up was flat and is now four numbered folders. The
+> sources this app was generated and transcribed from are in
+> `Accelerator - Lyka/01 Sources/`, and the two client review decks are in
+> `02 Client Feedback/`. The headers in `ecosystemData.ts`, `mediaPlanData.ts`,
+> `tenThingsData.ts`, `tenThingsSeries.ts` and this file were updated. Anything
+> still saying only "in the project folder" is still TRUE, since a subfolder is
+> in the project folder, and was left alone.
+>
+> **2. `../worker-gate-and-tooling.patch` IS THE ONLY TRUE RELATIVE PATH OUT OF
+> THIS APP**, which is why the patch was deliberately left at the wrapper's top
+> level while everything else moved. Every other mention of an outside file in
+> this repo is prose location, not a path, so **a link checker would have called
+> that reorganisation safe when it was not.** If the patch ever has to move,
+> that reference is the thing to fix.
+>
+> ### The correction: `personaMedia.ts` described a file it no longer ships
+>
+> Its header said "Five Veo generated vignettes ... Each is 1080x1920 h264, 8
+> seconds, 24fps". **Four of the five.** Conflicted Troubleshooters was replaced
+> on 2026-08-10 (commit `2a06e7f`) with a grok vignette at **720x1280, 8.04s**,
+> and the comment was wrong from that day until ffprobing the five shipped files
+> caught it here. The wrapper's own inventory had the same defect and no row for
+> the replacement file at all.
+>
+> **The reusable point is why nothing caught it.** The replacement reused the
+> path, so the `PERSONA_VIDEOS` join still resolves, the file still exists, and
+> `__integrity.ts`'s `video/*` Content-Type check still passes. **Every guard here
+> asks whether a declared path resolves, and a swapped file passes all of them.**
+> Only measuring the file finds it, and "is this the right footage" is not a
+> property code can hold, so for a replacement the comment IS the check.
+>
+> ### Also
+>
+> `hamilton-island-media-plan/`, the Hamilton Island variant that used to sit
+> beside this app, was **deleted** after a full recursive diff including `dist/`
+> proved the copy at `RFI - Hamilton Island - Full Response/Standard Accelerator/`
+> identical (and a strict superset, holding a `.netlify/` folder this one lacked).
+> Nothing here imported from it. ⚠ Neither copy had a `.netlify/state.json`, so
+> that live site needs `netlify link` from the canonical folder before a deploy.
+>
 > ## STATE AS OF 2026-08-10, LATEST (Steph's review round: five pages)
 >
 > A client review round from Steph landed as one commit, `f5968ec`, pushed;
@@ -859,7 +906,7 @@ The curve recomputes from these strings, so replacing stages or scores needs no 
 
 ## Ten Things The Data Says page
 
-[pages/TenThings.tsx](pages/TenThings.tsx). Ported **2026-08-03**, then moved onto the **DOG OWNER BASIS on 2026-08-10**. There are now TWO sources, both one folder up, and which one governs depends on the point. See the next section before editing anything here.
+[pages/TenThings.tsx](pages/TenThings.tsx). Ported **2026-08-03**, then moved onto the **DOG OWNER BASIS on 2026-08-10**. There are now TWO sources, both one folder up in `01 Sources/`, and which one governs depends on the point. See the next section before editing anything here.
 
 A **one viewport 5 x 2 grid** of finding tiles, like Personas and Consumer Journey rather than the scrolling APEX page. Ten findings on one screen is the point of the page: you see the whole argument before opening any of it. Clicking a tile opens the shared Modal with the chart, five labelled blocks, the published numbers, and a stepper walks all ten.
 
@@ -1454,10 +1501,10 @@ colours of the coloured marks. If one of these is ever placed on a dark fill, th
 fringe becomes visible and the file needs a real matte, not a threshold.
 
 Originals were NOT kept beside the stripped files. A backup folder inside
-`public/` ships to `dist/`, and the workbook one folder up is the source of truth,
+`public/` ships to `dist/`, and the workbook one folder up in `01 Sources/` is the source of truth,
 so re-extraction is a few lines against `xl/media/`.
 
-**Source of truth:** `Interactive Media Plan Briefing Template for Lyka.xlsx`, one folder above the app. Only **visible** content was used, per the same client direction the Hamilton build followed: sheet `Budget Distribution $ Lyka SPEE` for the numbers and legend, the three visible `Media Description` sheets (SHOW IT, CHECK IT, PROVE IT) for the pop-up copy, and the visible channel tabs for the embedded creative (the tabs' TEXT is stale Hamilton template; only their images are Lyka). Excluded as hidden: the `$ Lyka` budget sheet (the superseded first pass, and the only place the in-house channels carry dollars, which is why green rows are flighting only), the TRY IT and SHARE IT description sheets, and the Australian Open Integration row. The **41** extracted images live in `public/images/` as kebab-case names, 16 JPEG and 25 PNG, and the 2-3MB photographic PNG mockups were re-encoded to ≤1920w JPEG q85. All Hamilton media plan creative and `public/media-plan/` were deleted with the rebuild.
+**Source of truth:** `Interactive Media Plan Briefing Template for Lyka.xlsx`, one folder above the app in `01 Sources/`. Only **visible** content was used, per the same client direction the Hamilton build followed: sheet `Budget Distribution $ Lyka SPEE` for the numbers and legend, the three visible `Media Description` sheets (SHOW IT, CHECK IT, PROVE IT) for the pop-up copy, and the visible channel tabs for the embedded creative (the tabs' TEXT is stale Hamilton template; only their images are Lyka). Excluded as hidden: the `$ Lyka` budget sheet (the superseded first pass, and the only place the in-house channels carry dollars, which is why green rows are flighting only), the TRY IT and SHARE IT description sheets, and the Australian Open Integration row. The **41** extracted images live in `public/images/` as kebab-case names, 16 JPEG and 25 PNG, and the 2-3MB photographic PNG mockups were re-encoded to ≤1920w JPEG q85. All Hamilton media plan creative and `public/media-plan/` were deleted with the rebuild.
 
 **SECOND SOURCE, and the workbook is no longer the whole story (2026-08-06).** The client review round arrived as `Changes to the intereactive media plan.pptx` and added **three images that are not in the workbook at all**, plus copy that departs from it in a dozen places. Media plan creative now stands at **44 files on disk, 42 WIRED**:
 
@@ -1767,7 +1814,7 @@ line's counts are unchanged.
 
 [pages/EcosystemFit.tsx](pages/EcosystemFit.tsx). Added 2026-08-10, recast from
 the standalone `Plugging Into The Existing Ecosystem.html` deliverable one folder
-up. A **scrolling** presentation page (`animate-fadeIn` + `pb-16 md:pb-24`), like
+up in `01 Sources/`. A **scrolling** presentation page (`animate-fadeIn` + `pb-16 md:pb-24`), like
 Notion Coworking Setup and on the same inline `Section` shell. It states SPEED's
 operating role: not to replace Lyka's existing team, data and measurement tools,
 but to plug into them and make the whole ecosystem work harder.
