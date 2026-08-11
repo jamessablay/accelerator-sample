@@ -375,10 +375,22 @@ const ChannelDetail: React.FC<ChannelDetailProps> = ({ row, layerKey }) => {
       {inHouse || row.budgetLabel ? (
         <div>
           <h3 className="text-base font-bold" style={{ color: accent.text }}>Flighting: {row.channel}</h3>
+          {/* The caption used to open "Active months, Oct to Sep, shaded by
+              presence." REMOVED on client direction 2026-08-11, because it was
+              WRONG on most rows: "Oct to Sep" was hardcoded and named the
+              PLAN's full span, not the row's own flighting, so PR & Morning
+              Shows read "Oct to Sep" above a strip with only Oct lit. The
+              client raised it on three rows; it is one shared string, so every
+              in house row carried the same defect.
+              Deleted rather than derived from `activeMonths`: the strip already
+              shows the months, labelled, so a sentence restating them is
+              redundant even when correct. Do not reinstate it without deriving
+              the range, and note a derived range would still mislead on a split
+              flight (Feb plus Sep is not "Feb to Sep"). */}
           <p className="text-sm italic text-[#5B6E64] mb-2">
             {inHouse
-              ? 'Active months, Oct to Sep, shaded by presence. Run by Lyka in house, so no SPEED media investment is shown.'
-              : `Active months, Oct to Sep, shaded by presence. Reported as ${row.budgetLabel.toLowerCase()}, so no monthly investment is charted.`}
+              ? 'Run by Lyka in house, so no SPEED media investment is shown.'
+              : `Reported as ${row.budgetLabel.toLowerCase()}, so no monthly investment is charted.`}
           </p>
           <div className="grid grid-cols-12 gap-1.5">
             {MONTHS.map((m, i) => {
