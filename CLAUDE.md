@@ -29,6 +29,32 @@ This file gives Claude Code the architecture, data model and known quirks for th
 > in a browser, and the seven nav items verified rendered at 1920x1080 with the
 > deck landing on Personas as before.
 >
+> ### ⚠ NETLIFY AUTO DEPLOYS FROM GITHUB. The "structural drift" note was wrong
+>
+> Three files claimed **no auto deploy exists on either host**, so every round
+> had to be pushed to Cloudflare and Netlify separately or one retired. **Half
+> of that is false and it was proved by accident here.** `git push` alone put
+> the new bundle on Netlify: minutes later both hosts served `index-XGKiujCI.js`
+> **byte identical** (`cmp` on both downloads, 718,606 bytes), with distinct
+> `Server: Netlify` and `Server: cloudflare` headers, and that hash did not
+> exist before this commit. So Netlify builds from `origin/lyka-main` on push.
+>
+> **Cloudflare is the one that needs the manual step** (`npm run deploy:cf`).
+> The practical rule inverts: push, then deploy Cloudflare, and the two are
+> level. Forget the second step and **Cloudflare is the stale one**, which is
+> the opposite of what the old note would have you check.
+>
+> This also explains the standing "both hosts are behind the branch" item: the
+> nav reorder sat undeployed from 2026-08-10 because **nothing had been pushed
+> since**, not because two manual deploys were being missed. It is resolved now.
+>
+> **One caveat that is not a defect.** Immediately after deploying, a browser
+> read Cloudflare's edge cache and still rendered eight nav items while `curl`
+> proved the origin correct. Both serve `Cache-Control: max-age=0,
+> must-revalidate`, so it clears on revalidation, but **verify a deploy with a
+> cache bypass or you can measure your own stale copy** and conclude the deploy
+> failed. That is exactly the wrong conclusion to reach at a client's desk.
+>
 > ## STATE AS OF 2026-08-11 (the project folder was reorganised)
 >
 > **No code changed. Comments and docs only**, across eight files. Typecheck (both
@@ -109,6 +135,9 @@ This file gives Claude Code the architecture, data model and known quirks for th
 > Keep them level: `npm run deploy:cf` only updates Cloudflare, and there is
 > still no auto deploy on either, so every round needs both pushed manually or
 > one of the two retired.
+>
+> **⚠ That last sentence is WRONG and was corrected on 2026-08-11. Netlify auto
+> deploys from GitHub; Cloudflare is the only manual one.** See the top block.
 >
 > ## STATE AS OF 2026-08-10 (media plan round 2 + first public deploy)
 >
@@ -2145,7 +2174,29 @@ No tests, no lint. **`npm run typecheck` runs both configs** and must be used ra
 
 ## Deploy
 
-**Nothing is currently deployed, by decision.** Both configs are ready but neither is linked.
+**The deck is LIVE AND PUBLIC on two hosts.** This section used to open
+"nothing is currently deployed, by decision", which has been false since
+2026-08-10.
+
+| Host | URL | How it updates |
+|---|---|---|
+| **Netlify** | https://speed-x-lyka-accelerator.netlify.app | **Automatic.** Builds from `origin/lyka-main` on push |
+| **Cloudflare Workers** | https://speed-x-lyka-accelerator.aaronzspeed.workers.dev | **Manual.** `npm run deploy:cf` |
+
+**So the routine is: `git push`, then `npm run deploy:cf`.** Skip the second and
+**Cloudflare** is the stale host. That is the opposite of what this file said
+until 2026-08-11, when a plain push was observed putting a new bundle on Netlify
+and both hosts were confirmed serving byte identical bundles under distinct
+`Server:` headers.
+
+**Verify a deploy with a cache bypass**, not a normal browser load. Right after
+a deploy, an edge cached copy rendered the PREVIOUS build while `curl` showed
+the origin correct. Both hosts send `Cache-Control: max-age=0,
+must-revalidate`, so it resolves on revalidation, but measuring your own stale
+copy looks exactly like a failed deploy.
+
+**Both are ungated:** `PUBLIC_ACCESS` in `worker/index.ts` bypasses the Worker
+password gate, so anyone with either link sees this confidential deck.
 
 > ### Before you run any deploy command
 >
@@ -2163,9 +2214,15 @@ netlify deploy --prod --dir=dist
 
 Netlify's site password is a paid feature. For a gated confidential deck, prefer the Cloudflare Worker below.
 
-Live: not deployed. Run `netlify link` and confirm the target site first.
+**You almost certainly do not need those commands.** Live at
+https://speed-x-lyka-accelerator.netlify.app and **deploying automatically from
+GitHub**: a plain `git push` triggers the build, verified 2026-08-11. This
+folder has **no `.netlify/state.json`**, so it is not linked from disk and the
+CLI route is not the path being used. The warning above still stands if you ever
+do link it.
 
-The site is linked to the SPEED Netlify team. There is no GitHub auto-deploy wired up yet, so pushing to `main` does not trigger a Netlify build. To enable: Netlify admin → Site configuration → Build & deploy → Continuous deployment → Link to GitHub. After that, plain `git push` deploys.
+(This paragraph previously said the opposite, that no auto deploy was wired up
+and pushing did not trigger a build. It does.)
 
 ### Cloudflare Workers
 
