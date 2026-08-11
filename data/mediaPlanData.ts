@@ -104,10 +104,15 @@
 //                              THE PLAN ENTIRELY on client direction 2026-08-10.
 //                              acast.png stays in public/images/, unreferenced.
 //                              Do not re-wire it: the row is gone, not the logo.
-//   Intergration [sic]      -> BBL & Cricket Integration Seven & TripleM, which
+//   Intergration [sic]      -> Cricket Integration Seven & TripleM (renamed
+//                              from "BBL & Cricket Integration Seven & TripleM"
+//                              on client direction 2026-08-11), which
 //                              is ONE ROW carrying what were two: the BBL live
 //                              moment + KFC BBL logo and the MMM booth + Triple M
 //                              logo (merged on client direction 2026-08-10).
+//                              [tab name != row name, and the row name no
+//                              longer names BBL either, though the KFC BBL logo
+//                              card stays: the T20 leg of the series IS the BBL]
 //                              It also REUSES seven.png from the Screens tab.
 //                              It reused sca.png too until 2026-08-06, when the
 //                              client removed that card; sca.png is still wired
@@ -605,18 +610,27 @@ const checkIt: PlanLayer = {
       // consumer facing brand. That brand is now IN THE ROW NAME, so the copy
       // below and the title agree for the first time. `sca.png` remains wired to
       // Always On Radio and nothing is orphaned.
-      channel: 'BBL & Cricket Integration Seven & TripleM',
+      // Renamed on client direction 2026-08-11: "BBL &" dropped from the front.
+      // The KFC BBL logo card STAYS, deliberately. The title no longer names BBL
+      // but the integration still runs across it: the client's own new copy says
+      // "the T20, ODI & Test series", and the T20 leg IS the BBL. Dropping the
+      // card to match the title would remove a partner the plan still buys.
+      channel: 'Cricket Integration Seven & TripleM',
       owner: 'speed',
       assets: 'Sponsorship | Segment',
       monthly: [0, 0, 1050000, 2050000, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 3100000,
       weight: [null, null, 'medium', 'heavy', null, null, null, null, null, null, null, null],
-      // BOTH SOURCE ROWS' COPY, VERBATIM AND BACK TO BACK, on the same reasoning
-      // as the merged Premium Linear row in SHOW IT: the client merged two lines
-      // and did not supply merged copy, and inventing a blended rationale would
-      // put agency writing in a field they read as theirs. `metrics` again lists
-      // the union, with MMM's three terms lowercased to sit mid list. **Flagged;
-      // replace wholesale if the client sends a single merged rationale.**
+      // ⚠ PARTLY RESOLVED 2026-08-11. This row used to carry BOTH source rows'
+      // copy verbatim and back to back, because the client merged two lines and
+      // did not supply merged copy, and inventing a blend would put agency
+      // writing in a field they read as theirs. **They have now sent the blend
+      // for `comesToLife`**, which is the payoff for flagging the gap rather
+      // than filling it: the authored version is theirs, not ours.
+      //
+      // STILL BACK TO BACK: `assets`, `role` and `metrics`. `metrics` lists the
+      // union with MMM's three terms lowercased to sit mid list. Replace them
+      // wholesale if the client sends blends for those too.
       //
       // "LIVE COMMENTARY" in `strategyLink` is the client's 2026-08-06 wording,
       // not the workbook's "LIVE GAME". "game" is deliberately left standing in
@@ -626,7 +640,18 @@ const checkIt: PlanLayer = {
         assets: 'Seven sponsorship across Linear TV and BVOD; opening and closing billboards; squeezebacks; pull-throughs; segment sponsorship; bespoke cricket integration; masterbrand trilogy spot plan. Bespoke MMM integrated segment; James Brayshaw and Brad Haddin commentary; Seven TV integration linkage; social and audio cutdowns.',
         role: 'Deliver high reach and deep engagement with Lyka’s audience during the December to January category peak, increasing share of voice when purchase interest is highest. Create theatre of the mind and connect the radio and television ideas into one distinctive sporting moment across Seven and SCA.',
         strategyLink: 'TURN THE CHECK INTO A HIGH PERFORMANCE HABIT: Connect Poo, Pep and Polish with the visible signs of a high performing dog. BRING THE CHECK INTO THE LIVE COMMENTARY: Use the drama and familiarity of sports commentary to make Lyka’s high performance dog impossible to ignore.',
-        comesToLife: 'A bespoke spot emulates a cricket match before a dog intercepts the game and shows off their Pep and Polish. This is a high performance dog, just like the cricketers. The integration is supported by the full trilogy spot plan. The MMM sports telecast is interrupted when the Lyka dog enters the game. James Brayshaw and Brad Haddin expertly relay what is unfolding on the pitch, timed to link with the bespoke Lyka TV spot airing on Seven. The MMM team would add it into their socials.',
+        // CLIENT SUPPLIED, 2026-08-11, verbatim, and it is the blend the note
+        // above was waiting for on this row. It supersedes the back to back
+        // merge: the TV and audio halves are now one authored rationale, in TWO
+        // PARAGRAPHS (the blank line is load bearing, see ChannelDetail).
+        // Three substantive changes, not a tidy: the spot plan gains "high
+        // impact formats, billboards and the full trilogy in a dominant spot
+        // plan"; "MMM sports telecast" becomes "MMM cricket telecast" behind a
+        // new "Extending into audio," bridge; and the Seven linkage line is
+        // replaced by the series scope, "across the T20, ODI & Test series".
+        comesToLife:
+          'A bespoke spot emulates a cricket match before a dog intercepts the game and shows off their Pep and Polish. This is a high performance dog, just like the cricketers. The integration is supported by high impact formats, billboards and the full trilogy in a dominant spot plan.\n\n' +
+          'Extending into audio, the MMM cricket telecast is interrupted when the Lyka dog enters the game. James Brayshaw and Brad Haddin expertly relay what is unfolding on the pitch across the T20, ODI & Test series. The MMM team would add it into their socials.',
         metrics: 'Incremental reach; frequency; sponsorship awareness; integration engagement; completed BVOD views; brand recall; three step check recall; branded search; site visits; segment reach; social views; engagement.',
       },
       // ALL FIVE CARDS SURVIVE THE MERGE, regrouped into the house pattern this

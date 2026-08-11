@@ -269,7 +269,22 @@ const ChannelDetail: React.FC<ChannelDetailProps> = ({ row, layerKey }) => {
                   <div className="px-3 py-2.5 text-[11px] font-bold uppercase tracking-wide text-white flex items-start" style={{ backgroundColor: 'var(--lyka-teal-deep)' }}>
                     {label}
                   </div>
-                  <div className="px-3 py-2.5 text-sm text-[#143C33] leading-relaxed">{value}</div>
+                  {/* MULTI PARAGRAPH CELLS. A blank line in the source string
+                      starts a new paragraph. Rendering `{value}` raw made this
+                      silently impossible: HTML collapses the newlines, so a
+                      client's deliberate paragraph break arrived as a run on
+                      sentence and nothing failed. Added 2026-08-11 when the
+                      Cricket Integration row's Implementation copy came back
+                      from the client in two paragraphs.
+                      Single paragraph cells are unaffected: they split to one
+                      part and render exactly as before. */}
+                  <div className="px-3 py-2.5 text-sm text-[#143C33] leading-relaxed">
+                    {value!.split(/\n\s*\n/).map((para, pi, all) => (
+                      <p key={pi} className={pi < all.length - 1 ? 'mb-2' : undefined}>
+                        {para.trim()}
+                      </p>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
