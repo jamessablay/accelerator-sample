@@ -6,7 +6,6 @@ import PeopleIcon from './icons/PeopleIcon';
 import MenuIcon from './icons/MenuIcon';
 import ChevronLeftIcon from './icons/ChevronLeftIcon';
 import CalendarAltIcon from './icons/CalendarAltIcon';
-import BusinessDashboardIcon from './icons/BusinessDashboardIcon';
 import ConsumerJourneyIcon from './icons/ConsumerJourneyIcon';
 import ApexIcon from './icons/ApexIcon';
 import TenThingsIcon from './icons/TenThingsIcon';
@@ -29,7 +28,10 @@ const navItems = [
   // LANDING PAGE is still Personas (App.tsx); nav order and landing page are
   // independent decisions.
   { page: Page.TEN_THINGS, icon: <TenThingsIcon />, label: 'Ten Things The Data Says' },
-  { page: Page.BUSINESS_DASHBOARD, icon: <BusinessDashboardIcon />, label: 'Business Dashboard' },
+  // Business Dashboard sat here until 2026-08-11, when it was removed on client
+  // direction. It never held Lyka data, only an "awaiting data connection"
+  // empty state, so the deck now opens on evidence and goes straight to the
+  // audience rather than through an empty page.
   { page: Page.PERSONAS, icon: <PeopleIcon />, label: 'Personas' },
   { page: Page.CUSTOMER_JOURNEY, icon: <ConsumerJourneyIcon />, label: 'Consumer Journey' },
   { page: Page.APEX_BY_SPEED, icon: <ApexIcon />, label: 'APEX by SPEED' },

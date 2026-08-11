@@ -2,6 +2,33 @@
 
 This file gives Claude Code the architecture, data model and known quirks for this app. The workspace-level `CLAUDE.md` two folders up has the cross-project map.
 
+> ## STATE AS OF 2026-08-11, LATEST (Business Dashboard was removed)
+>
+> **The deck is SEVEN pages.** On client direction, Business Dashboard is gone:
+> the page, its icon, the `Page` enum member, the nav entry and the `App.tsx`
+> switch case. Anything below this block that counts eight pages, or that
+> explains how to wire a Power BI URL into it, is superseded.
+>
+> **It was the only page that never carried Lyka data.** `REPORT_URL` was
+> `null` because the inherited Power BI embed belonged to **another client** and
+> was deleted at conversion, so the page only ever rendered an "awaiting data
+> connection" empty state. Removing it does not lose a Lyka asset.
+>
+> **The removal was cheap for a reason worth knowing before adding a page: this
+> app has NO URL routing.** `activePage` is `useState`, never read from
+> `location`, so a `Page` member is reachable only through the nav array.
+> Deleting one therefore cannot break a deep link, a bookmark or a shared URL,
+> which is exactly the audit a router based deck would have needed. The flip
+> side is that nothing in this deck is linkable, which is why the two variant
+> switchers had to invent their own `?pv=` / `?jv=` params.
+>
+> Restoring it is a page add, the eight places listed under "Routing", from git
+> history at `7d3233b~1`.
+>
+> Gates: typecheck (both configs), the production build, `[data integrity] ok`
+> in a browser, and the seven nav items verified rendered at 1920x1080 with the
+> deck landing on Personas as before.
+>
 > ## STATE AS OF 2026-08-11 (the project folder was reorganised)
 >
 > **No code changed. Comments and docs only**, across eight files. Typecheck (both
@@ -582,7 +609,6 @@ A SPEED Standard Accelerator for **Lyka** (fresh, human grade dog food, direct t
 - **Consumer Journey**: 5 segment-specific six-stage journeys, each with an emotional + rational score line over time.
 - **Interactive Media Plan**: the real Lyka plan since 2026-08-05. A 5-stage macro block grid (SHOW IT to SHARE IT), 20 channels over Oct→Sep, every bar owned by SPEED (red) or Lyka in house (green) with a legend at the foot, Chart.js pop-ups. See "Interactive Media Plan page".
 - **APEX by SPEED**: the channel scorecard, real Lyka since 2026-08-07. View tabs (About | True Net Worth Index | Growth Quadrant) over two Roy Morgan audiences (Conflicted Troubleshooters, Mindful Researchers), 14 channels each.
-- **Business Dashboard**: a designed empty state awaiting a Lyka Power BI report.
 - **Ten Things The Data Says**: ten findings in a one viewport 5 x 2 grid, each opening a modal with a Chart.js chart, five labelled blocks and the published numbers. Real Lyka. Ported 2026-08-03, then moved onto the **dog owner basis** on 2026-08-10, which is why it now cites TWO sources: five points divide by a population and were redrawn against Roy Morgan's dog owner counts, five do not and are unchanged.
 - **Notion Coworking Setup**: added 2026-08-10. A scrolling presentation page proposing a shared Lyka × SPEED Notion workspace both teams and both Claudes keep current. Six sections (the problem, the shared-space hub, four content pillars, how it works, why it compounds + privacy, scattered → shared + a dark closing band). Pure DOM/CSS visuals, static + hover, one IntersectionObserver reveal. Reuses `OWNER_COLORS` (green Lyka / red SPEED) for the two-party split. Second to last in the nav. See "Notion Coworking Setup page".
 - **Plugging Into The Ecosystem**: added 2026-08-10. A scrolling presentation page recasting the standalone `Plugging Into The Existing Ecosystem.html` deliverable: SPEED's operating role, to plug into Lyka's existing team, data and measurement tools rather than replace them. Header hero, a hub diagram (four cards fanning into a central `Lyka's ecosystem` hub with measured curved SVG connector ties, `lg` only), four numbered pillars, a light principle band and a dark outcome band. DOM cards + a decorative SVG tie overlay, static + hover. Last in the nav. See "Plugging Into The Ecosystem page".
@@ -605,12 +631,11 @@ There is **no router**. Navigation is a `Page` enum in [types.ts](types.ts) cons
 
 ## Routing model
 
-Eight pages:
+Seven pages (Business Dashboard was removed on 2026-08-11):
 
 ```ts
 // types.ts
 export enum Page {
-  BUSINESS_DASHBOARD = 'Business Dashboard',
   TEN_THINGS = 'Ten Things The Data Says',
   PERSONAS = 'Personas',
   CUSTOMER_JOURNEY = 'Consumer Journey',
@@ -624,12 +649,12 @@ export enum Page {
 **Adding a page touches exactly eight places**, and nothing else in the app needs to know: `types.ts` (the enum), a new `components/icons/*Icon.tsx` (the sidebar renders `{item.icon}` unconditionally, so a missing icon is a blank cell), the page component, two edits in `App.tsx` (import and switch case), two in `Sidebar.tsx` (import and `navItems`), then `metadata.json`.
 
 - **Personas** is the default landing page.
-- **All eight nav items open their pages.** APEX was the last one held back (a placeholder behind `?show=all`); it opened on 2026-08-07. The hold-back pattern (`SHOW_ALL` const + `PendingSection` shell) is in git history at `4bba5cf` if a future section needs it. Notion Coworking Setup was added 2026-08-10 and opened directly.
+- **All seven nav items open their pages.** APEX was the last one held back (a placeholder behind `?show=all`); it opened on 2026-08-07. The hold-back pattern (`SHOW_ALL` const + `PendingSection` shell) is in git history at `4bba5cf` if a future section needs it. Notion Coworking Setup was added 2026-08-10 and opened directly.
 - **Sidebar order differs from the enum order.** The visible nav order is set by the `navItems` array in [components/Sidebar.tsx](components/Sidebar.tsx), where **APEX by SPEED sits above Interactive Media Plan** (the two were swapped). The `Page` enum order above is just the enum definition, not the rendered order.
 - **Ten Things sits FIRST in the nav** (on request 2026-08-10). It has now held every slot this deck has tried: it shipped second (the findings set up the audience model), moved below the media plan on 2026-08-04 (lead with the audience, close on the evidence), and leads the deck since 2026-08-10. The rendered order is the `navItems` array, so moving it is a one line change and nothing else needs to know. **The default landing page is still Personas**: nav order and landing page are independent decisions, and moving the button did not change what the deck opens on.
 - **Notion Coworking Setup sits second to last** (added 2026-08-10). It is a ways of working proposal, not an audience or media page.
 - **Plugging Into The Ecosystem sits last** (added 2026-08-10). SPEED's operating role, a positioning page, so it closes the deck after the ways of working page.
-- **Business Dashboard** is a designed empty state. It previously embedded a Power BI report belonging to **another client**, which was removed. To wire Lyka's report, set `REPORT_URL` at the top of [pages/BusinessDashboard.tsx](pages/BusinessDashboard.tsx) to a publish-to-web `app.powerbi.com/view?r=...` URL and the iframe renders in place of the empty state.
+- **Business Dashboard was REMOVED on 2026-08-11**, on client direction, and with it `pages/BusinessDashboard.tsx`, `components/icons/BusinessDashboardIcon.tsx`, the enum member, the nav entry and the switch case. It was the only page that never carried Lyka data: its Power BI slot was `REPORT_URL = null` because the inherited embed was **another client's** report and was deleted at conversion, so it only ever rendered an "awaiting data connection" empty state. **Restoring it is a page add** (the eight places listed above) using git history at `7d3233b~1`. Nothing else referenced it: there is no URL routing in this app, so removing a `Page` member broke no deep link, and `__integrity.ts` never asserted on the enum.
 - **Interactive Media Plan** is the Lyka Oct→Sep macro block plan. A funnel-stage grid of five stages (SHOW IT | CHECK IT | PROVE IT | TRY IT | SHARE IT) and 20 channels with monthly gantt flighting bars and Budget + % columns, fed by [data/mediaPlanData.ts](data/mediaPlanData.ts). **Bars are OWNER coloured** (green = Lyka in house, red = SPEED managed, keyed by the legend at the foot of the grid); rails and both budget charts stay stage coloured. In-house rows are flighting only: no dollars anywhere, "In house" in the Budget column. Clicking a gantt bar opens a channel pop-up (ownership strip, rationale + dark-label execution table, an **Examples** creative gallery, then a flighting chart for SPEED rows or an active-months strip for in-house rows). The gold **Budget** header opens a stacked-by-media monthly bar chart **with the workbook's planned flighting weight as a dashed overlay**, the **%** header opens a budget-allocation pie; both filter to funded rows. A bottom line states the $11.0M SPEED managed total. Uses Chart.js via `react-chartjs-2`. Components live in [components/mediaplan/](components/mediaplan/). With 23 rows the grid is taller than one viewport at 1440; the page scrolls rather than clips.
 - **APEX by SPEED** is the channel scorecard. Real Lyka since 2026-08-07; see "The APEX page".
 

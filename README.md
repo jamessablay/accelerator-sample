@@ -12,16 +12,21 @@ npm run preview
 npm run typecheck  # app + worker. The only gate: no tests, no lint.
 ```
 
-## Six pages
+## Seven pages
+
+Every page carries real Lyka content. Business Dashboard was removed on
+2026-08-11 on client direction: it was the one page that never held Lyka data,
+rendering only an "awaiting data connection" empty state.
 
 | Page | Content | State |
 |---|---|---|
-| Business Dashboard | — | Designed empty state, awaiting a Lyka Power BI report |
 | **Ten Things The Data Says** | **Real Lyka** | Ten findings in a one viewport 5 x 2 grid, on the **dog owner basis** since 2026-08-10. Each opens a stepper modal with a Chart.js chart, five labelled blocks and the published numbers. |
 | **Personas** | **Real Lyka** | 3-layer SVG sunburst. 5 personas across a 4-stage readiness ladder. Default landing page. |
 | **Consumer Journey** | **Real Lyka** | 5 journeys (one per persona) x 5 Transtheoretical stages, with the study's own emotional and rational scores. |
-| **Interactive Media Plan** | **Real Lyka** | Macro block grid with Chart.js pop-ups, from the client briefing workbook. 5 stages, 20 channels, $11.0M SPEED managed. |
+| **Interactive Media Plan** | **Real Lyka** | Macro block grid with Chart.js pop-ups, from the client briefing workbook. 5 stages, 19 channels, $11.0M SPEED managed. |
 | **APEX by SPEED** | **Real Lyka** | Channel scorecard. View tabs over 2 Roy Morgan audiences, 14 channels each. |
+| **Notion Coworking Setup** | **Real Lyka** | Scrolling page proposing a shared Lyka x SPEED Notion workspace. Six sections, pure DOM/CSS visuals. |
+| **Plugging Into The Ecosystem** | **Real Lyka** | Scrolling page on SPEED's operating role: plug into Lyka's existing team, data and tools rather than replace them. |
 
 ## What is Lyka and what is not
 

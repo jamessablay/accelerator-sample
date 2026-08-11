@@ -5,18 +5,20 @@ import Sidebar from './components/Sidebar';
 import Personas from './pages/Personas';
 import CustomerJourney from './pages/CustomerJourney';
 import InteractiveMediaPlan from './pages/InteractiveMediaPlan';
-import BusinessDashboard from './pages/BusinessDashboard';
 import ApexBySpeed from './pages/ApexBySpeed';
 import TenThings from './pages/TenThings';
 import NotionCoworkingSetup from './pages/NotionCoworkingSetup';
 import EcosystemFit from './pages/EcosystemFit';
 import { Page } from './types';
 
-// All six sections are live. APEX by SPEED was the last one held back (behind a
-// `SHOW_ALL` / `?show=all` switch here) and opened on 2026-08-07 when its Lyka
+// All SEVEN sections are live. APEX by SPEED was the last one held back (behind
+// a `SHOW_ALL` / `?show=all` switch here) and opened on 2026-08-07 when its Lyka
 // Roy Morgan pull landed. The hold-back pattern, if ever needed again, is in
 // git history: pages/PendingSections.tsx + components/shared/PendingSection.tsx
 // plus one ternary in renderPage().
+//
+// Seven, not eight: Business Dashboard was removed on 2026-08-11 (see types.ts).
+// There is no URL routing here, so removing a Page member breaks no deep link.
 
 const App: React.FC = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
@@ -53,8 +55,6 @@ const App: React.FC = () => {
 
   const renderPage = () => {
     switch (activePage) {
-      case Page.BUSINESS_DASHBOARD:
-        return <BusinessDashboard />;
       case Page.TEN_THINGS:
         return <TenThings />;
       case Page.PERSONAS:
