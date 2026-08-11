@@ -132,7 +132,14 @@ const BudgetBreakdownChart: React.FC = () => {
         },
         tooltip: {
           callbacks: {
-            label: (c) => `${c.dataset.label}: $${Number(c.parsed.y).toLocaleString('en-AU')}`,
+            // ROUNDED. One row (Cricket Integration) carries the client's own
+            // monthly figures to the cent, and this was the only place in the
+            // plan that would have printed them: every other money site either
+            // rounds already (`money()` in ChannelDetail) or only ever shows an
+            // integer (the Budget column, the $k column totals). Whole dollars
+            // is the plan's convention, so round here rather than let one row
+            // display "$1,613,070.36" beside eighteen whole dollar rows.
+            label: (c) => `${c.dataset.label}: $${Math.round(Number(c.parsed.y)).toLocaleString('en-AU')}`,
             // Total the spend stack only: the flighting overlay is a reference
             // line, not spend, and must not inflate the footer.
             footer: (items) => {
@@ -140,7 +147,7 @@ const BudgetBreakdownChart: React.FC = () => {
                 (s, it) => s + (it.dataset.stack === 'spend' ? Number(it.parsed.y || 0) : 0),
                 0,
               );
-              return `Total: $${total.toLocaleString('en-AU')}`;
+              return `Total: $${Math.round(total).toLocaleString('en-AU')}`;
             },
           },
         },

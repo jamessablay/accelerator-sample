@@ -12,9 +12,14 @@
 // description sheets (their stages keep their visible budget rows but carry no
 // description copy), and the hidden "Australian Open Integration" row.
 //
-// ONE EXCEPTION TO THAT RULE EXISTS AND IS A KNOWN PROBLEM: `FLIGHTING_PCT` was
-// taken from the hidden sheet, and it contradicts the visible plan. Read the
-// block comment on it before trusting or re-deriving the dashed overlay.
+// THAT EXCLUSION RULE NO LONGER HAS ANY EXCEPTIONS. `FLIGHTING_PCT` was the one
+// hidden sheet import and it did contradict the visible plan. On client
+// direction 2026-08-10 it became DERIVED from the plan's own monthly grand
+// totals, so the dashed overlay now reproduces the bars exactly and re-levels
+// itself whenever a row is re-phased. **If the overlay moves, that is it
+// working**, not the old defect resurfacing: the 2026-08-11 Cricket re-phase
+// moved January from 29.955% to 23.962% for exactly that reason. Read the block
+// comment on it before re-deriving the overlay.
 //
 // The plan year runs October -> September. Values are AUD.
 //
@@ -45,7 +50,19 @@
 //
 // The workbook's own monthly grand-total row omits PROVE IT (its stage-total
 // row has no monthly cells), so monthly totals here are DERIVED from rows.
-// January is $3,295,000, not the sheet's stated $3,200,000.
+// That derivation is why re-phasing a row needs no other edit.
+//
+// MONTHLY GRAND TOTALS, as at 2026-08-11 (derive them, never copy this list):
+//   Oct   310,903.62   Nov 1,295,162.66   Dec 1,778,070.36   Jan 2,635,863.36
+//   Feb 1,190,000      Mar   570,000      Apr to Aug 545,000 each   Sep 495,000
+// January was 3,295,000 until the client re-phased the Cricket row on
+// 2026-08-11, spreading it Oct through Jan. It is the only month that has ever
+// been quoted in these docs, so it is the one most likely to be stale elsewhere.
+//
+// ⚠ THE PLAN NOW CARRIES CENTS, on one row only (Cricket Integration). Oct to
+// Jan are the client's own figures to the cent and they sum to exactly
+// 3,100,000 in IEEE-754, so no total drifts. Money DISPLAY rounds everywhere,
+// so nothing renders a decimal.
 //
 // Copy hygiene applied while porting: the xlsx's mojibake em dashes and curly
 // quotes were replaced per house style (no em dashes), hyphenated compound
@@ -618,9 +635,37 @@ const checkIt: PlanLayer = {
       channel: 'Cricket Integration Seven & TripleM',
       owner: 'speed',
       assets: 'Sponsorship | Segment',
-      monthly: [0, 0, 1050000, 2050000, 0, 0, 0, 0, 0, 0, 0, 0],
+      // CLIENT SUPPLIED MONTHLY SPEND, 2026-08-11, verbatim including cents.
+      // The flight extends from Dec + Jan to Oct THROUGH Jan on the same
+      // instruction, which is why Oct and Nov are non zero here.
+      //
+      // ⚠ THE ROW TOTAL DID NOT MOVE, and that is the check that matters on a
+      // re-phased row: 10,903.62 + 85,162.66 + 1,613,070.36 + 1,390,863.36 is
+      // EXACTLY 3,100,000, with no floating point drift (verified, the IEEE-754
+      // sum is exactly the integer). So `budget` is untouched, CHECK IT still
+      // totals 5,700,000 and MEDIA_TOTAL is still 11,000,000. The client
+      // re-phased the money, they did not add or remove any.
+      //
+      // MONTHLY GRAND TOTALS DO MOVE, and FLIGHTING_PCT is derived from them,
+      // so the dashed overlay re-levels itself. January is no longer 3,295,000;
+      // see the header note.
+      //
+      // These are the only cents in the plan. Stored exact rather than rounded
+      // because they are the client's own figures and both readings happen to
+      // sum to 3,100,000, so rounding would have bought nothing and lost the
+      // audit trail. Display rounds instead: see `money()` in ChannelDetail and
+      // the budget chart tooltip.
+      monthly: [10903.62, 85162.66, 1613070.36, 1390863.36, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 3100000,
-      weight: [null, null, 'medium', 'heavy', null, null, null, null, null, null, null, null],
+      // Oct and Nov are NEW months and take the lightest rung: they are ramp in
+      // spend (10.9k and 85.2k against Dec and Jan's millions).
+      // Dec 'medium' and Jan 'heavy' are LEFT AS THE CLIENT SET THEM, and are
+      // deliberately not re-levelled even though Dec now carries more money
+      // than Jan. Shading here is an editorial presence weighting and provably
+      // not a function of spend (Cinema shades two identical $70,000 months
+      // differently), so re-levelling would invent a call nobody made. Same
+      // reasoning as the realestate.com.au row. **Flagged to the client.**
+      weight: ['light', 'light', 'medium', 'heavy', null, null, null, null, null, null, null, null],
       // ⚠ PARTLY RESOLVED 2026-08-11. This row used to carry BOTH source rows'
       // copy verbatim and back to back, because the client merged two lines and
       // did not supply merged copy, and inventing a blend would put agency
@@ -637,7 +682,10 @@ const checkIt: PlanLayer = {
       // `comesToLife`, where the dog "enters the game" and the substitution
       // would not read.
       detail: {
-        assets: 'Seven sponsorship across Linear TV and BVOD; opening and closing billboards; squeezebacks; pull-throughs; segment sponsorship; bespoke cricket integration; masterbrand trilogy spot plan. Bespoke MMM integrated segment; James Brayshaw and Brad Haddin commentary; Seven TV integration linkage; social and audio cutdowns.',
+        // "Seven TV integration linkage;" removed on client direction
+        // 2026-08-11. It was the MMM half's cross reference to the TV half, and
+        // it is redundant now that both halves are one authored rationale.
+        assets: 'Seven sponsorship across Linear TV and BVOD; opening and closing billboards; squeezebacks; pull-throughs; segment sponsorship; bespoke cricket integration; masterbrand trilogy spot plan. Bespoke MMM integrated segment; James Brayshaw and Brad Haddin commentary; social and audio cutdowns.',
         role: 'Deliver high reach and deep engagement with Lyka’s audience during the December to January category peak, increasing share of voice when purchase interest is highest. Create theatre of the mind and connect the radio and television ideas into one distinctive sporting moment across Seven and SCA.',
         strategyLink: 'TURN THE CHECK INTO A HIGH PERFORMANCE HABIT: Connect Poo, Pep and Polish with the visible signs of a high performing dog. BRING THE CHECK INTO THE LIVE COMMENTARY: Use the drama and familiarity of sports commentary to make Lyka’s high performance dog impossible to ignore.',
         // CLIENT SUPPLIED, 2026-08-11, verbatim, and it is the blend the note
@@ -694,7 +742,9 @@ const checkIt: PlanLayer = {
       // (Oct $200,000 / Nov $200,000), matching the client's own monthly split.
       // This moves $50,000 SHOW IT -> CHECK IT (SHOW IT 4,255,000 -> 4,205,000,
       // CHECK IT 5,650,000 -> 5,700,000); MEDIA_TOTAL is unchanged at
-      // $11,000,000 and January is still $3,295,000 (money moved Oct -> Nov).
+      // $11,000,000. (January was still $3,295,000 at the time of this edit;
+      // it is 2,635,863.36 since the Cricket row was re-phased on 2026-08-11.
+      // That later change did not touch this row.)
       monthly: [200000, 200000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       budget: 400000,
       weight: ['heavy', 'heavy', null, null, null, null, null, null, null, null, null, null],
@@ -878,7 +928,7 @@ const checkIt: PlanLayer = {
         assets: '30 second radio spots reinforcing the 3Ps check; Live topical DJ reads, on air segments throughout the year.',
         role: 'Remain a constant in Lyka’s most important channel and build personality and topicality in our biggest must win channel, using daily repetition to reinforce the check and build behavioural memory.',
         strategyLink: 'MAKE THE 3Ps A DAILY HABIT: Keep Poo, Pep and Polish front of mind as a simple check owners perform regularly.',
-        comesToLife: 'Run 30 second spots across breakfast, morning, afternoon and drive, seven days a week. Each exposure reminds dog owners to check Poo, Pep and Polish and consider whether their dog is truly thriving. Drive personality and topicality through Live reads and on air segments throughout the year to keep this topic in popular culture. The latter allows short term insights to change in and out throughout the year. Would seek to have 2 station buy for reach.',
+        comesToLife: 'Run 30 second spots across breakfast, morning, afternoon and drive, seven days a week. Each exposure reminds dog owners to check Poo, Pep and Polish and consider whether their dog is truly thriving. Drive personality and topicality through Live reads and on air segments throughout the year to keep this topic in popular culture. The latter allows short term insights to change in and out throughout the year. Would seek to have 2 station buy for reach, optimised by market.',
         metrics: 'BMAD reach; weekly reach; frequency; effective frequency; completed spots; three step check recall; brand awareness; branded search; site response uplift.',
       },
       images: ['/images/arn.png', '/images/sca.png', '/images/nova.png'],
