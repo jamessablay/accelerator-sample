@@ -65,7 +65,16 @@ const Lightbox: React.FC<LightboxProps> = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex cursor-zoom-out items-center justify-center bg-[#003D33]/92 p-6"
+      // BUG, shipped and invisible until the Tailwind build made it checkable:
+      // this backdrop was `bg-[#003D33]/92`, and 92 is not a step in Tailwind's
+      // opacity scale (it runs ...85, 90, 95, 100). A bare `/92` is a THEME
+      // LOOKUP, not an arbitrary value, so the utility was never generated and
+      // the overlay rendered with no background at all: an enlarged image
+      // floating over an unobscured page. The CDN did exactly the same thing,
+      // so this predates the build move.
+      //
+      // `/[0.92]` is the arbitrary form and cannot silently miss.
+      className="fixed inset-0 z-[9999] flex cursor-zoom-out items-center justify-center bg-[#003D33]/[0.92] p-6"
       onClick={onClose}
       role="dialog"
       aria-modal="true"

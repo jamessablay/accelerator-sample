@@ -6,15 +6,26 @@ import type { TenThing } from '../../data/tenThingsData';
 // -----------------------------------------------------------------------------
 // One tile in the 5 x 2 grid.
 //
-// THE HEADLINE IS THE FLEX CHILD, deliberately. It takes the slack so the
-// hairline and the stat below it land at the same height across a row, which is
-// what makes ten tiles read as one grid rather than ten boxes. The source page
-// did the same thing and its comment said why.
+// ⚠ REBUILT 2026-08-17 TO FIT. Ten findings on one screen is the point of this
+// page, and it had stopped being true: measured in Chrome across six viewports,
+// the grid overflowed its frame by 161px at 1920x1080 and by 650px at 1536x864,
+// and the ten hairlines that are supposed to sit within 1px of each other were
+// 37 to 54px apart. Everything below is a consequence of those measurements. The
+// numbers quoted are real, not derived.
 //
-// It uses `cardHeadline`, not `headline`. At 1440 with the sidebar expanded a
-// tile is about 200px wide and at 1280 it is about 170px, so the full argument
-// does not fit. The answer to "it does not fit" is to shorten the copy, never to
-// drop below the 14px prose floor in data/type.ts.
+// TWO ZONES, EACH OWNING ITS OWN PADDING. The card is `p-0`: the body pads
+// itself and the footer pads itself. That is what lets the footer carry a fill
+// to the tile edges without the negative margin trick, and what lets the two
+// zones step their padding at different breakpoints without the bleed and the
+// padding drifting out of agreement.
+//
+// THE HEADLINE IS THE FLEX CHILD. It takes the slack so the hairline and the
+// stat below it land at the same height across a row, which is what makes ten
+// tiles read as one grid rather than ten boxes.
+//
+// It uses `cardHeadline`, not `headline`. The full argument does not fit a
+// column of this width. The answer to "it does not fit" is to shorten the copy,
+// never to drop below the prose floor in theme/house.ts.
 //
 // NO CHART RENDERS HERE. Ten live Chart.js instances plus ten ResizeObservers on
 // page load is the wrong trade, and it is not what the source did either.
@@ -32,136 +43,179 @@ const TenThingsCard = React.forwardRef<HTMLButtonElement, TenThingsCardProps>(
       type="button"
       onClick={onOpen}
       aria-haspopup="dialog"
-      className="group relative flex h-full min-h-0 flex-col overflow-hidden rounded-xl border bg-white p-2.5 text-left transition-transform duration-300 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A7D68]"
-      style={{ borderColor: LYKA.mint, boxShadow: '0 1px 2px rgba(0,86,72,0.05)' }}
+      // The border is the hover affordance rather than the shadow doing all the
+      // work: this deck uses hairlines where other systems use elevation, so
+      // brightening the hairline to the accent is the move that belongs to it.
+      // Both are on `transition-colors`/`transform`, never on `all`, so the rail
+      // width animating alongside cannot drag layout properties with it.
+      className="group relative flex h-full min-h-0 flex-col overflow-hidden rounded-card border bg-white p-0 text-left shadow-sm transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-brand-accent-text hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+      style={{ borderColor: LYKA.mint }}
     >
       {/* THE RAIL CARRIES THE BASIS, AND IT COSTS NOTHING IN HEIGHT.
 
-          It was a hover only accent in TEN_THINGS.seriesInk. Since 2026-08-10 it
-          is permanent and coloured by which denominator the point divides by,
-          which is exactly what the source page encodes on its own 4px left
-          border. That placement was chosen over a pill in the badge row for one
-          measured reason: the grid has no `max-h` and no `min-h`, so rows size
-          from max content contribution and ANY new element grows all ten tiles.
-          A pill row costs about 18px a card, and at 1280x720 the frame already
-          scrolls.
+          Coloured by which denominator the point divides by, which is exactly
+          what the source page encodes on its own left border. That placement was
+          chosen over a pill in the badge row for one measured reason: the grid
+          has no `max-h` and no `min-h`, so rows size from max content
+          contribution and ANY new element grows all ten tiles.
 
           Colour alone is not a label, so the decode lives in two places that do
           have room: the legend beside the page h1, and the pill in the modal.
 
-          HOVER WIDENS IT RATHER THAN FADING IT IN, since it is now always
-          visible. Width, not colour, so the basis reading never changes under
-          the pointer, and `transition-all` on a 3px to 5px change moves nothing
-          else: the rail is absolutely positioned. */}
+          HOVER WIDENS IT RATHER THAN FADING IT IN, since it is always visible.
+          Width, not colour, so the basis reading never changes under the
+          pointer, and the rail is absolutely positioned so nothing reflows. It
+          spans both zones, which is why it is on the card and not on the body. */}
       <span
         aria-hidden="true"
-        className="absolute inset-y-0 left-0 w-[3px] rounded-l-xl transition-all duration-300 group-hover:w-[5px] group-focus:w-[5px]"
+        className="absolute inset-y-0 left-0 z-10 w-1 transition-[width] duration-300 group-hover:w-1.5 group-focus-visible:w-1.5"
         style={{ backgroundColor: BASIS_COLORS[point.basis].mark }}
       />
 
-      <span className="mb-1.5 flex flex-shrink-0 items-center gap-2">
-        <span
-          className="grid h-6 w-6 flex-shrink-0 place-items-center rounded-md text-micro font-bold font-display"
-          style={{ backgroundColor: LYKA.tealDeepest, color: LYKA.pageBg }}
-        >
-          {point.id}
+      {/* ZONE 1: the finding, on white. */}
+      <span className="flex min-h-0 flex-1 flex-col px-tight pb-3 pt-tight">
+        <span className="mb-2 flex flex-shrink-0 items-center gap-2.5">
+          <span
+            className="grid h-6 w-6 flex-shrink-0 place-items-center rounded-control text-micro font-bold tabular-nums"
+            style={{ backgroundColor: LYKA.tealDeepest, color: LYKA.pageBg }}
+          >
+            {point.id}
+          </span>
+          <span
+            className="min-w-0 truncate text-micro font-bold uppercase font-mono"
+            style={{ letterSpacing: TRACKING.eyebrow, color: LYKA.muted }}
+          >
+            {point.category}
+          </span>
+          {/* THE OPEN AFFORDANCE. The tile is a button that opens a dialog and
+              nothing said so: the only cue was the cursor, which is invisible in
+              a screenshot and absent entirely to a keyboard user until focus
+              lands.
+
+              `aria-hidden` because `aria-haspopup="dialog"` on the button already
+              announces the behaviour; a second announcement would be noise.
+              `ml-auto` rather than absolute positioning so it can never overlap a
+              long category label, it just pushes against it. */}
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="ml-auto h-4 w-4 flex-shrink-0 -translate-x-1 opacity-0 transition-[opacity,transform] duration-300 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100"
+            style={{ color: LYKA.accentInk }}
+          >
+            <path d="M5 12h13M12 5l7 7-7 7" />
+          </svg>
         </span>
+
+        {/* Takes the slack, so the rule below lands level across the row.
+
+            CENTRED IN THAT SLACK, not pinned to the top. Pinned top, the
+            leftover reads as a hole; centred, the same space reads as generous.
+            Same fix and same reason as the market band heading in
+            ReadinessLadder.
+
+            ⚠ THE `2xl:text-figure` STEP IS GONE, AND IT WAS THE SINGLE WORST
+            THING ON THIS PAGE. It was calibrated when a `max-w` cap pinned the
+            tile at 272px from 1536 up. The cap was removed, so at 1536x864 the
+            tile is 218px wide and the step put 30px type into it: the headline
+            block alone measured 297px and the grid overflowed by 650px, its
+            worst reading of any viewport, INCLUDING the ones with less room.
+            The scale runs 16 / 18 / 22 now, and the step points are where the
+            column is actually wide enough to carry them.
+
+            `text-balance` is height neutral by definition: the algorithm
+            minimises the longest line SUBJECT TO the line count normal wrapping
+            would produce, so it redistributes words without adding or removing
+            one. What it buys is ten headlines that stop ending in a lone
+            orphaned word, which is most of what made the grid read as ragged.
+            Chrome ignores it past six lines, so the failure mode is a silent
+            no-op rather than a broken tile.
+
+            NOT `overflow-hidden`, and that is a fix rather than an omission. A
+            tight line height can make a line box SHORTER than the font's own
+            metrics, so the first line's inline box starts above this block and
+            the last line's ends below it whatever the line count. Measure ink,
+            not boxes, if this is revisited: a Range rect is the font metric box
+            and reports overflow that may not be inked. */}
         <span
-          className="truncate text-micro font-bold uppercase font-mono"
-          style={{ letterSpacing: TRACKING.eyebrow, color: LYKA.muted }}
+          className="flex min-h-0 flex-1 items-center text-balance text-lead font-semibold leading-snug"
+          style={{ color: LYKA.tealDeepest }}
         >
-          {point.category}
+          {point.cardHeadline}
         </span>
       </span>
 
-      {/* Takes the slack, so the rule below lands level across the row.
+      {/* ZONE 2: the evidence, on the secondary surface.
 
-          CENTRED IN THAT SLACK, not pinned to the top. A tile in the 5 x 2 grid
-          is about 203 x 339 at 1440, and a four line headline leaves roughly
-          120px over. Pinned top, that reads as a hole; centred, the same space
-          reads as generous. Same fix and same reason as the market band heading
-          in ReadinessLadder. */}
-      {/* `roomy:` (1400px) is the step up, NOT `xl:`. With the sidebar out, a
-          1280 viewport is the tightest layout this tile ever sees, about 10px of
-          slack on the worst card, and Tailwind's `xl:` fires at exactly 1280.
-          Using it would have enlarged the type precisely where there is no room.
-          See the screens note in index.html. */}
-      {/* NOT `overflow-hidden`, and that is a fix rather than an omission.
-
-          A line box is SHORTER THAN ITS OWN FONT METRICS here: `figure` sets
-          `line-height: 1`, and DM Sans wants about 1.29em (ascent 24px plus
-          descent 7px at 24px). So the first line's inline box starts about 4px
-          above this block and the last line's ends about 3px below it, whatever
-          the line count. That overflow was invisible while the box had 89px of
-          slack to absorb it. Once the grid became content sized the box fits its
-          line boxes exactly, `overflow-hidden` started clipping the metrics, and
-          measured against real ink the descender on the last line lost 2px.
-
-          The 3 to 4px lands in the 6px of empty margin above and below (the
-          badge row's `mb-1.5` and this block's `mt-1.5`), so nothing collides,
-          and the amount is a font constant rather than a function of the copy.
-          The CARD still clips, which is what `rounded-xl` and the absolute
-          accent rail need; this element does not have to.
-
-          Measure ink, not boxes, if this is ever revisited: a Range rect is the
-          font metric box and reports overflow that may not be inked, and
-          `TextMetrics.actualBoundingBoxDescent` is what settled it. */}
+          A FILL, NOT JUST A HAIRLINE, because at the top of the scale the
+          headline and the stat value are one step apart and an ink change alone
+          was not separating them. The finding reads on white and the proof reads
+          on ivory, so the two stop competing without either having to shrink.
+          Contrast on the new ground was checked rather than assumed:
+          `seriesInk` 4.70:1 and `muted` 5.05:1, both AA. */}
       <span
-        className="flex min-h-0 flex-1 items-center text-body font-semibold leading-snug lg:text-lead roomy:text-title 2xl:text-figure"
-        style={{ color: LYKA.tealDeepest }}
-      >
-        {point.cardHeadline}
-      </span>
-
-      <span
-        className="mt-1.5 block flex-shrink-0 border-t pt-1.5"
-        style={{ borderColor: LYKA.mint }}
+        className="block flex-shrink-0 border-t px-tight py-3"
+        style={{ borderColor: LYKA.mint, backgroundColor: LYKA.ivory }}
       >
         {/* ONE LINE. A stat value that wraps makes this block taller and lifts
             its hairline out of line with the rest of the row, which the label's
-            min height cannot compensate for. The tile is about 147px of content
-            width at 1280, so roughly 15 characters at this size. Shorten the
-            value rather than letting it wrap. */}
-        {/* `2xl:` HERE, but `roomy:` on the headline above, and the difference
-            is measured rather than arbitrary. The headline can wrap, so it grows
-            as soon as there is width to absorb it. This cannot wrap, so it can
-            only grow once the tile is at its WIDEST, which is what
-            `2xl:max-w-[1400px]` on the grid steps: 228px at `roomy:` to 272px
-            from 1536 up. (That used to read "which the grid cap pins at 228px";
-            the height cap is gone, the width cap does the same job here.)
+            min height cannot compensate for. Shorten the value rather than
+            letting it wrap.
 
-            Stepping it at `roomy:` was tried and broke a row: "Aggregate only"
-            is the one non numeric value here and at 24px in the 203px tile of a
-            1440 screen it took a second line, pushing this tile's stat block
-            82px to 106px and its hairline 24px out of line with its
-            neighbours. */}
+            IT STEPS NOW, and that is what makes the rule enforceable rather than
+            aspirational. At a flat `figure` 30 the longest value, "Aggregate
+            only" at 14 characters, needed about 224px inside a 122px column at
+            1280 and wrapped every time. */}
         <span
-          className="block text-title font-bold leading-tight font-display tabular-nums 2xl:text-figure"
+          className="block text-lead font-bold leading-tight tabular-nums roomy:text-title"
           style={{ color: TEN_THINGS.seriesInk }}
         >
           {point.statValue}
         </span>
-        {/* A MIN HEIGHT OF THE TALLEST LABEL, and it is what keeps the hairlines
-            level. The headline taking the slack is only half the job: the block
-            BELOW the rule also varies, because these labels wrap, and a taller
-            label pushes its rule up. Floor them all at the tallest and every
-            rule in a row lands at the same y. The source page did the same thing
-            with min-height on its own stat label.
+        {/* ⚠ THIS LABEL IS NO LONGER AN UPPERCASE MONO EYEBROW, AND THAT IS THE
+            FIX FOR THE HAIRLINES.
 
-            `4.05em` is three lines at `leading-snug` (3 x 1.35), `2.7em` is two.
-            The floor STEPS WITH THE TILE WIDTH, because the tallest label is a
-            function of the column: the longest is point 04's 52 characters, and
-            at `micro` 11px DM Mono with 0.08em tracking a column fits about 20
-            characters at 1280, 27 at `roomy:` and 33 from 1536 up. So it wraps
-            to three lines below 1536 and two at or above it.
+            Measured: the labels were taking FIVE lines at 1280 and four at 1440
+            against a floor set at four and three, so on every viewport below
+            1920 several tiles blew past the floor, their footers grew, and the
+            ten rules ended up 37 to 54px apart. The floor cannot be raised to
+            meet that, because the number of lines depends on the column width
+            and the column width depends on the viewport.
 
-            `2xl:` ONLY. At `roomy:` the width cap is still 1180, so a tile is
-            228px and 52 characters do not fit two lines; stepping it there
-            un-levels a row. If a label ever needs four lines at 1280, or three
-            at 1920, shorten the label rather than raising either value. */}
+            So the cause was removed instead. Uppercase DM Mono is the widest
+            text this deck can set: a monospace advance is uniform and wide, and
+            uppercase has none of the narrow lowercase forms. It is the right
+            face for a two word eyebrow, which is what the category above is, and
+            the wrong one for "retention across inner metro dwelling quartiles:
+            flat" at 53 characters. In `meta` 13 in the body face the same string
+            sets in roughly half the width.
+
+            THE FLOOR IS MEASURED, NOT DERIVED, and this is the one place a
+            `2xl:` step survives on this tile. Counting the label's own line
+            boxes, which ignore the floor, per tile per width:
+
+              1280  [2,2,3,3,3,3,3,2,3,3]   1440  [2,2,2,3,2,2,3,2,2,2]
+              1366  [2,2,3,3,3,2,3,2,3,3]   1536  [2,2,2,2,2,2,2,2,2,2]
+                                            1920  [1,1,2,2,2,2,2,1,2,2]
+
+            So three lines is real up to 1440 and dead weight from 1536, where
+            dropping the floor to two returns 18px per tile and 36px of grid.
+            Note 1440 needs the third line for exactly TWO tiles, 04 and 07,
+            whose labels are 53 and 51 characters; shortening those two to about
+            45 would let the step move down to `roomy:` and buy the same 36px
+            there. That is a copy decision, so it is flagged rather than taken.
+
+            ⚠ The other `2xl:` steps on this tile were removed for causing the
+            1536 blow up, and this one is the opposite case: it REDUCES height at
+            a width where the measurement says the content has already stopped
+            needing it. Do not read it as a licence to reintroduce the others. */}
         <span
-          className="mt-1 block min-h-[4.05em] text-micro uppercase font-mono leading-snug 2xl:min-h-[2.7em]"
-          style={{ letterSpacing: TRACKING.eyebrow, color: LYKA.muted }}
+          className="mt-1 block min-h-[3.9em] text-balance text-label leading-[1.3] 2xl:min-h-[2.6em]"
+          style={{ color: LYKA.muted }}
         >
           {point.statLabel}
         </span>

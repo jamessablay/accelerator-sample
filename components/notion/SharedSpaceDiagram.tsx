@@ -36,7 +36,7 @@ const SharedSpaceDiagram: React.FC = () => {
           className="flex-1 rounded-2xl px-6 py-6 text-center shadow-[0_18px_40px_-16px_rgba(0,86,72,0.28)]"
           style={{ backgroundColor: LYKA.tealDeepest }}
         >
-          <p className="text-lead font-display leading-tight text-white md:text-title">
+          <p className="text-lead leading-tight text-white md:text-title">
             {HUB.centre}
           </p>
           <p className="mx-auto mt-2 max-w-xs text-meta leading-relaxed text-white/75">

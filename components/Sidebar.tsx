@@ -55,16 +55,29 @@ const Sidebar: React.FC<SidebarProps> = ({ isExpanded, onToggle, activePage, set
          />
       )}
 
-      {/* Black sidebar, kept as the SPEED accelerator house chrome rather than
-          re-themed to Lyka teal. It also keeps the white drop-shadow glow on the
-          SPEED Accelerator logo below working as originally designed, which was
-          tuned against black.
+      {/* The sidebar ground is `--brand-nav-bg`, a near black tone DERIVED from
+          the client's darkest ink (see NAV_BG in theme/index.ts). It was a flat
+          `bg-black` until 2026-08-17.
 
-          The active nav pill stays #0A7D68 (--lyka-accent-ink): 5.1:1 for its
-          white label and clearly separated from black. Do not use #10B193 here,
-          which is only 2.7:1 for the label. */}
+          It is still house chrome and still recessive: the point is only that
+          the deck's furniture now belongs to the brand rather than sitting in a
+          neutral black that belongs to nothing. A MID brand tone here was tried
+          during the original shell pass and reverted, and the constraint below
+          is why that was right.
+
+          ⚠ THE BINDING CONSTRAINT IS THE ACTIVE PILL, NOT LEGIBILITY. The
+          selected item is filled with `--brand-accent-text` #0A7D68, so the
+          lighter this ground gets the less the pill separates from it: 4.15:1
+          against pure black, 3.39:1 against the derived tone, and under the 3:1
+          non-text floor for anything approaching a mid teal. Label contrast
+          moves the opposite way and is never what fails first, so eyeballing
+          "can I read the nav" answers the wrong question. __integrity check 16
+          asserts both halves.
+
+          Do not use #10B193 for the pill, which is only 2.7:1 for its label. */}
       <aside
-        className={`bg-black text-white transition-all duration-300 ease-in-out flex flex-col
+        style={{ backgroundColor: 'var(--brand-nav-bg)' }}
+        className={`text-white transition-all duration-300 ease-in-out flex flex-col
           ${isMobile ? 'fixed inset-y-0 left-0 z-40 shadow-2xl' : 'absolute inset-y-0 left-0 z-40'}
           ${isExpanded ? 'w-80' : 'w-20'}
           ${isMobile && !isExpanded ? '-translate-x-full' : 'translate-x-0'} 
@@ -103,7 +116,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isExpanded, onToggle, activePage, set
                       ? 'text-white'
                       : 'text-white/70 hover:bg-white/10 hover:text-white'
                   }`}
-                  style={activePage === item.page ? { backgroundColor: 'var(--lyka-accent-ink)' } : undefined}
+                  style={activePage === item.page ? { backgroundColor: 'var(--brand-accent-text)' } : undefined}
                   title={!isExpanded ? item.label : ''}
                 >
                   <div className="flex-shrink-0">{item.icon}</div>
@@ -129,7 +142,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isExpanded, onToggle, activePage, set
             <button
                 onClick={onToggle}
                 className="fixed bottom-6 left-6 z-50 p-4 text-white rounded-full shadow-[0_12px_28px_-12px_rgba(0,86,72,0.22)] focus:outline-none focus:ring-2 focus:ring-offset-2"
-                style={{ backgroundColor: 'var(--lyka-accent-ink)' }}
+                style={{ backgroundColor: 'var(--brand-accent-text)' }}
             >
                 <MenuIcon />
             </button>

@@ -514,7 +514,7 @@ const GapMatrix: React.FC<JourneyVizProps> = ({
                   Derived gap: emotional minus rational
                 </span>
                 <span
-                  className="font-display text-figure font-bold tabular-nums"
+                  className=" text-figure font-bold tabular-nums"
                   style={{ color: GAP_INK }}
                 >
                   {signed(openCell.score.gap)}

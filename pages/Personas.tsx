@@ -5,6 +5,7 @@ import PersonaDetail from '../components/personas/PersonaDetail';
 import XIcon from '../components/icons/XIcon';
 import { categoryData } from '../data/categoryData';
 import CategoryDetailComponent from '../components/personas/CategoryDetail';
+import PersonaLegend from '../components/personas/PersonaLegend';
 import VariantSwitcher from '../components/shared/VariantSwitcher';
 import { useVariant } from '../hooks/useVariant';
 import {
@@ -117,28 +118,51 @@ const Personas: React.FC = () => {
       <header className="flex-shrink-0 pb-2 md:pb-4 relative z-10">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            {/* Smaller on the wide views. The switcher and the Lyka wordmark take
-                the right of this row, and at 1280 the full size h1 wrapped to two
-                lines, which came straight out of the visualisation's height.
-                Wide is `display` (30) rather than the old text-4xl (36): the
-                header and the body copy compete for the same vertical, and 6px
-                here pays for most of the reading-floor lift below. */}
+            {/* The wide views step up LATER, not smaller, since 2026-08-17.
+
+                The constraint is unchanged and still real: the switcher and the
+                client wordmark take the right of this row, and at 1280 a full
+                size h1 wraps to two lines, which comes straight out of the
+                visualisation's height below. That is why the old code capped the
+                wide branch at `display`, which was 30 then.
+
+                `display` is 48 now, so simply keeping `md:text-display` would
+                land 48px at 1280 and reintroduce the wrap that the previously
+                rejected 36px caused. The step therefore moves to `roomy:`
+                (1400px), where the row has the width to carry it: 24 / 30 / 48.
+
+                The square view has no switcher competing for the row and its
+                wheel is sized from viewport HEIGHT, so it takes the full size at
+                `md:`.
+
+                ⚠ THE WIDE BRANCH IS NOW THE SAME CLASS STRING AS THE TEN THINGS
+                h1, CHARACTER FOR CHARACTER, and that is the point: those two
+                headings are meant to match and the only way to guarantee it is
+                for them to be the same string rather than two strings that
+                happen to agree. Sizes are unchanged where it matters, since the
+                stock steps were swapped for their token equivalents: `text-3xl`
+                and `text-figure` are both 30, and `roomy:text-display` is
+                untouched. Only the sub 768 step moves, 24 to 22, which this deck
+                never renders because the sidebar alone is 320. */}
             <h1
-              className={`font-display ${isSquare ? 'text-3xl md:text-5xl' : 'text-2xl md:text-display'}`}
-              style={{ color: 'var(--lyka-teal-deep)' }}
+              className={isSquare ? 'text-figure md:text-display' : 'text-title md:text-figure roomy:text-display'}
+              style={{ color: 'var(--brand-ink-deepest)' }}
             >
               Lyka Audience Architecture
             </h1>
+            {/* One size for both shapes now. The square branch was `text-sm`,
+                14, which is below the 16 prose floor in theme/house.ts and was
+                the only lede in the deck set under it. */}
             <p
-              className={`mt-1.5 max-w-3xl ${isSquare ? 'text-sm md:text-lg' : 'text-body md:text-lead'}`}
-              style={{ color: 'var(--lyka-muted)' }}
+              className="mt-1.5 max-w-3xl text-body md:text-lead"
+              style={{ color: 'var(--brand-ink-muted)' }}
             >
               Five personas across a four stage readiness ladder. {variant.hint}
             </p>
             {/* True of the wheel only, which is why it is conditional. The other
                 three views encode market share as size. */}
             {!variant.proportional && (
-              <p className="mt-1.5 text-meta max-w-3xl" style={{ color: 'var(--lyka-muted)' }}>
+              <p className="mt-1.5 text-meta max-w-3xl" style={{ color: 'var(--brand-ink-muted)' }}>
                 Quadrants are equal for legibility, not proportional to size. Real shares are on
                 every wedge and panel.
               </p>
@@ -177,19 +201,44 @@ const Personas: React.FC = () => {
           style={{ willChange: 'transform, opacity' }}
         >
           {isSquare ? (
-            <div
-              className={`relative transition-all duration-500 ease-in-out p-2 md:p-4 bg-white rounded-full shadow-[0_12px_28px_-12px_rgba(0,86,72,0.22)] border border-[#DBE6DC] aspect-square w-[90vw] max-w-[400px] md:w-[70vh] md:max-w-none md:max-h-[90%] ${
-                hasSelection ? 'md:w-[55vh]' : ''
-              }`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Viz
+            // THE LEGEND IS A SIBLING OF THE WHEEL, NOT AN OVERLAY, so the pair
+            // centres as one object. `xl:` because the column costs 300px plus
+            // its gap and the wheel is sized from viewport HEIGHT: at 1280 the
+            // content area is 896 and the pair needs about 836, which fits, and
+            // below that it does not.
+            //
+            // 300 IS MEASURED, NOT ROUND. At 260 the longest name, "Conflicted
+            // Troubleshooters" at 26 characters, truncated to "Conflicted
+            // Troubleshoo...", which defeats the point of the column: the wheel
+            // already abbreviates that persona and this is where the full name
+            // is supposed to be readable.
+            //
+            // IT HIDES WHEN A PANEL OPENS. The container already slides 30% left
+            // to make room for the panel, which would push the column off the
+            // edge, and the panel restates every field the column carries.
+            <div className="flex h-full w-full items-center justify-center gap-5 xl:gap-8">
+              <PersonaLegend
                 stages={stageMetrics}
                 selectedPersonaId={selectedPersona?.id ?? null}
-                selectedStageKey={selectedCategoryKey}
                 onSelectPersona={handleSelectPersona}
-                onSelectStage={handleSelectCategory}
+                className={`hidden w-[300px] flex-shrink-0 transition-opacity duration-300 xl:block ${
+                  hasSelection ? 'pointer-events-none opacity-0' : 'opacity-100'
+                }`}
               />
+              <div
+                className={`relative transition-all duration-500 ease-in-out p-2 md:p-4 bg-white rounded-full shadow-lg border border-brand-hairline aspect-square w-[90vw] max-w-[400px] md:w-[70vh] md:max-w-none md:max-h-[90%] ${
+                  hasSelection ? 'md:w-[55vh]' : ''
+                }`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Viz
+                  stages={stageMetrics}
+                  selectedPersonaId={selectedPersona?.id ?? null}
+                  selectedStageKey={selectedCategoryKey}
+                  onSelectPersona={handleSelectPersona}
+                  onSelectStage={handleSelectCategory}
+                />
+              </div>
             </div>
           ) : (
             // `fills` views take the whole box height; the SVG views keep
@@ -248,22 +297,22 @@ const Personas: React.FC = () => {
                 {selectedPersona && (
                   <div
                     key={selectedPersona.id}
-                    className="bg-white rounded-none md:rounded-2xl shadow-[0_18px_40px_-16px_rgba(0,86,72,0.28)] w-full h-full flex flex-col animate-fadeIn border-l md:border border-[#DBE6DC] overflow-hidden"
+                    className="bg-white rounded-none md:rounded-surface shadow-lg w-full h-full flex flex-col animate-fadeIn border-l md:border border-brand-hairline overflow-hidden"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="sticky top-0 bg-white/90 backdrop-blur-sm p-4 md:p-6 border-b flex justify-between items-center z-10">
                       <div className="pr-8">
-                        <h2 className="text-2xl md:text-3xl font-bold text-[#143C33] leading-tight">
+                        <h2 className="text-title md:text-figure text-brand-ink leading-tight">
                           {selectedPersona.name}
                         </h2>
                         {/* Wraps rather than truncates: in the narrower wide-view
                             panel the ellipsis was eating "customers", which is
                             half of the pairing the whole model turns on. */}
-                        <p className="text-body md:text-lead text-[#5B6E64] mt-1 leading-snug">{`${selectedPersona.stageLabel} | ${selectedPersona.marketShare} of market | ${selectedPersona.customerShare} of Lyka customers`}</p>
+                        <p className="text-body md:text-lead text-brand-ink-muted mt-1 leading-snug">{`${selectedPersona.stageLabel} | ${selectedPersona.marketShare} of market | ${selectedPersona.customerShare} of Lyka customers`}</p>
                       </div>
                       <button
                         onClick={handleCloseDetail}
-                        className="p-2 rounded-full bg-[#F0F2E9] text-[#5B6E64] hover:bg-[#DBE6DC] hover:text-[#143C33] transition-colors focus:outline-none focus:ring-2 focus:ring-[#0A7D68]"
+                        className="p-2 rounded-full bg-brand-surface-sunk text-brand-ink-muted hover:bg-brand-hairline hover:text-brand-ink transition-colors focus:outline-none focus:ring-2"
                         aria-label="Close details"
                       >
                         <XIcon />
@@ -287,19 +336,19 @@ const Personas: React.FC = () => {
                 {selectedCategoryData && (
                   <div
                     key={selectedCategoryKey}
-                    className="bg-white rounded-none md:rounded-2xl shadow-[0_18px_40px_-16px_rgba(0,86,72,0.28)] w-full h-full flex flex-col animate-fadeIn border-l md:border border-[#DBE6DC] overflow-hidden"
+                    className="bg-white rounded-none md:rounded-surface shadow-lg w-full h-full flex flex-col animate-fadeIn border-l md:border border-brand-hairline overflow-hidden"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="sticky top-0 bg-white/90 backdrop-blur-sm p-4 md:p-6 border-b flex justify-between items-center z-10">
                       <div className="pr-8">
-                        <h2 className="text-2xl md:text-3xl font-bold text-[#143C33] leading-tight">
+                        <h2 className="text-title md:text-figure text-brand-ink leading-tight">
                           {selectedCategoryData.title}
                         </h2>
-                        <p className="text-sm md:text-lg text-[#5B6E64] mt-1">Segment Deep Dive</p>
+                        <p className="text-body md:text-lead text-brand-ink-muted mt-1">Segment Deep Dive</p>
                       </div>
                       <button
                         onClick={handleCloseCategoryDetail}
-                        className="p-2 rounded-full bg-[#F0F2E9] text-[#5B6E64] hover:bg-[#DBE6DC] hover:text-[#143C33] transition-colors focus:outline-none focus:ring-2 focus:ring-[#0A7D68]"
+                        className="p-2 rounded-full bg-brand-surface-sunk text-brand-ink-muted hover:bg-brand-hairline hover:text-brand-ink transition-colors focus:outline-none focus:ring-2"
                         aria-label="Close details"
                       >
                         <XIcon />

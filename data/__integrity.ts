@@ -57,30 +57,19 @@ import {
 } from './journeyModel';
 import { PERSONA_VARIANTS, DEFAULT_PERSONA_VARIANT } from '../components/personas/variants';
 import { JOURNEY_VARIANTS, DEFAULT_JOURNEY_VARIANT } from '../components/journey/variants';
+import { compositeOnto, contrast, contrastVsWhite, luminance } from '../theme/contrast';
+import { NAV_BG } from '../theme';
 
 const TAG = '[data integrity]';
 
-/** Relative luminance per WCAG 2.x. */
-function luminance(hex: string): number {
-  const n = parseInt(hex.slice(1), 16);
-  const srgb = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => {
-    const s = c / 255;
-    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
-  });
-  return 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
-}
-
-/** Contrast ratio between any two hex colours. */
-function contrast(a: string, b: string): number {
-  const la = luminance(a);
-  const lb = luminance(b);
-  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
-}
-
-/** Contrast ratio of `hex` against pure white. */
-function contrastVsWhite(hex: string): number {
-  return contrast(hex, '#FFFFFF');
-}
+// The WCAG maths moved to theme/contrast.ts, which is where the palette that it
+// judges also lives. It used to be three private functions here, which meant the
+// checker and the design system could in principle disagree about what "4.5:1"
+// means. They cannot now.
+//
+// This file may import them freely: unlike data/brand.ts it is dev-only and
+// never reaches the Worker, so it carries none of the ES2022-and-no-DOM
+// constraints that the theme container itself has to honour.
 
 export function runIntegrityChecks(): void {
   const categoryKeys = new Set(Object.keys(categoryData));
@@ -1054,6 +1043,43 @@ export function runIntegrityChecks(): void {
     if (ratio < TEXT_FLOOR) {
       fail(`apex methodology "${src.key}": lighten(${src.accent}, 0.35) = ${barText} is ${ratio.toFixed(2)}:1 on the formula bar, below AA (${TEXT_FLOOR}:1). The pill label is unreadable unfocused.`);
     }
+  }
+
+  // 16. The sidebar ground, which is DERIVED from the client palette rather
+  //     than authored (see NAV_BG in theme/index.ts), so a re-skin can move it
+  //     without anyone looking at it.
+  //
+  //     ⚠ THE FIRST CHECK IS THE ONE THAT MATTERS AND IT IS COUNTERINTUITIVE.
+  //     The active nav item is a solid `accentText` pill on this ground, so the
+  //     LIGHTER the ground the LESS the pill separates: 4.15:1 on pure black,
+  //     3.39:1 on the derived Lyka tone, and under the 3:1 non-text floor for
+  //     anything approaching a mid brand teal. So the failure mode of "make the
+  //     sidebar more colourful" is that the SELECTED STATE quietly stops
+  //     reading, while the labels keep looking fine and nobody checks the pill.
+  //
+  //     Label contrast is asserted too, but it moves the opposite way and is
+  //     never what fails first. Both directions are pinned so the next person to
+  //     brighten this surface finds out immediately rather than in a meeting.
+  const navPillRatio = contrast(LYKA.accentInk, NAV_BG);
+  if (navPillRatio < NON_TEXT_FLOOR) {
+    fail(
+      `sidebar: the active pill ${LYKA.accentInk} is only ${navPillRatio.toFixed(2)}:1 on the nav ground ${NAV_BG}, ` +
+        `below the ${NON_TEXT_FLOOR}:1 non-text floor. The selected nav item stops reading as selected. ` +
+        `DARKEN the ground (raise NAV_DARKEN in theme/index.ts); do not brighten the pill, which would take it off brand.`,
+    );
+  }
+  // The inactive label is white at 70%, composited on the ground.
+  const navLabel = compositeOnto('#FFFFFF', 0.7, NAV_BG);
+  const navLabelRatio = contrast(navLabel, NAV_BG);
+  if (navLabelRatio < TEXT_FLOOR) {
+    fail(
+      `sidebar: inactive nav labels composite to ${navLabel}, only ${navLabelRatio.toFixed(2)}:1 on ${NAV_BG}, below AA.`,
+    );
+  }
+  // The pill's own white label, which is the one thing a lighter ground helps.
+  const navActiveRatio = contrast('#FFFFFF', LYKA.accentInk);
+  if (navActiveRatio < TEXT_FLOOR) {
+    fail(`sidebar: white on the active pill ${LYKA.accentInk} is ${navActiveRatio.toFixed(2)}:1, below AA.`);
   }
 
   if (problems === 0) {

@@ -68,7 +68,7 @@ const ApexMethodology: React.FC = () => {
               />
               <div className="pt-7 pb-6 px-5 md:px-6">
                 <div
-                  className="text-3xl md:text-4xl font-display tracking-wide leading-none"
+                  className="text-3xl md:text-4xl tracking-wide leading-none"
                   style={{ color: src.accent }}
                 >
                   {src.number}
@@ -160,7 +160,7 @@ const FormulaStaticPill: React.FC<{ label: string; sub: string; emphasised?: boo
 );
 
 const FormulaOp: React.FC<{ symbol: string }> = ({ symbol }) => (
-  <span className="text-xl md:text-2xl font-display text-white/60 select-none">{symbol}</span>
+  <span className="text-xl md:text-2xl text-white/60 select-none">{symbol}</span>
 );
 
 export default ApexMethodology;

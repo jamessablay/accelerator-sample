@@ -167,7 +167,7 @@ const LayerBlock: React.FC<{ layer: PlanLayer; onSelectChannel: (row: MediaRow) 
         title={layer.blurb}
       >
         <span
-          className={`font-display ${nameSize} whitespace-nowrap`}
+          className={` ${nameSize} whitespace-nowrap`}
           style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', color: railInk }}
         >
           {layer.key}

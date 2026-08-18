@@ -2,7 +2,132 @@
 
 This file gives Claude Code the architecture, data model and known quirks for this app. The workspace-level `CLAUDE.md` two folders up has the cross-project map.
 
-> ## STATE AS OF 2026-08-11, LATEST (Business Dashboard was removed)
+> ## STATE AS OF 2026-08-17, LATEST (the design system was containerised)
+>
+> **THE PALETTE NO LONGER LIVES IN `data/brand.ts`, AND `index.html` CARRIES NO
+> BRAND VALUES AT ALL.** Both are now derived from a new `theme/` container.
+> Anything below this block describing three hand synced colour surfaces, an
+> inline `tailwind.config` script, a `:root` mirror, or the Tailwind CDN is
+> superseded. Nothing visual changed: every hex is byte identical, and the whole
+> pass was verified against the gates listed at the end of this block.
+>
+> ### What the container is
+>
+> ```
+> theme/
+> ├── types.ts            the ClientTheme contract
+> ├── house.ts            SPEED constants: type scale, motion, elevation, radii,
+> │                       the roomy breakpoint, AGENCY.red
+> ├── contrast.ts         WCAG maths + lighten(), shared with __integrity
+> ├── clients/lyka.ts     Lyka's palette, typefaces and identity
+> ├── index.ts            THE ONE LINE A RE-SKIN CHANGES
+> ├── cssVars.ts          derives the :root block
+> └── tailwindPreset.ts   derives the Tailwind scale
+> ```
+>
+> **The split that matters is house against client.** `house.ts` is what every
+> deck inherits unchanged. `clients/*.ts` is what a re-skin replaces. The rule:
+> if you are editing `house.ts` for one client, the value belongs in that
+> client's file; if you are copying a value between two client files, it belongs
+> in `house.ts`.
+>
+> **Token names are SEMANTIC now, not hue names.** `tealDeepest` became
+> `inkDeepest`, `mint` became `hairline`, and so on, because `tealDeepest:
+> '#8B0000'` is what the old naming produces the moment a client's brand is red.
+> `data/brand.ts` still exports `LYKA` as a compatibility mapping, so all ~48
+> importers were untouched, which is why extracting the container could not
+> change a pixel. `data/type.ts` is likewise a re-export of `theme/house.ts`.
+>
+> **`SEGMENT_COLORS`, `LAYER_COLORS`, `OWNER_COLORS`, `TEN_THINGS`, the gap ramp
+> and `FOCUS` deliberately stayed in `data/brand.ts`.** They encode MEANING
+> rather than brand, and their keys are the client's own audience stages. Only
+> the base palette moved.
+>
+> ### Drift is now structurally impossible, not merely asserted
+>
+> The old arrangement kept the same fourteen hexes in three places with a comment
+> reading "change both together" and nothing enforcing it. `:root` and the
+> Tailwind scale are **generated** from the theme by the `speed-accelerator-theme`
+> plugin in `vite.config.ts`, in dev and in build alike. There is no second copy
+> left to drift, so there is no check to remember to run.
+>
+> ⚠ `index.html` now contains three placeholders, `<!--@theme:title-->`,
+> `<!--@theme:fonts-->` and `<!--@theme:css-->`. **Editing them by hand is the
+> one way to reintroduce the problem.**
+>
+> ### The Tailwind CDN is gone
+>
+> Real build, `tailwind.config.ts` + `postcss.config.js` + `styles/app.css`. The
+> CDN shipped a **JIT compiler to the browser** and generated the stylesheet at
+> runtime on every load, over a third party network path: a client whose network
+> blocked that CDN would have seen the deck **completely unstyled, in a meeting.**
+>
+> It also caused the documented `.font-mono` bug. Tailwind's default utility
+> loaded after the hand written rule and won at equal specificity, so 87 elements
+> across 24 files rendered in Consolas rather than DM Mono. **Tailwind owns
+> `font-display`, `font-sans` and `font-mono` now**, so the trap about never
+> declaring `fontFamily.display` no longer applies: with one owner there is no
+> race to lose.
+>
+> ⚠ **The CDN generated utilities on demand; a build only emits what its
+> `content` globs can SEE.** A missing utility renders as nothing at all, with no
+> error and no fallback, which usually looks like a deliberate design choice.
+> `npm run verify:css` exists for exactly this and is wired into `npm run verify`
+> and `deploy:cf`.
+>
+> **It found a real bug on its first run.** `bg-[#003D33]/92` on the Lightbox
+> backdrop had NEVER compiled, under the CDN either: a bare `/92` is a lookup in
+> `theme.opacity`, whose default scale runs 85, 90, 95, 100. The lightbox
+> backdrop has been shipping **fully transparent**. It is `/[0.92]` now.
+>
+> ### Two bugs that were fixed by construction
+>
+> - **The focus ring was Tailwind blue on 13 controls**, on a teal and cream
+>   deck, three of them pairing it with `ring-offset-2` and no offset colour,
+>   which paints a white halo on a cream page. `ringColor` and `ringOffsetColor`
+>   defaults in the preset repaired all 13 without touching a component.
+> - **The "one easing curve" rule never applied.** It was a `*` selector at
+>   specificity 0-0-0 against 25 `ease-*` utility classes at 0-1-0, so the
+>   utilities won regardless of order, and the comment beside it claimed the
+>   opposite. It is a `transitionTimingFunction` override now. The curve became a
+>   family of three (standard, decelerate, accelerate) rather than one, because a
+>   thing entering and a thing leaving should not decelerate identically.
+>
+> ### Pages are lazy, and the numbers are measured
+>
+> | | before | after |
+> |---|---|---|
+> | JS shipped before anything renders | **718.7 kB** (one chunk) | **202.4 kB** |
+> | Landing on Personas, total JS | 718.7 kB | **274.9 kB** |
+> | Chart.js on a page with no charts | yes | **no** |
+> | CSS | generated in the browser, every load | 43.6 kB static, 8.0 kB gzip |
+> | `index.html` | 12.1 kB | 3.0 kB |
+>
+> Safe **because there is no router**: `activePage` is state, the only way to
+> reach a page is the nav, and every transition is already a user gesture.
+> `manualChunks` is a FUNCTION, not the object form: the object form matches bare
+> specifiers and the app imports `react-dom/client`, so `'react-dom'` matched
+> nothing and 130 kB stayed in the entry. Chart.js is deliberately NOT named
+> there; naming it promoted it into the entry's static graph and made Vite
+> emit a `modulepreload` for all 184 kB of it on a landing page that draws no
+> charts. Rollup already gives it a shared chunk, currently named after
+> `Lightbox` because that is the other module with the same reached-by set.
+>
+> ### Gates run
+>
+> `npm run verify` (typecheck both configs, production build, then the class
+> audit: **546 utilities, zero missing**), the dev server serving the injected
+> theme correctly, and `wrangler deploy --dry-run` proving the Worker still
+> bundles through the container under its ES2022 and no DOM config.
+>
+> **NOT yet done, and deliberately:** no visual browser pass. Every change above
+> is either provably value preserving or verified statically, but the Ten Things
+> tile grid and the Readiness Ladder chips are the two measured layouts most
+> exposed to the `font-mono` fix, since DM Mono is roughly 9% wider than the
+> Consolas that was actually rendering. **Re-measure those two at 1280, 1440 and
+> 1920 before trusting this pass in front of a client.**
+
+> ## STATE AS OF 2026-08-11 (Business Dashboard was removed)
 >
 > **The deck is SEVEN pages.** On client direction, Business Dashboard is gone:
 > the page, its icon, the `Page` enum member, the nav entry and the `App.tsx`

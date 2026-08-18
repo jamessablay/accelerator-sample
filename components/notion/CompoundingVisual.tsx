@@ -74,7 +74,7 @@ const CompoundingVisual: React.FC = () => {
                         opacity: revealed ? 1 : 0,
                         transform: revealed ? 'translateY(0)' : 'translateY(10px)',
                         transition: animate
-                          ? `opacity 360ms var(--lyka-ease) ${delay}ms, transform 360ms var(--lyka-ease) ${delay}ms`
+                          ? `opacity 360ms var(--brand-ease) ${delay}ms, transform 360ms var(--brand-ease) ${delay}ms`
                           : 'none',
                       }}
                     />

@@ -3,6 +3,12 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 
+// The compiled stylesheet. Replaces the Tailwind CDN <script>, which shipped a
+// JIT compiler to the browser and generated the whole stylesheet at runtime on
+// every load, on a third party network path that a corporate firewall could
+// block into an unstyled deck.
+import './styles/app.css';
+
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error("Could not find root element to mount to");

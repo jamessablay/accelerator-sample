@@ -200,7 +200,7 @@ const EcosystemDiagram: React.FC = () => {
           >
             {ECOSYSTEM_HUB.eyebrow}
           </p>
-          <p className="mt-2 text-lead font-display leading-tight text-white md:text-title">
+          <p className="mt-2 text-lead leading-tight text-white md:text-title">
             {ECOSYSTEM_HUB.title}
           </p>
           <ul className="mx-auto mt-4 max-w-xs space-y-1.5">
@@ -248,7 +248,7 @@ const EcosystemDiagram: React.FC = () => {
       </div>
 
       <p
-        className="mx-auto mt-6 max-w-2xl text-center text-body font-display leading-relaxed"
+        className="mx-auto mt-6 max-w-2xl text-center text-body leading-relaxed"
         style={{ color: LYKA.accentInk }}
       >
         {FIT_CAPTION}

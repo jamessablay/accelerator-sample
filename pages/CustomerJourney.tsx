@@ -92,10 +92,10 @@ const CustomerJourney: React.FC = () => {
               (30) rather than the old 1.95rem (31.2): a hair smaller, and one
               step on the scale instead of a bespoke rem value. */}
           <h1
-            className={`mt-1 leading-tight font-display ${
+            className={`mt-1 leading-tight ${
               variant.compactHeader ? 'text-2xl md:text-display' : 'text-3xl md:text-[2.6rem]'
             }`}
-            style={{ color: 'var(--lyka-teal-deep)' }}
+            style={{ color: 'var(--brand-ink-deepest)' }}
           >
             {active.meta.title}
           </h1>
@@ -148,7 +148,7 @@ const CustomerJourney: React.FC = () => {
         className={`flex flex-wrap gap-2 border-b pb-2.5 pt-1 flex-shrink-0 ${
           variant.compactHeader ? 'mt-2.5 mb-3' : 'my-4'
         }`}
-        style={{ borderColor: 'var(--lyka-mint)' }}
+        style={{ borderColor: 'var(--brand-hairline)' }}
       >
         {TAB_ORDER.map((journeyType) => {
           const j = journeyMetricsByType[journeyType];
@@ -163,7 +163,7 @@ const CustomerJourney: React.FC = () => {
               style={
                 isSelected
                   ? { backgroundColor: getSegmentColor(j.segmentKey).base }
-                  : { color: 'var(--lyka-ink)' }
+                  : { color: 'var(--brand-ink)' }
               }
             >
               {j.meta.label}

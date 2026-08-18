@@ -143,7 +143,7 @@ const MarketBar: React.FC<BarProps & PersonaVizProps> = ({
               largest roles in this view; the reading floor never moves. */}
           <div className="flex flex-1 min-h-0 flex-col justify-center px-2.5 pt-2.5 pb-1 min-w-0">
             <div
-              className={`font-display font-semibold leading-tight truncate ${
+              className={` font-semibold leading-tight truncate ${
                 nameFits ? 'text-lead 2xl:text-title' : 'text-label 2xl:text-body'
               }`}
               style={{ color: c.tintInk }}
@@ -152,7 +152,7 @@ const MarketBar: React.FC<BarProps & PersonaVizProps> = ({
             </div>
             <div className="flex items-baseline gap-1.5 mt-1">
               <span
-                className="font-display text-figure 2xl:text-[32px] font-bold leading-none"
+                className=" text-figure 2xl:text-[32px] font-bold leading-none"
                 style={{ color: c.tintInk }}
               >
                 {stage.marketPct}%
@@ -323,7 +323,7 @@ const ReadinessLadder: React.FC<PersonaVizProps> = (props) => {
           Total Australian dog owners
         </span>
         {TOTAL_DOG_OWNERS !== null && (
-          <span className="ml-3 font-display text-title font-bold text-white">
+          <span className="ml-3 text-title font-bold text-white">
             {formatVolume(TOTAL_DOG_OWNERS)}
           </span>
         )}
@@ -351,7 +351,7 @@ const ReadinessLadder: React.FC<PersonaVizProps> = (props) => {
                 figure pair never breaks mid-string. */}
             <div className="flex flex-wrap items-baseline gap-x-2 min-w-0">
               <span
-                className="font-display text-body font-bold whitespace-nowrap"
+                className=" text-body font-bold whitespace-nowrap"
                 style={{ color: LYKA.tealDeepest }}
               >
                 {gap.label}
@@ -458,7 +458,7 @@ const ReadinessLadder: React.FC<PersonaVizProps> = (props) => {
               title={`${stage.label} | ${stage.customerPct}% of Lyka customers | ${stage.conversionIndex.toFixed(2)}x conversion index`}
             >
               <div
-                className={`font-display font-bold leading-none ${
+                className={` font-bold leading-none ${
                   nameFits ? 'text-figure 2xl:text-[32px]' : 'text-body 2xl:text-lead'
                 }`}
                 style={{ color: c.ink }}

@@ -1,0 +1,185 @@
+/* ---------------------------------------------------------------------------
+   The app stylesheet.
+
+   Everything here was previously an inline <style> block in index.html, loaded
+   beside the Tailwind CDN. It is a real compiled stylesheet now, which is what
+   makes utility ORDER controllable and therefore what fixes the `.font-mono`
+   bug that inline arrangement caused.
+
+   NOT here, deliberately: the `:root` custom properties. They are derived from
+   the theme container and injected into <head> by the Vite plugin, so that the
+   palette has exactly one source. See theme/cssVars.ts.
+   --------------------------------------------------------------------------- */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* -------------------------------------------------------------------------
+     THE SEMANTIC TYPE LAYER.
+
+     Every element here carries its own size, weight and rhythm, so a component
+     writing `<h2>` gets the right thing without restating it. Before this, size
+     lived only in utility classes at the call site, which is why the deck ended
+     up with seven pages opening in five different typographic keys and one page
+     with no `h1` at all.
+
+     THESE ARE DEFAULTS, NOT OVERRIDES. Tailwind's `base` layer loses to every
+     utility, so any existing `text-lead` or `text-2xl` at a call site still
+     wins exactly as before. Nothing was restyled by adding this; only elements
+     that were previously unstyled changed, which is the intended fix.
+
+     Sizes come from the tokens, so the scale increase flows through here.
+     ------------------------------------------------------------------------- */
+
+  /* THE DISPLAY FACE IS FOR h1 AND NOTHING ELSE.
+     Balgin is a banner face and the supplied file is a single 700 weight, so it
+     has no range to build a hierarchy out of. Used across h1 to h4 it stops
+     reading as an accent and starts reading as the whole deck shouting; used on
+     one element per page it does the job it was picked for. Everything below h1
+     is Inter, which has the weights and the text fitness for it. */
+  h1 {
+    font-family: theme('fontFamily.display');
+    font-size: theme('fontSize.display');
+    letter-spacing: theme('letterSpacing.display');
+  }
+
+  h2, h3, h4, h5, h6 {
+    font-family: theme('fontFamily.sans');
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--brand-ink-deepest);
+    text-wrap: balance;
+  }
+
+  h2 { font-size: theme('fontSize.figure'); }
+  h3 { font-size: theme('fontSize.title'); }
+  h4 { font-size: theme('fontSize.lead'); }
+  h5, h6 { font-size: theme('fontSize.body'); }
+
+  p, li, dd, dt, td, th, figcaption, label, blockquote {
+    font-size: theme('fontSize.body');
+  }
+
+  /* Prose measure. Long lines are the other half of readability, and no amount
+     of size increase fixes a 140 character line. Scoped to `p` so it cannot
+     constrain a layout element. */
+  p {
+    max-width: 78ch;
+  }
+
+  strong, b { font-weight: 600; }
+
+  /* Eyebrows. The mono uppercase convention this deck already used, given a name
+     so it stops being three utilities repeated at every call site. */
+  .eyebrow {
+    font-family: theme('fontFamily.mono');
+    font-size: theme('fontSize.micro');
+    letter-spacing: theme('letterSpacing.eyebrow');
+    text-transform: uppercase;
+    color: var(--brand-accent-text);
+  }
+
+  /* Keyboard focus is visible everywhere and brand coloured. The ring defaults
+     in the Tailwind preset handle components that opt into `focus:ring-*`; this
+     catches anything that does not. */
+  :focus-visible {
+    outline: 2px solid var(--brand-accent-text);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* -------------------------------------------------------------------------
+     Scrollbar for panels that scroll internally.
+     Was applied in two detail panels and never defined anywhere, so it was
+     inert. It is also on the main content column now, which was scrolling with
+     the raw OS scrollbar while every inner panel had the thin one.
+     ------------------------------------------------------------------------- */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--brand-hairline) transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--brand-hairline);
+    border-radius: var(--brand-radius-control);
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--brand-hairline-soft);
+  }
+
+  /* -------------------------------------------------------------------------
+     Persona chips, in the Readiness Ladder and the Mindset Flow.
+
+     WHY CSS AND NOT REACT STATE. A `hoveredId` in state re-renders on every
+     mouseover, and MindsetFlow is a large SVG that recomputes its viewBox from
+     a measured container. Hover has no business in the render path.
+
+     WHY THE RESTING FILL IS A CUSTOM PROPERTY. Inline style outranks any
+     stylesheet rule, so a `:hover` background here could never override an
+     inline `backgroundColor`, while the ring, which nothing sets inline, would
+     have worked. That is half a hover state, silently, and it shipped twice.
+     Handing the resting fill to the stylesheet as --chip-bg removes the
+     specificity fight rather than winning it with !important.
+     ------------------------------------------------------------------------- */
+  .persona-chip {
+    cursor: pointer;
+    background-color: var(--chip-bg);
+    transition: background-color theme('transitionDuration.fast') var(--brand-ease),
+                box-shadow theme('transitionDuration.fast') var(--brand-ease);
+  }
+  .persona-chip:hover,
+  .persona-chip:focus-visible {
+    background-color: var(--chip-hover-bg);
+    box-shadow: inset 0 0 0 2px var(--chip-hover-ring);
+    outline: none;
+  }
+
+  /* The same chip drawn as an SVG rect. box-shadow does not apply to SVG
+     geometry, so the ring is the rect's own stroke. */
+  .persona-chip-svg rect {
+    transition: fill theme('transitionDuration.fast') var(--brand-ease),
+                stroke theme('transitionDuration.fast') var(--brand-ease),
+                stroke-width theme('transitionDuration.fast') var(--brand-ease);
+  }
+  .persona-chip-svg:hover rect,
+  .persona-chip-svg:focus-visible rect {
+    fill: var(--chip-hover-bg);
+    stroke: var(--chip-hover-ring);
+    stroke-width: 2;
+  }
+  .persona-chip-svg:focus-visible { outline: none; }
+
+  /* -------------------------------------------------------------------------
+     Gap matrix cells, on the Consumer Journey page.
+     Same trap and same fix as .persona-chip: each cell's diverging wash is a
+     per cell value so it can only arrive inline, and inline style outranks any
+     stylesheet rule. The ring is the segment's own base colour, so a hovered
+     cell says which journey it belongs to as well as that it is interactive.
+     ------------------------------------------------------------------------- */
+  .gap-cell {
+    cursor: pointer;
+    background-color: var(--cell-bg);
+    transition: box-shadow theme('transitionDuration.fast') var(--brand-ease);
+  }
+  .gap-cell:hover,
+  .gap-cell:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--cell-ring);
+    outline: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fadeIn { animation: none; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

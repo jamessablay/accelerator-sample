@@ -155,7 +155,7 @@ function loginPage(next: string, failed: boolean): Response {
        person to use a 1.88:1 colour as ink on this page. See the FILL ONLY
        comment on mintMuted in brand.ts. (No backticks in this block: the whole
        page is a template literal, so one would terminate it.) */
-    --speed-red: ${LYKA.speedRed};
+    --agency-red: ${LYKA.speedRed};
   }
   * { box-sizing: border-box; }
   body {
@@ -185,7 +185,7 @@ function loginPage(next: string, failed: boolean): Response {
     font-weight: 700;
     margin-bottom: 28px;
   }
-  .wordmark .speed { color: var(--speed-red); }
+  .wordmark .speed { color: var(--agency-red); }
   .wordmark .accel { color: rgba(255,255,255,0.55); }
   h1 {
     margin: 0 0 8px;

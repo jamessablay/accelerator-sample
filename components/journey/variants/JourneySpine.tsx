@@ -173,7 +173,7 @@ const JourneySpine: React.FC<JourneyVizProps> = ({ active }) => {
           className="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-5 py-2.5 border-b flex-shrink-0"
           style={{ borderColor: LYKA.mint, backgroundColor: LYKA.cream }}
         >
-          <h3 className="font-display text-title font-bold" style={{ color: LYKA.tealDeepest }}>
+          <h3 className=" text-title font-bold" style={{ color: LYKA.tealDeepest }}>
             {stage.title}
           </h3>
           {stage.definition && (

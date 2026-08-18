@@ -89,7 +89,7 @@ const CategoryDetailComponent: React.FC<CategoryDetailProps> = ({
               >
                 Readiness stage
               </p>
-              <h3 className="mt-2 font-display text-3xl xl:text-4xl text-white leading-tight">{heading}</h3>
+              <h3 className="mt-2 text-3xl xl:text-4xl text-white leading-tight">{heading}</h3>
               {category.movement && (
                 <p className="mt-3 text-lead leading-relaxed" style={{ color: 'rgba(255,255,255,0.9)' }}>
                   {category.movement}
@@ -105,7 +105,7 @@ const CategoryDetailComponent: React.FC<CategoryDetailProps> = ({
                   { label: 'of Lyka customers', value: category.customerShare },
                 ].map(stat => (
                   <div key={stat.label} className="px-6 py-5 text-center" style={{ backgroundColor: LYKA.cream }}>
-                    <p className="font-display text-3xl" style={{ color: LYKA.tealDeepest }}>{stat.value ?? '—'}</p>
+                    <p className=" text-3xl" style={{ color: LYKA.tealDeepest }}>{stat.value ?? '—'}</p>
                     <p
                       className="mt-1 font-mono text-micro font-medium uppercase"
                       style={{ color: LYKA.muted, letterSpacing: TRACKING.eyebrow }}
@@ -152,7 +152,7 @@ const CategoryDetailComponent: React.FC<CategoryDetailProps> = ({
                         title={`Open the ${pm.persona.name} persona, including its film slot`}
                       >
                         <span
-                          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full font-display text-meta"
+                          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-meta"
                           style={{ backgroundColor: c.base, color: '#FFFFFF' }}
                           aria-hidden="true"
                         >

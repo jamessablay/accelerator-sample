@@ -37,7 +37,7 @@ const FIT_STYLES: Record<string, { bg: string; fg: string }> = {
 
 const DetailSection: React.FC<{ icon: React.ReactNode; title: string; children: React.ReactNode }> = ({ icon, title, children }) => (
     <div className="flex items-start">
-        <div className="flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-full text-white" style={{ backgroundColor: 'var(--lyka-accent-ink)' }}>
+        <div className="flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-full text-white" style={{ backgroundColor: 'var(--brand-accent-text)' }}>
           {/* Icons are expected to be 6x6, which fits nicely in a 10x10 circle */}
           {icon}
         </div>
@@ -171,7 +171,7 @@ const PersonaMediaSlot: React.FC<{ persona: Persona; stacked?: boolean }> = ({
                 added and its absence was noticed immediately, so it stays. */}
             <div className="flex-shrink-0 pt-3 flex items-center gap-3 min-w-0">
               <span
-                className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full font-display text-lead"
+                className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-lead"
                 style={{ backgroundColor: 'rgba(255,255,255,0.16)', color: '#FFFFFF' }}
                 aria-hidden="true"
               >
@@ -184,7 +184,7 @@ const PersonaMediaSlot: React.FC<{ persona: Persona; stacked?: boolean }> = ({
                 >
                   {persona.stageLabel}
                 </p>
-                <h3 className="mt-0.5 font-display text-lead text-white leading-tight">
+                <h3 className="mt-0.5 text-lead text-white leading-tight">
                   {persona.name}
                 </h3>
                 <span
@@ -242,7 +242,7 @@ const PersonaMediaSlot: React.FC<{ persona: Persona; stacked?: boolean }> = ({
               { label: 'of Lyka customers', value: persona.customerShare },
             ].map(stat => (
               <div key={stat.label} className="px-3 py-3 text-center" style={{ backgroundColor: colors.base }}>
-                <p className="font-display text-figure text-white">{stat.value}</p>
+                <p className=" text-figure text-white">{stat.value}</p>
                 <p
                   className="mt-1 font-mono text-micro font-medium uppercase leading-snug"
                   style={{ color: 'rgba(255,255,255,0.85)', letterSpacing: TRACKING.eyebrow }}

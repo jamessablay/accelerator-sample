@@ -46,7 +46,7 @@ const KpiCard: React.FC<{ label: string; value: string; sub?: string }> = ({ lab
   <div className="rounded-xl border bg-white px-4 py-3 shadow-sm" style={{ borderColor: LYKA.mint }}>
     <p className="font-mono text-label font-medium uppercase" style={{ letterSpacing: TRACKING.caps, color: LYKA.muted }}>{label}</p>
     {/* mt-1.5, not mt-1: the token line box is tighter than Tailwind's text-2xl. */}
-    <p className="mt-1.5 font-display text-figure md:text-display font-semibold tabular-nums" style={{ color: LYKA.tealDeepest }}>{value}</p>
+    <p className="mt-1.5 text-figure md:text-display font-semibold tabular-nums" style={{ color: LYKA.tealDeepest }}>{value}</p>
     {sub && <p className="mt-0.5 text-meta" style={{ color: LYKA.muted }}>{sub}</p>}
   </div>
 );
@@ -64,7 +64,7 @@ const InteractiveMediaPlan: React.FC = () => {
   return (
     <div className="animate-fadeIn pb-16 md:pb-24">
       <header className="flex-shrink-0">
-        <h1 className="text-4xl md:text-5xl font-display" style={{ color: 'var(--lyka-teal-deep)' }}>
+        <h1 className="text-4xl md:text-5xl" style={{ color: 'var(--brand-ink-deepest)' }}>
           Interactive Media Plan
         </h1>
         <p className="mt-3 text-base md:text-xl text-[#143C33] max-w-4xl">

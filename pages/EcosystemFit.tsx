@@ -49,8 +49,8 @@ const EcosystemFit: React.FC = () => (
         {PAGE_EYEBROW}
       </p>
       <h1
-        className="mt-1 max-w-4xl text-2xl leading-tight font-display md:text-4xl"
-        style={{ color: 'var(--lyka-teal-deep)' }}
+        className="mt-1 max-w-4xl text-2xl leading-tight md:text-4xl"
+        style={{ color: 'var(--brand-ink-deepest)' }}
       >
         {PAGE_TITLE}
       </h1>
@@ -104,8 +104,8 @@ const Section: React.FC<{ eyebrow: string; title: string; children: React.ReactN
       {eyebrow}
     </p>
     <h2
-      className="mt-1 text-2xl leading-tight font-display md:text-4xl"
-      style={{ color: 'var(--lyka-teal-deep)' }}
+      className="mt-1 text-2xl leading-tight md:text-4xl"
+      style={{ color: 'var(--brand-ink-deepest)' }}
     >
       {title}
     </h2>
@@ -140,7 +140,7 @@ const PillarCard: React.FC<{ pillar: (typeof PILLARS)[number] }> = ({ pillar }) 
       />
       <div className="px-5 pb-6 pt-7 md:px-7">
         <div className="flex items-baseline gap-3">
-          <span className="text-figure font-display leading-none md:text-display" style={{ color: ACCENT }}>
+          <span className="text-figure leading-none md:text-display" style={{ color: ACCENT }}>
             {pillar.number}
           </span>
           <h3 className="text-lead font-semibold md:text-title" style={{ color: LYKA.tealDeepest }}>
@@ -180,7 +180,7 @@ const PrincipleBand: React.FC = () => (
       {PRINCIPLES.map((p) => (
         <span
           key={p}
-          className="rounded-full border px-5 py-2.5 text-body font-display md:text-lead"
+          className="rounded-full border px-5 py-2.5 text-body md:text-lead"
           style={{ borderColor: ACCENT, color: LYKA.tealDeepest, backgroundColor: '#FFFFFF' }}
         >
           {p}
@@ -203,7 +203,7 @@ const OutcomeBand: React.FC = () => (
     <p className="text-micro font-bold uppercase font-mono text-white/60" style={{ letterSpacing: TRACKING.eyebrow }}>
       {OUTCOME_EYEBROW}
     </p>
-    <h2 className="mt-1 max-w-3xl text-2xl font-display leading-tight text-white md:text-4xl">
+    <h2 className="mt-1 max-w-3xl text-2xl leading-tight text-white md:text-4xl">
       {OUTCOME_HEADLINE}
     </h2>
     <ul className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-x-8">

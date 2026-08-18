@@ -266,7 +266,7 @@ const ChannelDetail: React.FC<ChannelDetailProps> = ({ row, layerKey }) => {
                   bound. The old 110px left 86px and would have clipped it. */}
               {visibleRows.map(([label, value], i) => (
                 <div key={label} className={`grid grid-cols-[150px_1fr] ${i < visibleRows.length - 1 ? 'border-b border-[#DBE6DC]' : ''}`}>
-                  <div className="px-3 py-2.5 text-[11px] font-bold uppercase tracking-wide text-white flex items-start" style={{ backgroundColor: 'var(--lyka-teal-deep)' }}>
+                  <div className="px-3 py-2.5 text-[11px] font-bold uppercase tracking-wide text-white flex items-start" style={{ backgroundColor: 'var(--brand-ink-deepest)' }}>
                     {label}
                   </div>
                   {/* MULTI PARAGRAPH CELLS. A blank line in the source string

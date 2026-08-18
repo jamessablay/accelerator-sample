@@ -78,7 +78,7 @@ const TenThingsChart: React.FC<TenThingsChartProps> = ({
     )}
 
     {title && (
-      <h3 className="text-title font-display" style={{ color: LYKA.tealDeepest }}>
+      <h3 className="text-title" style={{ color: LYKA.tealDeepest }}>
         {title}
       </h3>
     )}
@@ -89,7 +89,7 @@ const TenThingsChart: React.FC<TenThingsChartProps> = ({
     )}
 
     <div
-      className={`mt-2 rounded-xl border p-3 ${
+      className={`mt-2 rounded-card border p-3 ${
         panels === 2 ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : ''
       }`}
       style={{ borderColor: LYKA.mint, backgroundColor: LYKA.pageBg, height }}
@@ -103,7 +103,7 @@ const TenThingsChart: React.FC<TenThingsChartProps> = ({
         {truncatedAxis && <span className="block mt-1 italic">Axis note: {truncatedAxis}</span>}
         {discrepancy && (
           <span
-            className="mt-2 block rounded-lg border-l-[3px] px-3 py-2"
+            className="mt-2 block rounded-control border-l-[3px] px-3 py-2"
             style={{ backgroundColor: LYKA.cream, borderColor: LYKA.tangerine }}
           >
             <span

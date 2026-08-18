@@ -44,7 +44,7 @@ const PracticeWalkthrough: React.FC = () => {
           >
             <div className="flex items-center justify-between">
               <span
-                className="text-title font-display leading-none"
+                className="text-title leading-none"
                 style={{ color: LYKA.tealDeepest }}
               >
                 {step.number}

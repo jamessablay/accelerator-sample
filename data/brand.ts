@@ -1,51 +1,69 @@
 // -----------------------------------------------------------------------------
-// SINGLE SOURCE OF TRUTH for every brand colour in the app.
+// THE DERIVED COLOUR SYSTEMS.
 //
-// Two hard constraints on this file, both load bearing:
+// ⚠ THIS FILE IS NO LONGER THE SOURCE OF THE PALETTE. `theme/` is.
+//
+// What lives here is the five colour SYSTEMS built on top of the palette: the
+// sunburst's segment sets, the media plan's layer and owner sets, the Ten Things
+// band, the diverging gap ramp and the media focus wash. Those encode meaning
+// rather than brand, which is why they did not move into the theme container.
+//
+// The base palette now arrives from `theme/`, and `LYKA` below is a COMPATIBILITY
+// MAPPING from the theme's semantic role names onto the literal hue names the
+// ~48 existing importers use. New code should import `palette` from `theme`
+// instead; this export exists so that extracting the container changed no call
+// site and therefore could not change a pixel.
+//
+// Two hard constraints still apply, both load bearing:
 //
 // 1. NO React and NO DOM types. `worker/index.ts` imports LYKA to build the
 //    login page, and worker/tsconfig.json runs with lib:["ES2022"], no DOM lib
-//    and no @types/node. Adding a React import breaks the Worker type check.
+//    and no @types/node. The whole `theme/` folder honours the same rule, which
+//    is what lets the Worker, Tailwind's config loader and the Vite config all
+//    read it.
 //
 // 2. LITERAL HEX ONLY, never `var(--token)`. Chart.js draws to a canvas and
-//    cannot resolve CSS custom properties. Every colour that reaches a chart
-//    has to be a real value here.
-//
-// index.html's `:root` block MIRRORS the LYKA object below. Change both together.
-//
-// Palette source: RFI - Lyka/lyka-rfi/styles/globals.css, which is the only
-// place in this workspace where Lyka's brand is correctly implemented. (The
-// Lyka Showcase Accelerator was never actually re-themed and is still SPEED
-// red. Do not use it as a colour reference.)
+//    cannot resolve CSS custom properties.
 // -----------------------------------------------------------------------------
 
+import { AGENCY, ELEVATION, ease as houseEase, palette } from '../theme';
+
+export { lighten } from '../theme';
+
+/**
+ * The palette under its previous names.
+ *
+ * Each key is one role from `theme/types.ts`. The mapping is the whole of the
+ * translation: no value is defined here, so a client swap propagates through
+ * this object without it being edited.
+ */
 export const LYKA = {
-  /** Deepest teal. Sidebar, dark chrome, primary headings. */
-  tealDeepest: '#003D33',
-  /** Dark Teal. Lyka's primary ink and dark blocks. */
-  tealDark: '#005648',
-  /** Deep teal-tinted body ink. */
-  ink: '#143C33',
-  /** Darker teal for accent TEXT on light or cream (AA ~5:1). */
-  accentInk: '#0A7D68',
-  /** Bright Teal. Fills, focus rings, dividers. NEVER for text on cream. */
-  accent: '#10B193',
-  /** Lyka Orange. */
-  orange: '#FF886B',
-  /** Tangerine. */
-  tangerine: '#F68B1F',
-  /** Peach. */
-  peach: '#FEE9DA',
-  /** Off-White page background. */
-  pageBg: '#FFFBED',
-  /** Ivory secondary background. */
-  ivory: '#F9F6F1',
-  /** Cream panel. */
-  cream: '#F0F2E9',
-  /** Light Mint hairline. Lyka uses borders where other brands use shadows. */
-  mint: '#DBE6DC',
+  /** Deepest brand ink. Sidebar, dark chrome, primary headings. */
+  tealDeepest: palette.inkDeepest,
+  /** Strong brand ink and dark blocks. */
+  tealDark: palette.inkStrong,
+  /** Body ink. */
+  ink: palette.ink,
+  /** Accent for TEXT on light or cream (AA ~5:1). */
+  accentInk: palette.accentText,
+  /** Bright accent. Fills, focus rings, dividers. NEVER for text on cream. */
+  accent: palette.accent,
+  /** Warm secondary. */
+  orange: palette.warm,
+  /** Second warm secondary. */
+  tangerine: palette.warmAlt,
+  /** Palest warm tint. */
+  peach: palette.warmSoft,
+  /** The page ground. */
+  pageBg: palette.page,
+  /** Secondary surface. */
+  ivory: palette.surfaceAlt,
+  /** Sunken surface. */
+  cream: palette.surfaceSunk,
+  /** Hairline. This system uses borders where other brands use shadows. */
+  mint: palette.hairline,
   /**
-   * Muted mint. **FILL, BORDER AND STROKE ONLY. NEVER INK.**
+   * **FILL, BORDER AND STROKE ONLY. NEVER INK.**
    *
    * 1.88:1 on white, 1.75:1 on ivory. That misses AA 4.5:1 for text and also
    * misses the 3:1 non-text floor, so it cannot carry a label, an axis value or
@@ -53,35 +71,35 @@ export const LYKA = {
    * and seven places had taken it at its word: the media plan KPI sub lines and
    * inactive month chips, the "tap to enlarge" hint, every modal's close
    * button, the journey table's definition icon, the score graph's y axis
-   * labels and the gap matrix's "no data". All seven are `muted` #5B6E64 now.
+   * labels and the gap matrix's "no data". All seven are `muted` now.
    *
    * `muted` is the lightest ink in this palette that clears AA, at 5.44:1 on
    * white, 5.26:1 on the cream page, 5.06:1 on ivory and 4.82:1 on the cream
    * panel. **There is no paler one.** If something needs to read as quiet, make
    * it smaller or lighter in WEIGHT, not fainter than `muted`.
    *
-   * `VariantSwitcher.tsx` already recorded the lesson: a 9px eyebrow in this
-   * token was deleted in the type pass as "the worst size-and-contrast pairing
-   * on either page". `TEN_THINGS.inertFill` is the same hex, correctly labelled
-   * fill only. Asserted by `data/__integrity.ts` check 6c.
+   * Asserted from BOTH sides by `data/__integrity.ts` check 6c.
    */
-  mintMuted: '#A9C3B4',
-  /** Teal-tinted muted text. */
-  muted: '#5B6E64',
+  mintMuted: palette.hairlineSoft,
+  /** The palest legal ink. */
+  muted: palette.inkMuted,
   /** Hairline border on light surfaces. */
-  border: 'rgba(0,86,72,0.08)',
-  /** Teal-tinted shadow. Lyka shadows are never black. */
-  shadow: '0 18px 40px -16px rgba(0,86,72,0.22)',
+  border: palette.borderSubtle,
+  /** Brand-tinted shadow. Shadows here are never black. */
+  shadow: ELEVATION.lg,
   /**
    * SPEED brand mark. Reserved for the SPEED wordmark, the APEX logo, and the
    * sanctioned data uses of OWNER_COLORS.speed, where the colour denotes SPEED
    * itself: the media plan (the client-requested red = SPEED legend) and the
    * Notion Coworking Setup page (the two-party Lyka/SPEED split). It is still
    * not a general UI colour.
+   *
+   * It comes from `theme/house.ts`, NOT from the client palette, because it is
+   * the agency's mark: a re-skin must not be able to overwrite it.
    */
-  speedRed: '#E8151B',
-  /** Lyka uses one easing curve for everything. */
-  ease: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  speedRed: AGENCY.red,
+  /** One easing curve family for everything. See theme/house.ts MOTION. */
+  ease: houseEase,
 } as const;
 
 // -----------------------------------------------------------------------------
@@ -396,19 +414,10 @@ export const OWNER_COLORS: Record<OwnerKey, OwnerColorSet> = {
   },
 };
 
-/**
- * Mix `hex` toward white by `t` (0 to 1), returning an `rgb()` string.
- *
- * Lives here rather than in the chart components (which each used to carry an
- * identical private copy) because it is pure string math and both budget charts
- * shade their per-channel series with it. Same constraints as the rest of this
- * file: no React, no DOM.
- */
-export const lighten = (hex: string, t: number): string => {
-  const n = parseInt(hex.slice(1), 16);
-  const mix = (c: number) => Math.round(c + (255 - c) * t);
-  return `rgb(${mix((n >> 16) & 255)}, ${mix((n >> 8) & 255)}, ${mix(n & 255)})`;
-};
+// `lighten()` moved to theme/contrast.ts and is re-exported from the top of this
+// file, so both budget charts and the APEX methodology bar keep their import
+// path. It sits beside the WCAG maths now because the two are always used
+// together: you lighten a token precisely when the raw one fails a floor.
 
 // -----------------------------------------------------------------------------
 // Ten Things chart series. A THIRD colour band.

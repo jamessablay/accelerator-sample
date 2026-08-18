@@ -58,8 +58,8 @@ const NotionCoworkingSetup: React.FC = () => (
         {PAGE_EYEBROW}
       </p>
       <h1
-        className="mt-1 text-2xl leading-tight font-display md:text-display"
-        style={{ color: 'var(--lyka-teal-deep)' }}
+        className="mt-1 text-2xl leading-tight md:text-display"
+        style={{ color: 'var(--brand-ink-deepest)' }}
       >
         {PAGE_TITLE}
       </h1>
@@ -75,7 +75,7 @@ const NotionCoworkingSetup: React.FC = () => (
       </p>
       <ProblemVisual />
       <p
-        className="mt-6 max-w-2xl text-lead font-display leading-snug"
+        className="mt-6 max-w-2xl text-lead leading-snug"
         style={{ color: LYKA.tealDeepest }}
       >
         {PROBLEM_QUESTION}
@@ -155,8 +155,8 @@ const Section: React.FC<{ eyebrow: string; title: string; children: React.ReactN
       {eyebrow}
     </p>
     <h2
-      className="mt-1 text-2xl leading-tight font-display md:text-4xl"
-      style={{ color: 'var(--lyka-teal-deep)' }}
+      className="mt-1 text-2xl leading-tight md:text-4xl"
+      style={{ color: 'var(--brand-ink-deepest)' }}
     >
       {title}
     </h2>
@@ -221,7 +221,7 @@ const ProblemVisual: React.FC = () => {
           className="rounded-2xl px-8 py-6 text-center shadow-[0_18px_40px_-16px_rgba(0,86,72,0.28)]"
           style={{ backgroundColor: LYKA.tealDeepest }}
         >
-          <span className="text-lead font-display text-white md:text-title">{ONE_SHARED_SPACE}</span>
+          <span className="text-lead text-white md:text-title">{ONE_SHARED_SPACE}</span>
         </div>
       </div>
     </div>
@@ -237,7 +237,7 @@ const SetupSteps: React.FC = () => (
     {SETUP_STEPS.map((step) => (
       <div key={step.number} className="rounded-2xl border bg-white p-5 md:p-6" style={{ borderColor: LYKA.border }}>
         <div className="flex items-baseline gap-3">
-          <span className="text-figure font-display leading-none" style={{ color: LYKA.accentInk }}>
+          <span className="text-figure leading-none" style={{ color: LYKA.accentInk }}>
             {step.number}
           </span>
           <h4 className="text-lead font-semibold" style={{ color: LYKA.ink }}>
@@ -329,7 +329,7 @@ const ClosingBand: React.FC = () => (
     <p className="text-micro font-bold uppercase font-mono text-white/60" style={{ letterSpacing: TRACKING.eyebrow }}>
       Getting started
     </p>
-    <h2 className="mt-1 text-2xl font-display leading-tight text-white md:text-4xl">{CLOSING_HEADLINE}</h2>
+    <h2 className="mt-1 text-2xl leading-tight text-white md:text-4xl">{CLOSING_HEADLINE}</h2>
     <p className="mt-2 max-w-2xl text-body text-white/80 md:text-lead">{CLOSING_LEAD}</p>
 
     <div className="mt-7 grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-4">
@@ -340,7 +340,7 @@ const ClosingBand: React.FC = () => (
           style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)' }}
         >
           <div className="flex items-baseline gap-2">
-            <span className="text-lead font-display leading-none text-white/70">{step.number}</span>
+            <span className="text-lead leading-none text-white/70">{step.number}</span>
             <h4 className="text-body font-semibold text-white md:text-lead">{step.title}</h4>
           </div>
           <p className="mt-1.5 text-meta leading-relaxed text-white/75 md:text-body">{step.body}</p>

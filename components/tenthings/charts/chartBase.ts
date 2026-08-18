@@ -37,6 +37,7 @@ import {
 } from 'chart.js';
 import { LYKA, TEN_THINGS, CHART_INK, CHART_MUTED, CHART_GRID } from '../../../data/brand';
 import { TYPE } from '../../../data/type';
+import { theme } from '../../../theme';
 
 // BubbleController came out on 2026-08-10 with point 05, its only consumer: the
 // dog owner redraw turned that chart from a bubble into bars. Register it again
@@ -63,24 +64,39 @@ ChartJS.register(
 // It also restyles those three media plan charts. That is the correct outcome,
 // but it IS an outcome: re-open the Budget header, the % header and any gantt
 // bar pop-up after touching this file.
-ChartJS.defaults.font.family = '"DM Sans", system-ui, sans-serif';
+/**
+ * The body stack as a canvas ready string.
+ *
+ * Derived from the theme rather than written out, which is what stops a chart
+ * canvas rendering in the PREVIOUS client's typeface after a re-skin. Nothing
+ * would flag that: a canvas has no cascade to inherit from and no fallback
+ * warning, so it simply draws in whatever family the string names.
+ */
+const BODY_STACK = theme.typefaces.body
+  .map((f) => (/\s/.test(f) ? `"${f}"` : f))
+  .join(', ');
+
+ChartJS.defaults.font.family = BODY_STACK;
 ChartJS.defaults.font.size = TYPE.meta;
 ChartJS.defaults.color = CHART_INK;
 
 /**
  * Canvas font shorthands.
  *
- * `ctx.font` needs a literal CSS string, so data/type.ts cannot be the source
- * here and the two can silently diverge. (The media plan's `columnTotals`
- * already sits at 10px, below type.ts's own floor.) The TYPE token is named in
- * each key so a drift is greppable, and data/__integrity.ts asserts the px
- * number in each string equals its token.
+ * `ctx.font` needs a literal CSS string, which is why these used to be typed out
+ * with the px number and the family baked in, with `data/__integrity.ts` check
+ * 14 asserting the number still matched its token.
+ *
+ * They are BUILT from the token now. A literal string is still what reaches the
+ * canvas, it is just composed at module load instead of by hand, so the drift
+ * check 14 existed to catch can no longer happen. The check is kept: it costs
+ * nothing and it now also proves the composition itself is right.
  */
 export const CANVAS_FONT = {
-  /** TYPE.micro 11. Benchmark captions and axis furniture. */
-  micro: '11px "DM Sans", sans-serif',
-  /** TYPE.meta 12. Value labels. */
-  metaBold: 'bold 12px "DM Sans", sans-serif',
+  /** TYPE.micro. Benchmark captions and axis furniture. */
+  micro: `${TYPE.micro}px ${BODY_STACK}`,
+  /** TYPE.meta. Value labels. */
+  metaBold: `bold ${TYPE.meta}px ${BODY_STACK}`,
 } as const;
 
 /** The px size each CANVAS_FONT entry claims. Asserted against TYPE in dev. */

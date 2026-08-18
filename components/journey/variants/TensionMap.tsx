@@ -79,7 +79,7 @@ const JourneyCard: React.FC<{
     >
       <div className="px-3 pt-2.5 pb-2" style={{ backgroundColor: colour.tint }}>
         <div
-          className="font-display text-lead font-bold leading-tight truncate"
+          className=" text-lead font-bold leading-tight truncate"
           style={{ color: colour.tintInk }}
         >
           {journey.meta.title}

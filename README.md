@@ -2,15 +2,54 @@
 
 A SPEED Standard Accelerator for Lyka (fresh, human grade dog food, direct to consumer subscription).
 
-React 19 + TypeScript 5.8 on Vite 6. Tailwind via CDN. Custom SVG sunburst (no chart library) plus Chart.js for the media plan and Ten Things. No router: a `Page` enum in `types.ts` drives a switch in `App.tsx`.
+React 19 + TypeScript 5.8 on Vite 6, Tailwind 3 compiled at build time. Custom SVG sunburst (no chart library) plus Chart.js for the media plan and Ten Things. No router: a `Page` enum in `types.ts` drives a switch in `App.tsx`, with the seven pages lazily imported.
 
 ```bash
 npm install
 npm run dev        # http://localhost:3000
 npm run build      # dist/
 npm run preview
-npm run typecheck  # app + worker. The only gate: no tests, no lint.
+npm run typecheck  # app + worker
+npm run verify:css # every utility used in source exists in the compiled CSS
+npm run verify     # all three. The gate: no tests, no lint.
 ```
+
+## The design system lives in `theme/`
+
+Re-skinning this deck for a new client is **one file plus one line**: add
+`theme/clients/<name>.ts` satisfying the `ClientTheme` contract, then point
+`theme/index.ts` at it.
+
+```
+theme/
+├── types.ts            the ClientTheme contract
+├── house.ts            SPEED constants every deck inherits: the 8 step type
+│                       scale, motion, elevation, radii, the roomy breakpoint
+├── contrast.ts         WCAG maths + lighten(), shared with __integrity.ts
+├── clients/lyka.ts     palette, typefaces, identity
+├── index.ts            the active theme  <- the line a re-skin changes
+├── cssVars.ts          derives the :root custom properties
+└── tailwindPreset.ts   derives the Tailwind scale
+```
+
+`index.html` carries **no brand values**: its title, font links and `:root` block
+are injected from the theme by a Vite plugin, in dev and build alike. The palette
+therefore has exactly one source. It previously had three (a palette module, a
+`:root` mirror and an unused Tailwind colour namespace) kept in step by a comment
+saying "change both together".
+
+Token names are **semantic**, not hue names, because `tealDeepest: '#8B0000'` is
+what hue names produce the moment a client's brand is red. `data/brand.ts` maps
+them back to the old names so every existing importer kept working unchanged.
+
+Constraint inherited by everything in `theme/`: **no React, no DOM types,
+literal values only.** That is what lets the browser, the Cloudflare Worker
+(ES2022, no DOM lib), Tailwind's config loader and the Vite config all read the
+same file.
+
+**What did NOT move:** `SEGMENT_COLORS`, `LAYER_COLORS`, `OWNER_COLORS`,
+`TEN_THINGS`, the gap ramp and `FOCUS` are still in `data/brand.ts`. They encode
+meaning rather than brand, and their keys are the client's own audience stages.
 
 ## Seven pages
 
@@ -56,6 +95,18 @@ Six rules there are load bearing rather than advisory:
 
 ## Deploy
 
-Nothing is deployed. `netlify.toml` and `wrangler.jsonc` are configured but unlinked, and there is no git remote.
+⚠ **This section was stale and said "nothing is deployed... there is no git
+remote".** Both halves were wrong. Read the Deploy section of CLAUDE.md, which is
+maintained, rather than trusting a summary here.
 
-**Do not run `netlify deploy` without running `netlify link` first and confirming the target site.** This folder is a copy of the Hamilton Island app and its inherited site link pointed at the live Hamilton Island deck. It was deleted during the conversion. See the Deploy section of CLAUDE.md.
+The short version as at 2026-08-17: the deck has been deployed and public since
+2026-08-10 on **two** hosts. **Netlify builds automatically from a push;
+Cloudflare needs `npm run deploy:cf` and is the one that goes stale if you forget
+it.** The two are gated differently, and `PUBLIC_ACCESS` in `worker/index.ts`
+currently **bypasses the Cloudflare password gate entirely**.
+
+Verify a deploy with a cache bypass. Immediately after one, an edge cached copy
+served the previous build while the origin was correct, which looks exactly like
+a failed deploy.
+
+**Do not run `netlify deploy` without running `netlify link` first and confirming the target site.** This folder is a copy of the Hamilton Island app and its inherited site link pointed at the live Hamilton Island deck. It was deleted during the conversion.

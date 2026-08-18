@@ -35,6 +35,13 @@ import Lightbox from '../shared/Lightbox';
 // `emphasis` is a list of substrings to bold, so the data file carries no markup
 // and nothing needs dangerouslySetInnerHTML. data/__integrity.ts asserts every
 // substring is actually present, because a typo would silently no-op.
+//
+// RADII ARE TOKENS HERE SINCE 2026-08-17. The tile was moved onto `rounded-card`
+// when theme/ landed and this file was not, so a point's tile had 16px corners
+// and every surface inside the modal it opened had 12px. That is the exact drift
+// the three radius roles in theme/house.ts exist to stop: `control` for the
+// hotspot and its tooltip, `card` for the map frame, the basis rail and the two
+// action panels. No other property changed.
 // -----------------------------------------------------------------------------
 
 /** Percentage positioned hotspots on the composite map, verbatim from the source. */
@@ -174,7 +181,7 @@ const TenThingsDetail: React.FC<{ point: TenThing }> = ({ point }: { point: TenT
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div className="border-l-[3px] pl-4" style={{ borderColor: TEN_THINGS.seriesInk }}>
           <span
-            className="block text-figure font-bold leading-none font-display tabular-nums"
+            className="block text-figure font-bold leading-none tabular-nums"
             style={{ color: TEN_THINGS.seriesInk }}
           >
             {point.statValue}
@@ -216,7 +223,7 @@ const TenThingsDetail: React.FC<{ point: TenThing }> = ({ point }: { point: TenT
       {point.mapImage && (
         <figure className="m-0 mt-6">
           <div
-            className="relative overflow-hidden rounded-xl border p-2"
+            className="relative overflow-hidden rounded-card border p-2"
             style={{ borderColor: LYKA.mint, backgroundColor: '#FFFFFF' }}
           >
             <img src={point.mapImage.src} alt={point.mapImage.alt} className="block h-auto w-full" />
@@ -229,11 +236,11 @@ const TenThingsDetail: React.FC<{ point: TenThing }> = ({ point }: { point: TenT
                   type="button"
                   onClick={() => setZoomed(city)}
                   aria-label={`Enlarge the ${h.label} map`}
-                  className="group absolute cursor-zoom-in rounded-lg border-2 border-transparent bg-transparent p-0 transition-colors hover:border-[#0A7D68] hover:bg-[#10B193]/15 focus:border-[#0A7D68] focus:bg-[#10B193]/15 focus:outline-none"
+                  className="group absolute cursor-zoom-in rounded-control border-2 border-transparent bg-transparent p-0 transition-colors hover:border-[#0A7D68] hover:bg-[#10B193]/15 focus:border-[#0A7D68] focus:bg-[#10B193]/15 focus:outline-none"
                   style={{ left: h.left, top: h.top, ...HOTSPOT_SIZE }}
                 >
                   <span
-                    className="pointer-events-none absolute bottom-2 left-1/2 translate-x-[-50%] translate-y-1 whitespace-nowrap rounded-md px-2.5 py-1 text-micro font-mono uppercase opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100 group-focus:translate-y-0 group-focus:opacity-100"
+                    className="pointer-events-none absolute bottom-2 left-1/2 translate-x-[-50%] translate-y-1 whitespace-nowrap rounded-control px-2.5 py-1 text-micro font-mono uppercase opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100 group-focus:translate-y-0 group-focus:opacity-100"
                     style={{
                       backgroundColor: LYKA.tealDeepest,
                       color: LYKA.pageBg,
@@ -268,7 +275,7 @@ const TenThingsDetail: React.FC<{ point: TenThing }> = ({ point }: { point: TenT
             read as five equal cards. Same shape as the discrepancy note and the
             page's Sources strip. */}
         <div
-          className="rounded-xl border-l-[3px] px-4 py-3"
+          className="rounded-card border-l-[3px] px-4 py-3"
           style={{ backgroundColor: basis.tint, borderColor: basis.mark }}
         >
           <BlockLabel color={basis.tintInk}>{basisLabel.block}</BlockLabel>
@@ -283,7 +290,7 @@ const TenThingsDetail: React.FC<{ point: TenThing }> = ({ point }: { point: TenT
 
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         <div
-          className="rounded-xl border p-4"
+          className="rounded-card border p-4"
           style={{ backgroundColor: '#D6EDE7', borderColor: 'rgba(10,125,104,0.24)' }}
         >
           <BlockLabel color="#075746">What to do</BlockLabel>
@@ -292,7 +299,7 @@ const TenThingsDetail: React.FC<{ point: TenThing }> = ({ point }: { point: TenT
           </p>
         </div>
         <div
-          className="rounded-xl border p-4"
+          className="rounded-card border p-4"
           style={{ backgroundColor: LYKA.cream, borderColor: 'rgba(246,139,31,0.3)' }}
         >
           <BlockLabel color="#8C3D24">What we still need to test</BlockLabel>

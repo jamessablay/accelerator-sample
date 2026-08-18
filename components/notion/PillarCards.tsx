@@ -43,7 +43,7 @@ const PillarCards: React.FC = () => {
             />
             <div className="px-5 pb-6 pt-7 md:px-6">
               <div
-                className="text-figure font-display leading-none tracking-wide md:text-display"
+                className="text-figure leading-none tracking-wide md:text-display"
                 style={{ color: ACCENT }}
               >
                 {pillar.number}
